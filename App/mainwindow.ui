@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuActions">
+    <property name="title">
+     <string>Room</string>
+    </property>
+    <addaction name="actionJoin"/>
+    <addaction name="actionleave"/>
+   </widget>
+   <widget class="QMenu" name="menuMedia">
+    <property name="title">
+     <string>Media</string>
+    </property>
+    <addaction name="actionEnbaleMicrophone"/>
+    <addaction name="actionDisableMicrophone"/>
+    <addaction name="actionMuteMicrophone"/>
+    <addaction name="actionUnmuteMicrophone"/>
+    <addaction name="actionEnableCamera"/>
+    <addaction name="actionDisableCamera"/>
+   </widget>
+   <addaction name="menuActions"/>
+   <addaction name="menuMedia"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionJoin">
+   <property name="text">
+    <string>Join</string>
+   </property>
+  </action>
+  <action name="actionleave">
+   <property name="text">
+    <string>leave</string>
+   </property>
+  </action>
+  <action name="actionEnbaleMicrophone">
+   <property name="text">
+    <string>Enbale Microphone</string>
+   </property>
+  </action>
+  <action name="actionDisableMicrophone">
+   <property name="text">
+    <string>Disable Microphone</string>
+   </property>
+  </action>
+  <action name="actionMuteMicrophone">
+   <property name="text">
+    <string>Mute Microphone</string>
+   </property>
+  </action>
+  <action name="actionUnmuteMicrophone">
+   <property name="text">
+    <string>Unmute Microphone</string>
+   </property>
+  </action>
+  <action name="actionEnableCamera">
+   <property name="text">
+    <string>Enable Camera</string>
+   </property>
+  </action>
+  <action name="actionDisableCamera">
+   <property name="text">
+    <string>Disable Camera</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
