@@ -28,7 +28,7 @@ INCLUDEPATH += \
 #INCLUDEPATH += "$$PWD/../deps/webrtc/Frameworks/WebRTC.xcframework/WebRTC.framework/Headers"
 
 LIBS += -L$$PWD/../deps/webrtc/lib/ -lwebrtc
-#LIBS += -F$$PWD/../deps/webrtc/Frameworks/ -framework WebRTC
+LIBS += -framework AppKit
 
 CONFIG(debug, debug | release) {
     DESTDIR = $$PWD/../Debug
@@ -58,9 +58,10 @@ SOURCES += \
     ../deps/libsdptransform/src/writer.cpp \
     logger/rtc_log_sink.cpp \
     logger/u_logger.cpp \
+    opengl/i420_texture_cache.cpp \
+    opengl/video_shader.cpp \
     service/base_video_capturer.cc \
     service/component_factory.cpp \
-    service/gl_renderer.cc \
     service/mac_capturer.mm \
     service/media_controller.cpp \
     service/mediasoup_api.cpp \
@@ -108,9 +109,11 @@ HEADERS += \
     json/stringable.hpp \
     logger/rtc_log_sink.h \
     logger/u_logger.h \
+    opengl/gl_defines.h \
+    opengl/i420_texture_cache.h \
+    opengl/video_shader.h \
     service/base_video_capturer.h \
     service/component_factory.h \
-    service/gl_renderer.h \
     service/i_component_factory.h \
     service/i_media_controller.h \
     service/i_media_controller_observer.h \
@@ -163,4 +166,7 @@ unix {
     target.path = $$[QT_INSTALL_PLUGINS]/generic
 }
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    opengl/RTCNV12TextureCache.m
 

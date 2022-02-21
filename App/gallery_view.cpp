@@ -7,7 +7,7 @@
 #include "gallery_view.h"
 #include "ui_gallery_view.h"
 #include <QGridLayout>
-#include "gl_video_renderer.h"
+#include "mac_video_renderer.h"
 
 GalleryView::GalleryView(QWidget *parent) :
     QFrame(parent),

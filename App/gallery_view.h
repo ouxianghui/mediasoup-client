@@ -11,7 +11,7 @@
 #include <vector>
 #include <algorithm>
 #include "api/media_stream_interface.h"
-#include "gl_video_renderer.h"
+#include "mac_video_renderer.h"
 
 namespace Ui {
 class GalleryView;
@@ -35,7 +35,7 @@ public:
 class ContentView : public IContentView {
 
 public:
-    ContentView(const std::string& id, rtc::scoped_refptr<webrtc::VideoTrackInterface> track, GLVideoRenderer* renderer)
+    ContentView(const std::string& id, rtc::scoped_refptr<webrtc::VideoTrackInterface> track, MacVideoRenderer* renderer)
 	: _id(id)
 	, _track(track)
 	, _renderer(renderer) {
@@ -53,6 +53,7 @@ public:
 	void cleanup() override {
 		if (_renderer && _track) {
 			_track->RemoveSink(_renderer);
+            _track = nullptr;
 		}
 	}
 
@@ -69,7 +70,7 @@ private:
 
     rtc::scoped_refptr<webrtc::VideoTrackInterface> _track;
 
-	GLVideoRenderer* _renderer = nullptr;
+    MacVideoRenderer* _renderer = nullptr;
 };
 
 class PermuteStrategy {

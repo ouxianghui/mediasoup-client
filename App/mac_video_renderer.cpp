@@ -4,7 +4,7 @@
  * Created:   2020-10-01
  **/
 
-#include "gl_video_renderer.h"
+#include "mac_video_renderer.h"
 #include <thread>
 #include <array>
 #include <QTimer>
@@ -14,7 +14,7 @@
 #include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "logger/u_logger.h"
 
-GLVideoRenderer::GLVideoRenderer(QWidget *parent)
+MacVideoRenderer::MacVideoRenderer(QWidget *parent)
     : QOpenGLWidget(parent)
 {
     QSurfaceFormat format;
@@ -25,20 +25,18 @@ GLVideoRenderer::GLVideoRenderer(QWidget *parent)
     this->setFormat(format);
 }
 
-GLVideoRenderer::~GLVideoRenderer()
+MacVideoRenderer::~MacVideoRenderer()
 {
     cleanup();
 }
 
-void GLVideoRenderer::init()
+void MacVideoRenderer::init()
 {
-    //setAttribute(Qt::WA_StyledBackground, true);
-    //setStyleSheet("background-color:rgb(255, 0, 255)");
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    connect(this, &GLVideoRenderer::frameArrived, this, &GLVideoRenderer::onFrameArrived);
+    connect(this, &MacVideoRenderer::frameArrived, this, &MacVideoRenderer::onFrameArrived);
 }
 
-void GLVideoRenderer::initializeGL() 
+void MacVideoRenderer::initializeGL() 
 {
     initializeOpenGLFunctions();
 
@@ -48,7 +46,7 @@ void GLVideoRenderer::initializeGL()
     }
 }
 
-void GLVideoRenderer::resizeGL(int width, int height)
+void MacVideoRenderer::resizeGL(int width, int height)
 {
     //if (_cacheFrame) {
     //    if (_videoWidth != _cacheFrame->width() || _videoHeight != _cacheFrame->height() || _width != width|| _height != height) {
@@ -63,26 +61,26 @@ void GLVideoRenderer::resizeGL(int width, int height)
     GlRenderer::resizeViewport(width, height);
 }
 
-void GLVideoRenderer::paintGL()
+void MacVideoRenderer::paintGL()
 {
     if (_cacheFrame) {
         vi::GlRenderer::OnFrame(*_cacheFrame);
     }
 }
 
-void GLVideoRenderer::OnFrame(const webrtc::VideoFrame& frame)
+void MacVideoRenderer::OnFrame(const webrtc::VideoFrame& frame)
 {
     emit frameArrived(frame);
 }
 
-void GLVideoRenderer::onFrameArrived(const webrtc::VideoFrame& frame)
+void MacVideoRenderer::onFrameArrived(const webrtc::VideoFrame& frame)
 {
     _cacheFrame = std::make_shared<webrtc::VideoFrame>(frame);
 
     QWidget::update();
 }
 
-void GLVideoRenderer::cleanup()
+void MacVideoRenderer::cleanup()
 {
     GlRenderer::destroy();
 }

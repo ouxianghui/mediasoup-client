@@ -13,6 +13,7 @@
 #include "gallery_view.h"
 #include "service/i_media_controller.h"
 #include "service/i_participant_controller.h"
+#include "mac_video_renderer.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -74,7 +75,7 @@ void MainWindow::onVideoTrackCreated(const std::string& id, webrtc::MediaStreamT
     if (!track) {
         return;
     }
-    GLVideoRenderer* renderer = new GLVideoRenderer(_galleryView);
+    MacVideoRenderer* renderer = new MacVideoRenderer(_galleryView);
     renderer->init();
     renderer->show();
 
