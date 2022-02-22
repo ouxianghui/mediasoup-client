@@ -19,7 +19,6 @@ GalleryView::GalleryView(QWidget *parent) :
 
 GalleryView::~GalleryView()
 {
-	removeAll();
     delete ui;
 }
 

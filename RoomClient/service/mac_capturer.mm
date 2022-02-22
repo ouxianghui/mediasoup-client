@@ -9,11 +9,11 @@
 #include "utils/thread_provider.h"
 #import "helpers/RTCDispatcher+Private.h"
 
-@interface RTCTestVideoSourceAdapter : NSObject <RTC_OBJC_TYPE (RTCVideoCapturerDelegate)>
+@interface MacVideoSourceAdapter : NSObject <RTC_OBJC_TYPE (RTCVideoCapturerDelegate)>
   @property(nonatomic) vi::MacCapturer *capturer;
 @end
 
-@implementation RTCTestVideoSourceAdapter
+@implementation MacVideoSourceAdapter
 @synthesize capturer = _capturer;
 
 - (void)capturer:(RTC_OBJC_TYPE(RTCVideoCapturer) *)capturer
@@ -59,7 +59,7 @@ MacCapturer::MacCapturer(size_t width,
                          size_t height,
                          size_t target_fps,
                          size_t capture_device_index) {
-    RTCTestVideoSourceAdapter *adapter = [[RTCTestVideoSourceAdapter alloc] init];
+    MacVideoSourceAdapter *adapter = [[MacVideoSourceAdapter alloc] init];
     adapter_ = (__bridge_retained void *)adapter;
     adapter.capturer = this;
 
@@ -83,7 +83,7 @@ MacCapturer *MacCapturer::Create(size_t width,
 void MacCapturer::Destroy() {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-variable"
-    RTCTestVideoSourceAdapter *adapter = (__bridge_transfer RTCTestVideoSourceAdapter *)adapter_;
+    MacVideoSourceAdapter *adapter = (__bridge_transfer MacVideoSourceAdapter *)adapter_;
     RTC_OBJC_TYPE(RTCCameraVideoCapturer) *capturer =
             (__bridge_transfer RTC_OBJC_TYPE(RTCCameraVideoCapturer) *)capturer_;
     [capturer stopCapture];

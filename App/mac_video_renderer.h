@@ -31,6 +31,8 @@ public:
 
 	void init();
 
+    void destroy();
+
 protected:
 	void initializeGL() override;
 

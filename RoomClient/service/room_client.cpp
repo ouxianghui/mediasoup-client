@@ -80,26 +80,30 @@ void RoomClient::init()
 
 void RoomClient::destroy()
 {
+    if (_mediaControllerProxy) {
+        if (_mediaControllerProxy->isVideoEnabled()) {
+            _mediaControllerProxy->enableVideo(false);
+        }
+    }
+
     if (_participantControllerProxy) {
         _participantControllerProxy->destroy();
+        _participantControllerProxy = nullptr;
     }
 
     if (_mediasoupApi) {
         _mediasoupApi->destroy();
+        _mediasoupApi = nullptr;
     }
 
     if (_signalingClient) {
         _signalingClient->removeObserver(shared_from_this());
         _signalingClient->destroy();
+        _signalingClient = nullptr;
     }
 
     if (_mediasoupDevice) {
         _mediasoupDevice = nullptr;
-    }
-
-    if (_sendTransport) {
-        _sendTransport->Close();
-        _sendTransport = nullptr;
     }
 
     if (_recvTransport) {
@@ -107,8 +111,14 @@ void RoomClient::destroy()
         _recvTransport = nullptr;
     }
 
+    if (_sendTransport) {
+        _sendTransport->Close();
+        _sendTransport = nullptr;
+    }
+
     if (_mediaControllerProxy) {
         _mediaControllerProxy->destroy();
+        _mediaControllerProxy = nullptr;
     }
 
     if (_peerConnectionFactory) {

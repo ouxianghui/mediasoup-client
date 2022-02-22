@@ -24,7 +24,7 @@ MediaController::MediaController(std::shared_ptr<IMediasoupApi>& mediasoupApi,
 
 MediaController::~MediaController()
 {
-
+    DLOG("~MediaController()");
 }
 
 void MediaController::init()
@@ -56,6 +56,11 @@ void MediaController::destroy()
             consumer.second->Close();
         }
         _consumerMap.clear();
+    }
+
+    if (_capturerSource) {
+        _capturerSource->Stop();
+        _capturerSource = nullptr;
     }
 }
 
@@ -152,7 +157,7 @@ bool MediaController::isAudioEnabled()
         DLOG("_micProducer is null");
         return false;
     }
-    return _micProducer->IsClosed();
+    return !_micProducer->IsClosed();
 }
 
 void MediaController::muteAudio(bool muted)
@@ -224,19 +229,21 @@ void MediaController::enableVideo(bool enabled)
     }
 
     if (enabled) {
-        std::unique_ptr<MacCapturer> capturer = absl::WrapUnique(MacCapturer::Create(1280, 720, 30, 0));
-
-        rtc::scoped_refptr<MacTrackSource> capturerSource = rtc::make_ref_counted<MacTrackSource>(std::move(capturer), false);
+        if (!_capturerSource) {
+            std::unique_ptr<MacCapturer> capturer = absl::WrapUnique(MacCapturer::Create(1280, 720, 30, 0));
+            _capturerSource = rtc::make_ref_counted<MacTrackSource>(std::move(capturer), false);
+        }
 
         DLOG("create capture source");
-        if (capturerSource) {
-            rtc::scoped_refptr<webrtc::VideoTrackInterface> track = _peerConnectionFactory->CreateVideoTrack("camera-track", capturerSource);
+        if (_capturerSource) {
+            _capturerSource->Start();
+            rtc::scoped_refptr<webrtc::VideoTrackInterface> track = _peerConnectionFactory->CreateVideoTrack("camera-track", _capturerSource);
 
             nlohmann::json codecOptions = nlohmann::json::object();
             codecOptions["videoGoogleStartBitrate"] = 1000;
 
             mediasoupclient::Producer* producer = _sendTransport->Produce(this,
-                                                                          track,
+                                                                          track.release(),
                                                                           _options->useSimulcast.value_or(false) ? &_encodings : nullptr,
                                                                           &codecOptions,
                                                                           nullptr);
@@ -277,7 +284,30 @@ void MediaController::enableVideo(bool enabled)
                 DLOG("response is null or response->ok == false");
                 return;
             }
+            TMgr->thread("mediasoup-client")->PostTask([wself](){
+                auto self = wself.lock();
+                if (!self) {
+                    DLOG("RoomClient is null");
+                    return;
+                }
+                self->onCamProducerClosed();
+            });
         });
+    }
+}
+
+void MediaController::onCamProducerClosed()
+{
+    if (!_camProducer) {
+        DLOG("_camProducer is null");
+        return;
+    }
+
+    _camProducer->GetTrack()->set_enabled(false);
+    _camProducer->Close();
+
+    if (_capturerSource) {
+        _capturerSource->Stop();
     }
 }
 
@@ -287,7 +317,7 @@ bool MediaController::isVideoEnabled()
         DLOG("_camProducer is null");
         return false;
     }
-    return _camProducer->IsClosed();
+    return !_camProducer->IsClosed();
 }
 
 void MediaController::muteAudio(const std::string& id, bool muted)

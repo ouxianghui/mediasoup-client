@@ -20,6 +20,7 @@ namespace mediasoupclient {
 namespace vi {
 
 class IMediasoupApi;
+class MacTrackSource;
 
 class MediaController :
         public IMediaController,
@@ -136,6 +137,8 @@ private:
 
      void createNewDataConsumer(std::shared_ptr<signaling::NewDataConsumerRequest> request);
 
+     void onCamProducerClosed();
+
 private:
      std::shared_ptr<IMediasoupApi>& _mediasoupApi;
 
@@ -150,6 +153,7 @@ private:
 
      std::shared_ptr<mediasoupclient::Producer> _micProducer;
      std::shared_ptr<mediasoupclient::Producer> _camProducer;
+     rtc::scoped_refptr<MacTrackSource> _capturerSource;
 
      // key: consumer id
      std::unordered_map<std::string, std::shared_ptr<mediasoupclient::Consumer>> _consumerMap;

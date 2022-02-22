@@ -1,4 +1,5 @@
 #include "participant_controller.h"
+#include "logger/u_logger.h"
 
 namespace vi {
 
@@ -9,7 +10,7 @@ ParticipantController::ParticipantController()
 
 ParticipantController::~ParticipantController()
 {
-
+    DLOG("~ParticipantController()");
 }
 
 void ParticipantController::init()

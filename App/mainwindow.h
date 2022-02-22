@@ -62,6 +62,8 @@ private slots:
 
     void onParticipantRemoved(std::shared_ptr<vi::IParticipant> participant);
 
+    void closeEvent(QCloseEvent* event);
+
 private:
     Ui::MainWindow *ui;
 

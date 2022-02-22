@@ -36,6 +36,11 @@ void MacVideoRenderer::init()
     connect(this, &MacVideoRenderer::frameArrived, this, &MacVideoRenderer::onFrameArrived);
 }
 
+void MacVideoRenderer::destroy()
+{
+    disconnect(this, &MacVideoRenderer::frameArrived, this, &MacVideoRenderer::onFrameArrived);
+}
+
 void MacVideoRenderer::initializeGL() 
 {
     initializeOpenGLFunctions();

@@ -79,7 +79,7 @@ void MainWindow::onVideoTrackCreated(const std::string& id, webrtc::MediaStreamT
     renderer->init();
     renderer->show();
 
-    rtc::scoped_refptr<webrtc::VideoTrackInterface> vt = static_cast<webrtc::VideoTrackInterface*>(track);
+    webrtc::VideoTrackInterface* vt = static_cast<webrtc::VideoTrackInterface*>(track);
     std::shared_ptr<ContentView> view = std::make_shared<ContentView>(id, vt, renderer);
     view->init();
 
@@ -126,12 +126,12 @@ void MainWindow::on_actionUnmuteMicrophone_triggered()
 
 void MainWindow::on_actionEnableCamera_triggered()
 {
-
+    RClient->getMediaController()->enableVideo(true);
 }
 
 void MainWindow::on_actionDisableCamera_triggered()
 {
-
+    RClient->getMediaController()->enableVideo(false);
 }
 
 void MainWindow::onParticipantCreated(std::shared_ptr<vi::IParticipant> participant)
@@ -147,4 +147,9 @@ void MainWindow::onParticipantUpdated(std::shared_ptr<vi::IParticipant> particip
 void MainWindow::onParticipantRemoved(std::shared_ptr<vi::IParticipant> participant)
 {
 
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    destroy();
 }

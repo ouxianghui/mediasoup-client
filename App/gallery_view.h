@@ -35,7 +35,7 @@ public:
 class ContentView : public IContentView {
 
 public:
-    ContentView(const std::string& id, rtc::scoped_refptr<webrtc::VideoTrackInterface> track, MacVideoRenderer* renderer)
+    ContentView(const std::string& id, webrtc::VideoTrackInterface* track, MacVideoRenderer* renderer)
 	: _id(id)
 	, _track(track)
 	, _renderer(renderer) {
@@ -54,6 +54,7 @@ public:
 		if (_renderer && _track) {
 			_track->RemoveSink(_renderer);
             _track = nullptr;
+            _renderer->destroy();
 		}
 	}
 
@@ -68,7 +69,7 @@ public:
 private:
     std::string _id;
 
-    rtc::scoped_refptr<webrtc::VideoTrackInterface> _track;
+    webrtc::VideoTrackInterface* _track = nullptr;
 
     MacVideoRenderer* _renderer = nullptr;
 };
