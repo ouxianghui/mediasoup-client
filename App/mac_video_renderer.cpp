@@ -1,7 +1,7 @@
 /**
- * This file is part of janus_client project.
+ * This file is part of mediasoup_client project.
  * Author:    Jackie Ou
- * Created:   2020-10-01
+ * Created:   2021-11-01
  **/
 
 #include "mac_video_renderer.h"
@@ -17,7 +17,7 @@
 
 MacVideoRenderer::MacVideoRenderer(QWidget *parent)
     : QOpenGLWidget(parent)
-    , _inited(false), buffer_(NULL), width_(0), height_(0)
+    , _inited(false), _buffer(NULL), _width(0), _height(0)
 {
 
 }
@@ -43,10 +43,10 @@ void MacVideoRenderer::destroy()
 
     _inited = false;
 
-    delete[] buffer_;
-    buffer_ = NULL;
+    delete[] _buffer;
+    _buffer = NULL;
 
-    glDeleteTextures(1, &texture_);
+    glDeleteTextures(1, &_texture);
 }
 
 void MacVideoRenderer::initializeGL() 
@@ -56,7 +56,7 @@ void MacVideoRenderer::initializeGL()
     if (!_inited) {
         RTC_DCHECK(!_inited);
         _inited = true;
-        glGenTextures(1, &texture_);
+        glGenTextures(1, &_texture);
     }
 }
 
@@ -77,17 +77,17 @@ void MacVideoRenderer::paintGL()
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-    if (_cacheFrame->width() != width_ || _cacheFrame->height() != height_) {
+    if (_cacheFrame->width() != _width || _cacheFrame->height() != _height) {
         resizeVideo(_cacheFrame->width(), _cacheFrame->height());
     }
 
     resizeViewport();
 
-    webrtc::ConvertFromI420(*_cacheFrame, webrtc::VideoType::kBGRA, 0, buffer_);
+    webrtc::ConvertFromI420(*_cacheFrame, webrtc::VideoType::kBGRA, 0, _buffer);
 
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texture_);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width_, height_, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8, buffer_);
+    glBindTexture(GL_TEXTURE_2D, _texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8, _buffer);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -158,17 +158,17 @@ void MacVideoRenderer::resizeViewport() {
 
 void MacVideoRenderer::resizeVideo(size_t width, size_t height) {
     RTC_DCHECK(_inited);
-    width_ = width;
-    height_ = height;
+    _width = width;
+    _height = height;
 
-    buffer_size_ = width * height * 4;  // BGRA
+    _bufferSize = width * height * 4;  // BGRA
 
-    delete[] buffer_;
-    buffer_ = new uint8_t[buffer_size_];
-    RTC_DCHECK(buffer_);
-    memset(buffer_, 0, buffer_size_);
-    glBindTexture(GL_TEXTURE_2D, texture_);
+    delete[] _buffer;
+    _buffer = new uint8_t[_bufferSize];
+    RTC_DCHECK(_buffer);
+    memset(_buffer, 0, _bufferSize);
+    glBindTexture(GL_TEXTURE_2D, _texture);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8, static_cast<GLvoid*>(buffer_));
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8, static_cast<GLvoid*>(_buffer));
 }

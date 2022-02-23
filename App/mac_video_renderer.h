@@ -1,7 +1,7 @@
 /**
- * This file is part of janus_client project.
+ * This file is part of mediasoup_client project.
  * Author:    Jackie Ou
- * Created:   2020-10-01
+ * Created:   2021-11-01
  **/
 
 #pragma once
@@ -14,27 +14,27 @@
 #include <QOpenGLFunctions>
 
 class MacVideoRenderer
-	: public QOpenGLWidget
-    , public QOpenGLFunctions
-    , public rtc::VideoSinkInterface<webrtc::VideoFrame>
+        : public QOpenGLWidget
+        , public QOpenGLFunctions
+        , public rtc::VideoSinkInterface<webrtc::VideoFrame>
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
     MacVideoRenderer(QWidget *parent);
 
     ~MacVideoRenderer();
 
-	void init();
+    void init();
 
     void destroy();
 
 protected:
-	void initializeGL() override;
+    void initializeGL() override;
 
-	void resizeGL(int w, int h) override;
+    void resizeGL(int w, int h) override;
 
-	void paintGL() override;
+    void paintGL() override;
 
     void OnFrame(const webrtc::VideoFrame& frame) override;
 
@@ -50,14 +50,14 @@ private:
     void resizeViewport();
 
 private:
-	std::shared_ptr<webrtc::VideoFrame> _cacheFrame;
+    std::shared_ptr<webrtc::VideoFrame> _cacheFrame;
 
     bool _inited = false;
 
 private:
-    uint8_t* buffer_;
-    GLuint texture_;
-    int32_t width_, height_, buffer_size_;
+    uint8_t* _buffer;
+    GLuint _texture;
+    int32_t _width, _height, _bufferSize;
 
     QSize _canvaSize;
 

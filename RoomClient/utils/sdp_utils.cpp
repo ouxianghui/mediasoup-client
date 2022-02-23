@@ -1,5 +1,5 @@
 /**
- * This file is part of janus_client project.
+ * This file is part of mediasoup_client project.
  * Author:    Jackie Ou
  * Created:   2020-12-15
  **/

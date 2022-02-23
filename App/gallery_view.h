@@ -1,7 +1,7 @@
 /**
- * This file is part of janus_client project.
+ * This file is part of mediasoup_client project.
  * Author:    Jackie Ou
- * Created:   2020-10-01
+ * Created:   2021-11-01
  **/
 
 #ifndef GALLERY_VIEW_H
