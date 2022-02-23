@@ -7,6 +7,7 @@
 #include "service/i_room_client_observer.h"
 #include "api/media_stream_interface.h"
 #include "rtc_base/physical_socket_server.h"
+#include <QOpenGLFunctions>
 
 static void registerMetaTypes()
 {
@@ -29,6 +30,14 @@ int main(int argc, char *argv[])
     DLOG("mediasoupclient version: {}", mediasoupclient::Version().c_str());
 
     QApplication a(argc, argv);
+
+    QSurfaceFormat format;
+    format.setDepthBufferSize(24);
+    format.setStencilBufferSize(8);
+    format.setVersion(4, 1);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
+
     MainWindow w;
     w.init();
     w.show();

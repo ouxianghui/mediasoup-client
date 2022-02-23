@@ -11,12 +11,7 @@
 VideoRenderer::VideoRenderer(QWidget *parent)
     : QOpenGLWidget(parent)
 {
-    QSurfaceFormat format;
-    format.setDepthBufferSize(24);
-    format.setStencilBufferSize(8);
-    format.setVersion(3, 2);
-    format.setProfile(QSurfaceFormat::CoreProfile);
-    this->setFormat(format);
+
 }
 
 VideoRenderer::~VideoRenderer()
@@ -32,13 +27,16 @@ void VideoRenderer::init()
     connect(this, &VideoRenderer::frameArrived, this, &VideoRenderer::onFrameArrived);
 }
 
+void VideoRenderer::destroy()
+{
+    disconnect(this, &VideoRenderer::frameArrived, this, &VideoRenderer::onFrameArrived);
+}
+
 void VideoRenderer::initializeGL()
 {
     connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &VideoRenderer::cleanup);
 
     initializeOpenGLFunctions();
-
-    //glewInit();
 
     glEnable(GL_DEPTH_TEST);
 
@@ -54,61 +52,35 @@ void VideoRenderer::initializeGL()
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-void VideoRenderer::resizeGL(int w, int h)
+void VideoRenderer::resizeGL(int /*w*/, int /*h*/)
 {
     // Update projection matrix and other size related settings:
-    //if (_frame) {
-    //	glViewport(0, 0, _frame->width(), _frame->height());
-    //}
-    //else {
-    //	glViewport(0, 0, 640, 480);
-    //}
+    makeCurrent();
+    resizeViewport();
+    doneCurrent();
 }
 
 void VideoRenderer::paintGL()
 {
-     makeCurrent();
-    if (_cacheFrame) {
-
-        float imageRatio = (float)_cacheFrame->width() / (float)_cacheFrame->height();
-        float canvasRatio = (float)width() / (float)height();
-
-        int32_t viewportX = 0;
-        int32_t viewportY = 0;
-
-        int32_t viewportW = 0;
-        int32_t viewportH = 0;
-
-        if (canvasRatio >= imageRatio) {
-            viewportH = height();
-            viewportW = viewportH * imageRatio;
-            viewportX = (float)(width() - viewportW) / 2.0f;
-        }
-        else {
-            viewportW = width();
-            viewportH = viewportW / imageRatio;
-            viewportY = (float)(height() - viewportH) / 2.0f;
-        }
-
-        glViewport(viewportX, viewportY, viewportW, viewportH);
+    if (!_cacheFrame) {
+        return;
     }
+
+    resizeViewport();
 
     glClear(GL_COLOR_BUFFER_BIT);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-    if (_cacheFrame) {
-
-        static int counter = 0;
-        DLOG("--> frame: {}, ts: {}", ++counter, _cacheFrame->timestamp_us());
-        _i420TextureCache->uploadFrameToTextures(*_cacheFrame);
-        _videoShader->applyShadingForFrame(_cacheFrame->width(),
-                                            _cacheFrame->height(),
-                                            _cacheFrame->rotation(),
-                                            _i420TextureCache->yTexture(),
-                                            _i420TextureCache->uTexture(),
-                                            _i420TextureCache->vTexture());
-    }
+    //static int counter = 0;
+    //DLOG("--> frame: {}, ts: {}", ++counter, _cacheFrame->timestamp_us());
+    _i420TextureCache->uploadFrameToTextures(*_cacheFrame);
+    _videoShader->applyShadingForFrame(_cacheFrame->width(),
+                                       _cacheFrame->height(),
+                                       _cacheFrame->rotation(),
+                                       _i420TextureCache->yTexture(),
+                                       _i420TextureCache->uTexture(),
+                                       _i420TextureCache->vTexture());
 }
 
 void VideoRenderer::OnFrame(const webrtc::VideoFrame& frame)
@@ -131,4 +103,26 @@ void VideoRenderer::cleanup()
     _videoShader = nullptr;
 
     doneCurrent();
+}
+
+void VideoRenderer::resizeViewport()
+{
+    if (_cacheFrame) {
+        float imageRatio = (float)_cacheFrame->width() / (float)_cacheFrame->height();
+        float canvaRatio = (float)width() / (float)height();
+        float viewportX = 0, viewportY = 0, viewportW = 0, viewportH = 0;
+
+        if (canvaRatio >= imageRatio) {
+            viewportH = height();
+            viewportW = viewportH * imageRatio;
+            viewportX = (float)(width() - viewportW) / 2.0f;
+        }
+        else {
+            viewportW = width();
+            viewportH = viewportW / imageRatio;
+            viewportY = (float)(height() - viewportH) / 2.0f;
+        }
+
+        glViewport(viewportX*window()->devicePixelRatio(), viewportY*window()->devicePixelRatio(), viewportW*window()->devicePixelRatio(), viewportH*window()->devicePixelRatio());
+    }
 }

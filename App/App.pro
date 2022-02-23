@@ -43,7 +43,6 @@ eles {
 SOURCES += \
     app_delegate.cpp \
     gallery_view.cpp \
-    gl_renderer.cc \
     mac_video_renderer.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -55,7 +54,6 @@ SOURCES += \
 HEADERS += \
     app_delegate.h \
     gallery_view.h \
-    gl_renderer.h \
     mac_video_renderer.h \
     mainwindow.h \
     media_event_adapter.h \

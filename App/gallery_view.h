@@ -12,6 +12,7 @@
 #include <algorithm>
 #include "api/media_stream_interface.h"
 #include "mac_video_renderer.h"
+#include "video_renderer.h"
 
 namespace Ui {
 class GalleryView;
@@ -35,7 +36,8 @@ public:
 class ContentView : public IContentView {
 
 public:
-    ContentView(const std::string& id, webrtc::VideoTrackInterface* track, MacVideoRenderer* renderer)
+    //ContentView(const std::string& id, webrtc::VideoTrackInterface* track, MacVideoRenderer* renderer)
+    ContentView(const std::string& id, webrtc::VideoTrackInterface* track, VideoRenderer* renderer)
 	: _id(id)
 	, _track(track)
 	, _renderer(renderer) {
@@ -71,7 +73,8 @@ private:
 
     webrtc::VideoTrackInterface* _track = nullptr;
 
-    MacVideoRenderer* _renderer = nullptr;
+    //MacVideoRenderer* _renderer = nullptr;
+    VideoRenderer* _renderer = nullptr;
 };
 
 class PermuteStrategy {

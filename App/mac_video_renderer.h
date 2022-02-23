@@ -6,21 +6,17 @@
 
 #pragma once
 
-
-//#include <GL/glew.h>
 #include <memory>
 #include "api/video/video_sink_interface.h"
 #include "api/video/video_frame.h"
 #include <mutex>
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
-#include "gl_renderer.h"
 
 class MacVideoRenderer
 	: public QOpenGLWidget
     , public QOpenGLFunctions
-    , public vi::GlRenderer
-    , public std::enable_shared_from_this<MacVideoRenderer>
+    , public rtc::VideoSinkInterface<webrtc::VideoFrame>
 {
 	Q_OBJECT
 
@@ -46,13 +42,23 @@ signals:
     void frameArrived(const webrtc::VideoFrame& frame);
 
 private slots:
-
     void onFrameArrived(const webrtc::VideoFrame& frame);
 
-	void cleanup();
+private:
+    void resizeVideo(size_t width, size_t height);
+
+    void resizeViewport();
 
 private:
 	std::shared_ptr<webrtc::VideoFrame> _cacheFrame;
 
     bool _inited = false;
+
+private:
+    uint8_t* buffer_;
+    GLuint texture_;
+    int32_t width_, height_, buffer_size_;
+
+    QSize _canvaSize;
+
 };

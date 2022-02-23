@@ -26,6 +26,8 @@ public:
 
     void init();
 
+    void destroy();
+
 protected:
     void initializeGL() override;
 
@@ -39,10 +41,12 @@ signals:
     void frameArrived(const webrtc::VideoFrame& frame);
 
 private slots:
-
     void onFrameArrived(const webrtc::VideoFrame& frame);
 
+private:
     void cleanup();
+
+    void resizeViewport();
 
 private:
     std::shared_ptr<VideoShader> _videoShader;
