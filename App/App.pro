@@ -35,7 +35,7 @@ CONFIG(debug, debug | release) {
     DESTDIR = $$PWD/../Debug
     LIBS += -L$$PWD/../Debug/ -lRoomClient
 }
-eles {
+else {
     DESTDIR = $$PWD/../Release
     LIBS += -L$$PWD/../Release/ -lRoomClient
 }

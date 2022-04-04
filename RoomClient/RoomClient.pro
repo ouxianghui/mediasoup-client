@@ -33,7 +33,7 @@ LIBS += -framework AppKit
 CONFIG(debug, debug | release) {
     DESTDIR = $$PWD/../Debug
 }
-eles {
+else {
     DESTDIR = $$PWD/../Release
 }
 
