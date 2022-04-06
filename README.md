@@ -13,3 +13,10 @@
 
 * *Note:* 
 * asio/websocketpp/rapidjson/spdlog have joined this repository as submodules
+
+## IDE
+* Xcode
+* Run `/Applications/Qt/6.2.3/macos/bin/qmake ./App/App.pro -spec macx-xcode` and `/Applications/Qt/6.2.3/macos/bin/qmake ./RoomClient/RoomClient.pro -spec macx-xcode` to generate Xcode project.
+
+* Qt Creator
+* Open Mediasoup.pro using Qt Creator.
