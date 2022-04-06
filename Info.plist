@@ -20,5 +20,11 @@
 	<string>NSApplication</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Allow app to open camera</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Allow app to open microphone</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>Allow app to open documents folder</string>
 </dict>
 </plist>
