@@ -43,12 +43,15 @@ namespace vi {
         consoleSink->set_level(spdlog::level::trace);
         consoleSink->set_pattern(pattern);
 
-        _appLogger = spdlog::create_async_nb<spdlog::sinks::rotating_file_sink_mt, std::string, size_t, size_t>("app", "./logs/app.log", 1024 * 1024 * 5, 5);
+        const char* home_dir = std::getenv("HOME");
+        auto appLogPath = std::string{home_dir} + "/Documents/logs/app.log";
+        _appLogger = spdlog::create_async_nb<spdlog::sinks::rotating_file_sink_mt, std::string, size_t, size_t>("app", appLogPath.c_str(), 1024 * 1024 * 5, 5);
 		_appLogger->set_level(spdlog::level::trace);
 		_appLogger->set_pattern(pattern);
         _appLogger->sinks().emplace_back(consoleSink);
 
-        _rtcLogger = spdlog::create_async_nb<spdlog::sinks::rotating_file_sink_mt, std::string, size_t, size_t>("rtc", "./logs/rtc.log", 1024 * 1024 * 5, 3);
+        auto rtcLogPath = std::string{home_dir} + "/Documents/logs/rtc.log";
+        _rtcLogger = spdlog::create_async_nb<spdlog::sinks::rotating_file_sink_mt, std::string, size_t, size_t>("rtc", rtcLogPath.c_str(), 1024 * 1024 * 5, 3);
 		_rtcLogger->set_level(spdlog::level::trace);
 
 		if (!_rtcLogSink) {

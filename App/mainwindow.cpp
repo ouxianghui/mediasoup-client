@@ -109,12 +109,12 @@ void MainWindow::on_actionleave_triggered()
 
 void MainWindow::on_actionEnbaleMicrophone_triggered()
 {
-
+    RClient->getMediaController()->enableAudio(true);
 }
 
 void MainWindow::on_actionDisableMicrophone_triggered()
 {
-
+    RClient->getMediaController()->enableAudio(false);
 }
 
 void MainWindow::on_actionMuteMicrophone_triggered()

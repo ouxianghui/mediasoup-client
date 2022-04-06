@@ -648,9 +648,9 @@ void RoomClient::configWebrtc()
     this->_signalingThread = rtc::Thread::Create();
     this->_workerThread  = rtc::Thread::Create();
 
-    this->_networkThread->SetName("network_thread", nullptr);
-    this->_signalingThread->SetName("signaling_thread", nullptr);
-    this->_workerThread->SetName("worker_thread", nullptr);
+    this->_networkThread->SetName("network-thread", nullptr);
+    this->_signalingThread->SetName("signaling-thread", nullptr);
+    this->_workerThread->SetName("worker-thread", nullptr);
 
     if (!this->_networkThread->Start() || !this->_signalingThread->Start() || !this->_workerThread->Start())
     {

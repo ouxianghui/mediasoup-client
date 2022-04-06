@@ -59,7 +59,6 @@ void MediaController::destroy()
     }
 
     if (_capturerSource) {
-        _capturerSource->Stop();
         _capturerSource = nullptr;
     }
 }
