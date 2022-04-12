@@ -239,7 +239,7 @@ void RoomClient::onLoadMediasoupDevice(std::shared_ptr<signaling::GetRouterRtpCa
     _mediasoupDevice = std::make_shared<mediasoupclient::Device>();
     nlohmann::json rtpCapabilities = nlohmann::json::parse(response->data->toJsonStr());
     DLOG("rtpCapabilities: {}", response->data->toJsonStr());
-    _mediasoupDevice->Load(rtpCapabilities);
+    _mediasoupDevice->Load(rtpCapabilities, _peerConnectionOptions.get());
     if (_mediasoupDevice->IsLoaded()) {
         if (_options->produce.value_or(false)) {
             createSendTransport();

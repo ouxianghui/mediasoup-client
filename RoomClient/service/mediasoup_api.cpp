@@ -59,6 +59,7 @@ void MediasoupApi::pauseProducer(const std::string& producerId, std::function<vo
 {
     auto request = std::make_shared<signaling::ProducerRequest>();
     request->method = "pauseProducer";
+    request->data = signaling::ProducerRequest::Data();
     request->data->producerId = producerId;
     send<signaling::ProducerRequest, signaling::BasicResponse>(request, callback);
 }

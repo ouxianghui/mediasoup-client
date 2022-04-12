@@ -294,12 +294,12 @@ void SignalingClient::handleNotification(const std::string& json)
     else if (method == "consumerPaused") {
         UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
             std::string err;
-            auto notification = fromJsonString<signaling::ConsumerClosedNotification>(json, err);
+            auto notification = fromJsonString<signaling::ConsumerPausedNotification>(json, err);
             if (!err.empty()) {
                 DLOG("parse response failed: {}", err);
                 return;
             }
-            observer->onConsumerClosed(notification);
+            observer->onConsumerPaused(notification);
         });
     }
     else if (method == "consumerResumed") {
