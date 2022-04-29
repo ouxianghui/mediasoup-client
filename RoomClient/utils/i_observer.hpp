@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include "absl/types/optional.h"
+#include "rtc_base/thread.h"
 
 namespace vi {
 
@@ -18,7 +19,7 @@ namespace vi {
         
         virtual ~IObserver() = default;
         
-        virtual absl::optional<std::string> scheduleThread() = 0;
+        virtual rtc::Thread* scheduleThread() = 0;
         
         virtual void notify(const std::shared_ptr<INotification>& nf) = 0;
         

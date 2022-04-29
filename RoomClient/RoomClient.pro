@@ -9,7 +9,49 @@ CONFIG += c++17
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-DEFINES += WEBRTC_POSIX WEBRTC_MAC ASIO_STANDALONE GL_SILENCE_DEPRECATION
+DEFINES += GL_SILENCE_DEPRECATION
+DEFINES += UNICODE
+DEFINES += _UNICODE
+DEFINES += WIN32
+DEFINES += _ENABLE_EXTENDED_ALIGNED_STORAGE
+DEFINES += WIN64
+DEFINES += BUILD_STATIC
+DEFINES += USE_AURA=1
+DEFINES += NO_TCMALLOC
+DEFINES += FULL_SAFE_BROWSING
+DEFINES += SAFE_BROWSING_CSD
+DEFINES += SAFE_BROWSING_DB_LOCAL
+DEFINES += CHROMIUM_BUILD
+DEFINES += _HAS_EXCEPTIONS=0
+DEFINES += __STD_C
+DEFINES += _CRT_RAND_S
+DEFINES += _CRT_SECURE_NO_DEPRECATE
+DEFINES += _SCL_SECURE_NO_DEPRECATE
+DEFINES += _ATL_NO_OPENGL
+DEFINES += CERT_CHAIN_PARA_HAS_EXTRA_FIELDS
+DEFINES += PSAPI_VERSION=2
+DEFINES += _SECURE_ATL
+DEFINES += _USING_V110_SDK71_
+DEFINES += WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP
+DEFINES += WIN32_LEAN_AND_MEAN
+DEFINES += NOMINMAX
+DEFINES += NTDDI_VERSION=NTDDI_WIN10_RS2
+DEFINES += _WIN32_WINNT=0x0A00
+DEFINES += WINVER=0x0A00
+DEFINES += DYNAMIC_ANNOTATIONS_ENABLED=1
+DEFINES += WTF_USE_DYNAMIC_ANNOTATIONS=1
+DEFINES += WEBRTC_ENABLE_PROTOBUF=1
+DEFINES += WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE
+DEFINES += RTC_ENABLE_VP9
+DEFINES += HAVE_SCTP
+DEFINES += WEBRTC_USE_H264
+DEFINES += WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0
+DEFINES += WEBRTC_WIN
+DEFINES += ABSL_ALLOCATOR_NOTHROW=1
+DEFINES += HAVE_WEBRTC_VIDEO
+DEFINES += HAVE_WEBRTC_VOICE
+DEFINES += ASIO_STANDALONE
+#DEFINES += _WEBSOCKETPP_CPP11_INTERNAL_
 
 INCLUDEPATH += \
     $$PWD/../deps/webrtc/include \
@@ -23,18 +65,22 @@ INCLUDEPATH += \
     $$PWD/../deps/spdlog/include \
     $$PWD/../deps/asio/asio/include \
     $$PWD/../deps/websocketpp \
-    $$PWD/../deps/libmediasoupclient/include
+    $$PWD/../deps/libmediasoupclient/include \
+    $$PWD/../deps/glew/include
 
 #INCLUDEPATH += "$$PWD/../deps/webrtc/Frameworks/WebRTC.xcframework/WebRTC.framework/Headers"
 
-LIBS += -L$$PWD/../deps/webrtc/lib/ -lwebrtc
-LIBS += -framework AppKit
+#LIBS += $$PWD/../deps/webrtc/lib/windows_debug_x64/webrtc.lib
+#LIBS += $$PWD/../deps/glew/lib/Release/x64/glew32.lib
+
+#LIBS += -framework AppKit
 
 CONFIG(debug, debug | release) {
     DESTDIR = $$PWD/../Debug
-}
-eles {
+    QMAKE_CXXFLAGS_DEBUG = /MTd /Zi
+} else {
     DESTDIR = $$PWD/../Release
+    QMAKE_CXXFLAGS_RELEASE = /MT
 }
 
 SOURCES += \
@@ -60,9 +106,9 @@ SOURCES += \
     logger/u_logger.cpp \
     opengl/i420_texture_cache.cpp \
     opengl/video_shader.cpp \
+    service/engine.cpp \
     service/base_video_capturer.cc \
     service/component_factory.cpp \
-    service/mac_capturer.mm \
     service/media_controller.cpp \
     service/mediasoup_api.cpp \
     service/participant.cpp \
@@ -112,6 +158,7 @@ HEADERS += \
     opengl/gl_defines.h \
     opengl/i420_texture_cache.h \
     opengl/video_shader.h \
+    service/engine.h \
     service/base_video_capturer.h \
     service/component_factory.h \
     service/i_component_factory.h \
@@ -125,7 +172,6 @@ HEADERS += \
     service/i_room_client_observer.h \
     service/i_signaling_client.h \
     service/i_signaling_observer.h \
-    service/mac_capturer.h \
     service/media_controller.h \
     service/mediasoup_api.h \
     service/options.h \
@@ -138,6 +184,7 @@ HEADERS += \
     service/i_service_factory.hpp \
     service/service_factory.hpp \
     service/windows_capture.h \
+    utils/container.hpp \
     utils/i_notification.h \
     utils/i_observer.hpp \
     utils/interface_proxy.hpp \

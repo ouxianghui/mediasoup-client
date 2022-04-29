@@ -13,6 +13,7 @@
 #include "i_connection_observer.h"
 #include "websocket_endpoint.h"
 #include "utils/universal_observable.hpp"
+#include "rtc_base/thread.h"
 
 namespace vi {
 
@@ -23,7 +24,7 @@ namespace vi {
         , public std::enable_shared_from_this<WebsocketTransport>
 	{
 	public:
-        WebsocketTransport();
+        WebsocketTransport(rtc::Thread* thread);
 
         ~WebsocketTransport() override;
 
@@ -68,6 +69,8 @@ namespace vi {
 		bool isValid();
 
     private:
+		rtc::Thread* _thread;
+
 		std::string _url;
 
 		int _connectionId = -1;

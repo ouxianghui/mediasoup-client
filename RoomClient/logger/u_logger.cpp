@@ -10,6 +10,7 @@
 #include "spdlog/logger.h"
 #include "spdlog/sinks/rotating_file_sink.h"
 #include "spdlog/async.h"
+#include "spdlog/sinks/msvc_sink.h"
 #include "rtc_log_sink.h"
 #include "rtc_base/logging.h"
 
@@ -39,7 +40,7 @@ namespace vi {
 
 		std::string pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%t] [%s:%#] [%!] %v");
 
-        auto consoleSink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
+        auto consoleSink = std::make_shared<spdlog::sinks::windebug_sink_mt>();
         consoleSink->set_level(spdlog::level::trace);
         consoleSink->set_pattern(pattern);
 
@@ -54,7 +55,7 @@ namespace vi {
 		if (!_rtcLogSink) {
 			_rtcLogSink = std::make_unique<RTCLogSink>();
 			rtc::LogMessage::SetLogToStderr(false);
-			rtc::LogMessage::AddLogToStream(_rtcLogSink.get(), rtc::LS_WARNING);
+			rtc::LogMessage::AddLogToStream(_rtcLogSink.get(), rtc::LS_VERBOSE);
 		}
 	}
 

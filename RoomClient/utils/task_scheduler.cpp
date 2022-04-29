@@ -11,7 +11,7 @@ namespace vi {
 	std::shared_ptr<TaskScheduler> TaskScheduler::create()
 	{
 		return std::shared_ptr<TaskScheduler>(new TaskScheduler(), [thread = rtc::Thread::Current()](TaskScheduler* ptr){
-            thread->PostTask([ptr]() {
+            thread->PostTask(RTC_FROM_HERE, [ptr]() {
 				delete ptr;
 			});
 		});

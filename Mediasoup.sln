@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32002.261
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "App", "App\App.vcxproj", "{2699A9A5-A898-3F38-8810-A03771952408}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EE7E10C3-872E-318F-A38E-DCEE620FD365} = {EE7E10C3-872E-318F-A38E-DCEE620FD365}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RoomClient", "RoomClient\RoomClient.vcxproj", "{EE7E10C3-872E-318F-A38E-DCEE620FD365}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2699A9A5-A898-3F38-8810-A03771952408}.Debug|x64.ActiveCfg = Debug|x64
+		{2699A9A5-A898-3F38-8810-A03771952408}.Debug|x64.Build.0 = Debug|x64
+		{2699A9A5-A898-3F38-8810-A03771952408}.Release|x64.ActiveCfg = Release|x64
+		{2699A9A5-A898-3F38-8810-A03771952408}.Release|x64.Build.0 = Release|x64
+		{EE7E10C3-872E-318F-A38E-DCEE620FD365}.Debug|x64.ActiveCfg = Debug|x64
+		{EE7E10C3-872E-318F-A38E-DCEE620FD365}.Debug|x64.Build.0 = Debug|x64
+		{EE7E10C3-872E-318F-A38E-DCEE620FD365}.Release|x64.ActiveCfg = Release|x64
+		{EE7E10C3-872E-318F-A38E-DCEE620FD365}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DAB3E91C-3286-4320-96E1-4D2649A35AD7}
+	EndGlobalSection
+EndGlobal

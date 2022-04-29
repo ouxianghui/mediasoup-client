@@ -6,6 +6,7 @@
 #include "service/mediasoup_api.h"
 #include "service/i_room_client_observer.h"
 #include "service/i_media_controller.h"
+#include "service/i_participant_controller_observer.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -15,12 +16,12 @@ namespace vi {
     class IParticipant;
 }
 
-class RoomEventAdapter;
-class MediaEventAdapter;
-class ParticipantEventAdapter;
 class GalleryView;
+class ParticipantListView;
+class QToolButton;
+class QAction;
 
-class MainWindow : public QMainWindow
+class MainWindow : public QMainWindow, public vi::IRoomClientObserver, public vi::IParticipantControllerObserver, public std::enable_shared_from_this<MainWindow>
 {
     Q_OBJECT
 
@@ -33,46 +34,84 @@ public:
 
     void destroy();
 
+protected:
+    // IRoomClientObserver
+    void onRoomStateChanged(vi::RoomState state) override;
+
+    void onCreateLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) override;
+
+    void onRemoveLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) override;
+
+    void onLocalAudioStateChanged(bool enabled, bool muted) override;
+
+    void onLocalVideoStateChanged(bool enabled) override;
+
+    void onLocalActiveSpeaker(int32_t volume) override;
+
+    // IParticipantControllerObserver
+    void onParticipantJoin(std::shared_ptr<vi::IParticipant> participant) override;
+
+    void onParticipantLeave(std::shared_ptr<vi::IParticipant> participant) override;
+
+    void onRemoteActiveSpeaker(std::shared_ptr<vi::IParticipant> participant, int32_t volume) override;
+
+    void onDisplayNameChanged(std::shared_ptr<vi::IParticipant> participant) override;
+
+    void onCreateRemoteVideoTrack(std::shared_ptr<vi::IParticipant> participant, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) override;
+
+    void onRemoveRemoteVideoTrack(std::shared_ptr<vi::IParticipant> participant, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) override;
+
+    void onRemoteAudioStateChanged(std::shared_ptr<vi::IParticipant> participant, bool muted) override;
+
+    void onRemoteVideoStateChanged(std::shared_ptr<vi::IParticipant> participant, bool muted) override;
+
+private:
+    void closeEvent(QCloseEvent* event) override;
+
+    void updateToolBar();
+
+    std::shared_ptr<vi::IParticipant> myself();
+
+    void loadParticipants();
+
 private slots:
-    void on_actionJoin_triggered();
+    void onJoinRoom();
 
-    void on_actionleave_triggered();
+    void onLeaveRoom();
 
-    void on_actionEnbaleMicrophone_triggered();
+    void onEnableAudio();
 
-    void on_actionDisableMicrophone_triggered();
+    void onDisableAudio();
 
-    void on_actionMuteMicrophone_triggered();
+    void onMuteMicrophone();
 
-    void on_actionUnmuteMicrophone_triggered();
+    void onUnmuteMicrophone();
 
-    void on_actionEnableCamera_triggered();
+    void onEnableVideo();
 
-    void on_actionDisableCamera_triggered();
-
-    void onRoomStateChanged(vi::RoomState state);
-
-    void onVideoTrackCreated(const std::string& id, webrtc::MediaStreamTrackInterface* track);
-
-    void onVideoTrackRemoved(const std::string& id, webrtc::MediaStreamTrackInterface* track);
-
-    void onParticipantCreated(std::shared_ptr<vi::IParticipant> participant);
-
-    void onParticipantUpdated(std::shared_ptr<vi::IParticipant> participant);
-
-    void onParticipantRemoved(std::shared_ptr<vi::IParticipant> participant);
-
-    void closeEvent(QCloseEvent* event);
+    void onDisableVideo();
 
 private:
     Ui::MainWindow *ui;
 
-    std::shared_ptr<RoomEventAdapter> _roomEventAdapter;
-
-    std::shared_ptr<MediaEventAdapter> _mediaEventAdapter;
-
-    std::shared_ptr<ParticipantEventAdapter> _participantEventAdapter;
-
     GalleryView* _galleryView = nullptr;
+
+    //std::shared_ptr<ParticipantListView> _participantListView;
+
+    QToolButton* _connectButton;
+    QAction* _joinAction;
+    QAction* _leaveAction;
+
+    QToolButton* _audioButton;
+    QAction* _enableAudioAction;
+    QAction* _disableAudioAction;
+
+    QToolButton* _microphoneButton;
+    QAction* _muteMicrophoneAction;
+    QAction* _unmuteMicrophoneAction;
+
+    QToolButton* _videoButton;
+    QAction* _enableVideoAction;
+    QAction* _disableVideoAction;
 };
 #endif // MAINWINDOW_H

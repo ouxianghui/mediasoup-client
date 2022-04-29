@@ -8,9 +8,10 @@
 
 namespace vi {
 
-SignalingClient::SignalingClient()
+SignalingClient::SignalingClient(rtc::Thread* thread)
+    : _thread(thread)
 {
-    _transport = std::make_shared<WebsocketTransport>();
+    _transport = std::make_shared<WebsocketTransport>(_thread);
 }
 
 SignalingClient::~SignalingClient()
@@ -35,7 +36,7 @@ void SignalingClient::destroy()
 
 void SignalingClient::addObserver(std::shared_ptr<ISignalingObserver> observer)
 {
-    UniversalObservable<ISignalingObserver>::addWeakObserver(observer, "signaling-transport");
+    UniversalObservable<ISignalingObserver>::addWeakObserver(observer, _thread);
 }
 
 void SignalingClient::removeObserver(std::shared_ptr<ISignalingObserver> observer)
@@ -182,8 +183,8 @@ void SignalingClient::handleRequest(const std::string& json)
 
 void SignalingClient::handleResponse(const std::string& json)
 {
-    if (auto thread = TMgr->thread("signaling-transport")) {
-        TMgr->thread("signaling-transport")->PostTask([wself = weak_from_this(), json]() {
+    if (_thread) {
+        _thread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), json]() {
             if (auto self = wself.lock()) {
                 std::string err;
                 auto header = fromJsonString<signaling::ResponseHeader>(json, err);
@@ -294,12 +295,12 @@ void SignalingClient::handleNotification(const std::string& json)
     else if (method == "consumerPaused") {
         UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
             std::string err;
-            auto notification = fromJsonString<signaling::ConsumerClosedNotification>(json, err);
+            auto notification = fromJsonString<signaling::ConsumerPausedNotification>(json, err);
             if (!err.empty()) {
                 DLOG("parse response failed: {}", err);
                 return;
             }
-            observer->onConsumerClosed(notification);
+            observer->onConsumerPaused(notification);
         });
     }
     else if (method == "consumerResumed") {

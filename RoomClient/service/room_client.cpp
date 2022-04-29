@@ -15,12 +15,15 @@
 #include "api/create_peerconnection_factory.h"
 #include "api/video_codecs/builtin_video_decoder_factory.h"
 #include "api/video_codecs/builtin_video_encoder_factory.h"
+#include "api/task_queue/default_task_queue_factory.h"
+#include "modules/audio_device/include/audio_device.h"
 #include "Producer.hpp"
 #include "DataProducer.hpp"
 #include "Consumer.hpp"
 #include "DataConsumer.hpp"
 #include "media_controller.h"
 #include "participant_controller.h"
+#include "service/engine.h"
 
 namespace {
 
@@ -35,8 +38,10 @@ std::string getProtooUrl(const std::string& hostname, uint16_t port, const std::
 
 namespace vi {
 
-RoomClient::RoomClient(std::weak_ptr<IComponentFactory> wcf)
+RoomClient::RoomClient(std::weak_ptr<IComponentFactory> wcf, rtc::Thread* internalThread, rtc::Thread* transportThread)
     : _wcf(wcf)
+    , _internalThread(internalThread)
+    , _transportThread(transportThread)
 {
 
 }
@@ -48,8 +53,12 @@ RoomClient::~RoomClient()
 
 void RoomClient::init()
 {
+    FetchThread("main")->PostTask(RTC_FROM_HERE, [this]() {
+        configWebrtc();
+     });
+
     if (!_signalingClient) {
-        _signalingClient = std::make_shared<SignalingClient>();
+        _signalingClient = std::make_shared<SignalingClient>(_transportThread);
         _signalingClient->init();
         _signalingClient->addObserver(shared_from_this());
     }
@@ -58,39 +67,10 @@ void RoomClient::init()
         _mediasoupApi = std::make_shared<MediasoupApi>(_signalingClient);
         _mediasoupApi->init();
     }
-
-    if (!_mediaController.lock()) {
-        auto mediaController = std::make_shared<MediaController>(_mediasoupApi, _sendTransport, _recvTransport, _peerConnectionFactory, _options);
-        _mediaControllerProxy = MediaControllerProxy::create(mediaController, "mediasoup-client");
-        _mediaControllerProxy->init();
-        _mediaController = mediaController;
-        _signalingClient->addObserver(mediaController);
-    }
-
-    if (!_participantController.lock()) {
-        auto participantController = std::make_shared<ParticipantController>();
-        _participantControllerProxy = ParticipantControllerProxy::create(participantController, "mediasoup-client");
-        _participantControllerProxy->init();
-        _participantController = participantController;
-        _signalingClient->addObserver(participantController);
-    }
-
-    configWebrtc();
 }
 
 void RoomClient::destroy()
 {
-    if (_mediaControllerProxy) {
-        if (_mediaControllerProxy->isVideoEnabled()) {
-            _mediaControllerProxy->enableVideo(false);
-        }
-    }
-
-    if (_participantControllerProxy) {
-        _participantControllerProxy->destroy();
-        _participantControllerProxy = nullptr;
-    }
-
     if (_mediasoupApi) {
         _mediasoupApi->destroy();
         _mediasoupApi = nullptr;
@@ -102,33 +82,20 @@ void RoomClient::destroy()
         _signalingClient = nullptr;
     }
 
-    if (_mediasoupDevice) {
-        _mediasoupDevice = nullptr;
-    }
-
-    if (_recvTransport) {
-        _recvTransport->Close();
-        _recvTransport = nullptr;
-    }
-
-    if (_sendTransport) {
-        _sendTransport->Close();
-        _sendTransport = nullptr;
-    }
-
-    if (_mediaControllerProxy) {
-        _mediaControllerProxy->destroy();
-        _mediaControllerProxy = nullptr;
-    }
+    destroyComponents();
 
     if (_peerConnectionFactory) {
         _peerConnectionFactory = nullptr;
     }
+
+    _workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
+        _adm = nullptr;
+    });
 }
 
-void RoomClient::addObserver(std::shared_ptr<IRoomClientObserver> observer)
+void RoomClient::addObserver(std::shared_ptr<IRoomClientObserver> observer, rtc::Thread* callbackThread)
 {
-    UniversalObservable<IRoomClientObserver>::addWeakObserver(observer, "mediasoup-client");
+    UniversalObservable<IRoomClientObserver>::addWeakObserver(observer, callbackThread);
 }
 
 void RoomClient::removeObserver(std::shared_ptr<IRoomClientObserver> observer)
@@ -136,8 +103,60 @@ void RoomClient::removeObserver(std::shared_ptr<IRoomClientObserver> observer)
     UniversalObservable<IRoomClientObserver>::removeObserver(observer);
 }
 
+void RoomClient::configWebrtc()
+{
+    if (_peerConnectionFactory) {
+        DLOG("already configured");
+        return;
+    }
+
+    _networkThread = rtc::Thread::CreateWithSocketServer();
+    _signalingThread = rtc::Thread::Create();
+    _workerThread = rtc::Thread::Create();
+
+    _networkThread->SetName("network_thread", nullptr);
+    _signalingThread->SetName("signaling_thread", nullptr);
+    _workerThread->SetName("worker_thread", nullptr);
+
+    if (!_networkThread->Start() || !_signalingThread->Start() || !_workerThread->Start()) {
+        ELOG("thread start errored");
+    }
+
+    _adm = _workerThread->Invoke<rtc::scoped_refptr<webrtc::AudioDeviceModule>>(RTC_FROM_HERE, [this]() {
+        _taskQueueFactory = webrtc::CreateDefaultTaskQueueFactory();
+        return webrtc::AudioDeviceModule::Create(webrtc::AudioDeviceModule::kPlatformDefaultAudio, _taskQueueFactory.get());
+    });
+
+    //_workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
+    //    //_adm->InitPlayout();
+    //    ELOG("_adm->InitPlayout() = {}", _adm->InitPlayout());
+    //    ELOG("_adm->StartPlayout() = {}", _adm->StartPlayout());
+    //});
+
+    this->_peerConnectionFactory = webrtc::CreatePeerConnectionFactory(this->_networkThread.get(),
+        this->_workerThread.get(),
+        this->_signalingThread.get(),
+        _adm,
+        webrtc::CreateBuiltinAudioEncoderFactory(),
+        webrtc::CreateBuiltinAudioDecoderFactory(),
+        webrtc::CreateBuiltinVideoEncoderFactory(),
+        webrtc::CreateBuiltinVideoDecoderFactory(),
+        nullptr /*audio_mixer*/,
+        nullptr /*audio_processing*/);
+
+    _peerConnectionOptions.reset(new mediasoupclient::PeerConnection::Options());
+    _peerConnectionOptions->config.set_dscp(true);
+    _peerConnectionOptions->factory = _peerConnectionFactory;
+}
+
+
 void RoomClient::join(const std::string& hostname, uint16_t port, const std::string& roomId, const std::string& displayName, std::shared_ptr<Options> options)
 {
+    if (_state != RoomState::CLOSED) {
+        DLOG("There is already an ongoing meeting");
+        return;
+    }
+
     if (hostname.empty()) {
         DLOG("host name is null");
         return;
@@ -172,9 +191,8 @@ void RoomClient::join(const std::string& hostname, uint16_t port, const std::str
         DLOG("protoo url: {}", url);
         _signalingClient->connect(url, "protoo");
 
-        UniversalObservable<IRoomClientObserver>::notifyObservers([](const auto& observer){
-            observer->onRoomState(RoomState::CONNECTING);
-        });
+        _state = RoomState::CONNECTING;
+        onRoomStateChanged(_state);
     }
     else {
         DLOG("_signalingClient is null");
@@ -183,22 +201,68 @@ void RoomClient::join(const std::string& hostname, uint16_t port, const std::str
 
 void RoomClient::leave()
 {
+    if (_state == RoomState::CLOSED) {
+        DLOG("already closed");
+        return;
+    }
     if (_signalingClient) {
         _signalingClient->disconnect();
+        _state = RoomState::CLOSED;
+        onRoomStateChanged(_state);
     }
     else {
         DLOG("_signalingClient is null");
     }
 }
 
-std::shared_ptr<IMediaController> RoomClient::getMediaController()
+RoomState RoomClient::getRoomState()
 {
-    return _mediaControllerProxy;
+    return _state;
+}
+
+void RoomClient::enableAudio(bool enabled)
+{
+    _mediaController->enableAudio(enabled);
+}
+
+bool RoomClient::isAudioEnabled()
+{
+    return _mediaController->isAudioEnabled();
+}
+
+void RoomClient::muteAudio(bool muted)
+{
+    _mediaController->muteAudio(muted);
+}
+
+bool RoomClient::isAudioMuted()
+{
+    return _mediaController->isAudioMuted();
+}
+
+void RoomClient::enableVideo(bool enabled)
+{
+    _mediaController->enableVideo(enabled);
+}
+
+bool RoomClient::isVideoEnabled()
+{
+    return _mediaController->isVideoEnabled();
+}
+
+int32_t RoomClient::speakingVolume()
+{
+    return _volume;
+}
+
+std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> RoomClient::getVideoTracks()
+{
+    return _mediaController->getLocalVideoTracks();
 }
 
 std::shared_ptr<IParticipantController> RoomClient::getParticipantController()
 {
-    return _participantControllerProxy;
+    return _participantController ? _participantController->proxy() : nullptr;
 }
 
 void RoomClient::getRouterRtpCapabilities()
@@ -222,7 +286,7 @@ void RoomClient::getRouterRtpCapabilities()
             DLOG("response is null or response->ok == false");
             return;
         }
-        TMgr->thread("mediasoup-client")->PostTask([wself, response](){
+        self->_internalThread->PostTask(RTC_FROM_HERE, [wself, response](){
             auto self = wself.lock();
             if (!self) {
                 DLOG("RoomClient is null");
@@ -236,10 +300,12 @@ void RoomClient::getRouterRtpCapabilities()
 
 void RoomClient::onLoadMediasoupDevice(std::shared_ptr<signaling::GetRouterRtpCapabilitiesResponse> response)
 {
-    _mediasoupDevice = std::make_shared<mediasoupclient::Device>();
     nlohmann::json rtpCapabilities = nlohmann::json::parse(response->data->toJsonStr());
     DLOG("rtpCapabilities: {}", response->data->toJsonStr());
-    _mediasoupDevice->Load(rtpCapabilities);
+    if (!_mediasoupDevice) {
+        _mediasoupDevice = std::make_shared<mediasoupclient::Device>();
+    }
+    _mediasoupDevice->Load(rtpCapabilities, _peerConnectionOptions.get());
     if (_mediasoupDevice->IsLoaded()) {
         if (_options->produce.value_or(false)) {
             createSendTransport();
@@ -290,7 +356,7 @@ void RoomClient::requestCreateTransport(bool forceTcp, bool producing, bool cons
     request->data->consuming = consuming;
     request->data->forceTcp = forceTcp;
     request->data->producing = producing;
-
+    DLOG("requestCreateTransport, producing: {}, consuming: {}", producing, consuming);
     _mediasoupApi->createWebRtcTransport(request, [wself = weak_from_this(), consuming, producing](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::CreateWebRtcTransportResponse> response){
         auto self = wself.lock();
         if (!self) {
@@ -306,7 +372,9 @@ void RoomClient::requestCreateTransport(bool forceTcp, bool producing, bool cons
             DLOG("response is null or response->ok == false");
             return;
         }
-        TMgr->thread("mediasoup-client")->PostTask([wself, producing, consuming, response](){
+        DLOG("createWebRtcTransport, producing: {}, consuming: {}", producing, consuming);
+
+        self->_internalThread->PostTask(RTC_FROM_HERE, [wself, producing, consuming, response](){
             auto self = wself.lock();
             if (!self) {
                 DLOG("RoomClient is null");
@@ -345,7 +413,7 @@ void RoomClient::createTransportImpl(bool producing, bool consuming, std::shared
         DLOG("_mediasoupDevice is null");
         return;
     }
-
+    DLOG("createTransportImpl, producing: {}, consuming: {}", producing, consuming);
     nlohmann::json iceParameters = nlohmann::json::parse(transportInfo->data->iceParameters->toJsonStr());
 
     nlohmann::json iceCandidates = nlohmann::json::array();
@@ -414,7 +482,7 @@ void RoomClient::joinImpl()
         request->data->sctpCapabilities = *sctpCapabilities;
     }
 
-    _mediasoupApi->join(request, [wself = weak_from_this()](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
+    _mediasoupApi->join(request, [wself = weak_from_this()](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::JoinResponse> response){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -429,11 +497,92 @@ void RoomClient::joinImpl()
             DLOG("response is null or response->ok == false");
             return;
         }
+        
+        self->_state = RoomState::CONNECTED;
 
-        self->UniversalObservable<IRoomClientObserver>::notifyObservers([](const auto& observer){
-            observer->onRoomState(RoomState::CONNECTED);
+        self->_internalThread->PostTask(RTC_FROM_HERE, [wself, state = self->_state, response]() {
+            auto self = wself.lock();
+            if (!self) {
+                DLOG("RoomClient is null");
+                return;
+            }
+
+            self->onRoomStateChanged(state);
+
+            if (!self->_participantController) {
+                return;
+            }
+
+            if (auto pc = self->_participantController->impl()) {
+                for (const auto& peer : response->data->peers.value_or(std::vector<signaling::JoinResponse::Peer>())) {
+                    pc->createParticipant(peer.id.value_or(""), peer.displayName.value_or(""));
+                }
+            }
         });
     });
+}
+
+void RoomClient::onRoomStateChanged(vi::RoomState state)
+{
+    if (state == RoomState::CONNECTED) {
+        //destroyComponents();
+        createComponents();
+    }
+    else if (state == RoomState::CLOSED) {
+        destroyComponents();
+    }
+    UniversalObservable<IRoomClientObserver>::notifyObservers([state](const auto& observer) {
+        observer->onRoomStateChanged(state);
+    });
+}
+
+void RoomClient::createComponents()
+{
+    if (!_mediaController) {
+        auto mediaController = std::make_shared<MediaController>(_mediasoupDevice, _mediasoupApi, _sendTransport, _recvTransport, _peerConnectionFactory, _options, _internalThread, _signalingThread.get(), _adm);
+        mediaController->init();
+        _signalingClient->addObserver(mediaController);
+        _mediaController = mediaController;
+        _mediaController->addObserver(shared_from_this(), _internalThread);
+    }
+
+    if (!_participantController) {
+        auto participantControllerImpl = std::make_shared<ParticipantController>(_internalThread, _mediaController);
+        participantControllerImpl->init();
+        auto participantControllerProxy = ParticipantControllerProxy::create(participantControllerImpl, _internalThread);
+        _participantController = std::make_shared<ProxyImpl<IParticipantController, ParticipantController>>(participantControllerProxy, participantControllerImpl);
+        _signalingClient->addObserver(participantControllerImpl);
+        _mediaController->addObserver(participantControllerImpl, _internalThread);
+    }
+}
+
+void RoomClient::destroyComponents()
+{
+    if (_participantController) {
+        if (auto pc = _participantController->impl()) {
+            pc->destroy();
+        }
+        _participantController = nullptr;
+    }
+
+    if (_mediasoupDevice) {
+        _mediasoupDevice = nullptr;
+    }
+
+    if (_recvTransport) {
+        _recvTransport->Close();
+        _recvTransport = nullptr;
+    }
+
+    if (_sendTransport) {
+        _sendTransport->Close();
+        _sendTransport = nullptr;
+    }
+
+    if (_mediaController) {
+        _mediaController->destroy();
+        _mediaController = nullptr;
+    }
 }
 
 std::future<void> RoomClient::OnConnect(mediasoupclient::Transport* transport, const nlohmann::json& dtlsParameters)
@@ -451,9 +600,7 @@ std::future<void> RoomClient::OnConnect(mediasoupclient::Transport* transport, c
 
 void RoomClient::OnConnectionStateChange(mediasoupclient::Transport* transport, const std::string& connectionState)
 {
-    if (connectionState == "connected") {
 
-    }
 }
 
 std::future<std::string> RoomClient::OnProduce(mediasoupclient::SendTransport* transport,
@@ -493,7 +640,7 @@ void RoomClient::_onConnect(mediasoupclient::Transport* transport, const nlohman
 {
     std::promise<void> promise;
     std::future<void> future(promise.get_future());
-
+    //DLOG("--> [transport], sendTransport: {}, _recvTransport: {}, transport: {}", _sendTransport->GetId(), _recvTransport->GetId(), transport->GetId());
     if (!_mediasoupApi) {
         DLOG("_mediasoupApi is null");
         return;
@@ -516,21 +663,23 @@ void RoomClient::_onConnect(mediasoupclient::Transport* transport, const nlohman
 
     request->data->dtlsParameters = *dtlsp;
 
-    _mediasoupApi->connectWebRtcTransport(request, [wself = weak_from_this(), &promise](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
+    _mediasoupApi->connectWebRtcTransport(request, [wself = weak_from_this(), &promise, &transport](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
+            promise.set_value();
             return;
         }
         if (errorCode != 0) {
             DLOG("connectWebRtcTransport failed, error code: {}, error info: {}", errorCode, errorInfo);
+            promise.set_value();
             return;
         }
         if (!response || !response->ok) {
             DLOG("response is null or response->ok == false");
+            promise.set_value();
             return;
         }
-
         promise.set_value();
     });
 
@@ -570,14 +719,17 @@ std::string RoomClient::_onProduce(mediasoupclient::SendTransport* transport,
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
+            promise.set_value("");
             return;
         }
         if (errorCode != 0) {
             DLOG("produce failed, error code: {}, error info: {}", errorCode, errorInfo);
+            promise.set_value("");
             return;
         }
         if (!response || !response->ok) {
             DLOG("response is null or response->ok == false");
+            promise.set_value("");
             return;
         }
         promise.set_value(response->data->id.value_or(""));
@@ -621,14 +773,17 @@ std::string RoomClient::_onProduceData(mediasoupclient::SendTransport* transport
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
+            promise.set_value("");
             return;
         }
         if (errorCode != 0) {
             DLOG("produceData failed, error code: {}, error info: {}", errorCode, errorInfo);
+            promise.set_value("");
             return;
         }
         if (!response || !response->ok) {
             DLOG("response is null or response->ok == false");
+            promise.set_value("");
             return;
         }
         promise.set_value(response->data->id.value_or(""));
@@ -637,45 +792,9 @@ std::string RoomClient::_onProduceData(mediasoupclient::SendTransport* transport
     return future.get();
 }
 
-void RoomClient::configWebrtc()
-{
-    if (_peerConnectionFactory) {
-        DLOG("already configured");
-        return;
-    }
-
-    this->_networkThread = rtc::Thread::CreateWithSocketServer();
-    this->_signalingThread = rtc::Thread::Create();
-    this->_workerThread  = rtc::Thread::Create();
-
-    this->_networkThread->SetName("network_thread", nullptr);
-    this->_signalingThread->SetName("signaling_thread", nullptr);
-    this->_workerThread->SetName("worker_thread", nullptr);
-
-    if (!this->_networkThread->Start() || !this->_signalingThread->Start() || !this->_workerThread->Start())
-    {
-        ELOG("thread start errored");
-    }
-
-    this->_peerConnectionFactory = webrtc::CreatePeerConnectionFactory(this->_networkThread.get(),
-                                                                       this->_workerThread.get(),
-                                                                       this->_signalingThread.get(),
-                                                                       nullptr /*default_adm*/,
-                                                                       webrtc::CreateBuiltinAudioEncoderFactory(),
-                                                                       webrtc::CreateBuiltinAudioDecoderFactory(),
-                                                                       webrtc::CreateBuiltinVideoEncoderFactory(),
-                                                                       webrtc::CreateBuiltinVideoDecoderFactory(),
-                                                                       nullptr /*audio_mixer*/,
-                                                                       nullptr /*audio_processing*/);
-
-    _peerConnectionOptions.reset(new mediasoupclient::PeerConnection::Options());
-    _peerConnectionOptions->config.set_dscp(true);
-    _peerConnectionOptions->factory = _peerConnectionFactory;
-}
-
 void RoomClient::onOpened()
 {
-    TMgr->thread("mediasoup-client")->PostTask([wself = weak_from_this()](){
+    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this()](){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -687,7 +806,7 @@ void RoomClient::onOpened()
 
 void RoomClient::onClosed()
 {
-    TMgr->thread("mediasoup-client")->PostTask([wself = weak_from_this()](){
+    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this()](){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -697,76 +816,67 @@ void RoomClient::onClosed()
     });
 }
 
-// Request from SFU
-void RoomClient::onNewConsumer(std::shared_ptr<signaling::NewConsumerRequest> request)
-{
-
-}
-
-void RoomClient::onNewDataConsumer(std::shared_ptr<signaling::NewDataConsumerRequest> request)
-{
-
-}
-
-// Notification from SFU
-void RoomClient::onProducerScore(std::shared_ptr<signaling::ProducerScoreNotification> notification)
-{
-
-}
-
-void RoomClient::onConsumerScore(std::shared_ptr<signaling::ConsumerScoreNotification> notification)
-{
-
-}
-
-void RoomClient::onNewPeer(std::shared_ptr<signaling::NewPeerNotification> notification)
-{
-
-}
-
-void RoomClient::onPeerClosed(std::shared_ptr<signaling::PeerClosedNotification> notification)
-{
-
-}
-
-void RoomClient::onPeerDisplayNameChanged(std::shared_ptr<signaling::PeerDisplayNameChangedNotification> notification)
-{
-
-}
-
-void RoomClient::onConsumerPaused(std::shared_ptr<signaling::ConsumerPausedNotification> notification)
-{
-
-}
-
-void RoomClient::onConsumerResumed(std::shared_ptr<signaling::ConsumerResumedNotification> notification)
-{
-
-}
-
-void RoomClient::onConsumerClosed(std::shared_ptr<signaling::ConsumerClosedNotification> notification)
-{
-
-}
-
-void RoomClient::onConsumerLayersChanged(std::shared_ptr<signaling::ConsumerLayersChangedNotification> notification)
-{
-
-}
-
-void RoomClient::onDataConsumerClosed(std::shared_ptr<signaling::DataConsumerClosedNotification> notification)
-{
-
-}
-
-void RoomClient::onDownlinkBwe(std::shared_ptr<signaling::DownlinkBweNotification> notification)
-{
-
-}
-
 void RoomClient::onActiveSpeaker(std::shared_ptr<signaling::ActiveSpeakerNotification> notification)
 {
+    if (!notification) {
+        return;
+    }
+    if (_peerId != notification->data->peerId.value_or("")) {
+        return;
+    }
+    _volume = notification->data->volume.value_or(0);
 
+    UniversalObservable<IRoomClientObserver>::notifyObservers([wself = weak_from_this(), volume = _volume](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onLocalActiveSpeaker(volume);
+    });
+}
+
+void RoomClient::onLocalAudioStateChanged(bool enabled, bool muted)
+{
+    UniversalObservable<IRoomClientObserver>::notifyObservers([wself = weak_from_this(), enabled, muted](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onLocalAudioStateChanged(enabled, muted);
+    });
+}
+
+void RoomClient::onLocalVideoStateChanged(bool enabled)
+{
+    UniversalObservable<IRoomClientObserver>::notifyObservers([wself = weak_from_this(), enabled](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onLocalVideoStateChanged(enabled);
+    });
+}
+
+void RoomClient::onCreateLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
+{
+    UniversalObservable<IRoomClientObserver>::notifyObservers([wself = weak_from_this(), tid, track](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onCreateLocalVideoTrack(tid, track);
+    });
+}
+
+void RoomClient::onRemoveLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
+{
+    UniversalObservable<IRoomClientObserver>::notifyObservers([wself = weak_from_this(), tid, track](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onRemoveLocalVideoTrack(tid, track);
+    });
 }
 
 }

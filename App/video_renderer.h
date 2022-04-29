@@ -1,21 +1,24 @@
+
 #pragma once
 
 #include <memory>
-#include "opengl/gl_defines.h"
-#include "opengl/video_shader.h"
 #include "api/video/video_sink_interface.h"
 #include "api/video/video_frame.h"
+#include <QTimer>
+#include <mutex>
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
+#include "blockingconcurrentqueue.h"
 
-class GLVideoShader;
+class VideoShader;
 class I420TextureCache;
+class QTimer;
 
-class VideoRenderer :
-        public QOpenGLWidget,
-        public QOpenGLFunctions,
-        public rtc::VideoSinkInterface<webrtc::VideoFrame>,
-        public std::enable_shared_from_this<VideoRenderer>
+class VideoRenderer
+    : public QOpenGLWidget
+    , public QOpenGLFunctions
+    , public rtc::VideoSinkInterface<webrtc::VideoFrame>
+    , public std::enable_shared_from_this<VideoRenderer>
 {
     Q_OBJECT
 
@@ -28,6 +31,10 @@ public:
 
     void destroy();
 
+    void clear();
+
+    void reset();
+
 protected:
     void initializeGL() override;
 
@@ -37,16 +44,12 @@ protected:
 
     void OnFrame(const webrtc::VideoFrame& frame) override;
 
-signals:
-    void frameArrived(const webrtc::VideoFrame& frame);
+    void resizeEvent(QResizeEvent *e) override;
 
 private slots:
-    void onFrameArrived(const webrtc::VideoFrame& frame);
-
-private:
     void cleanup();
 
-    void resizeViewport();
+    void onRendering();
 
 private:
     std::shared_ptr<VideoShader> _videoShader;
@@ -54,4 +57,10 @@ private:
     std::shared_ptr<I420TextureCache> _i420TextureCache;
 
     std::shared_ptr<webrtc::VideoFrame> _cacheFrame;
+
+    QTimer* _renderingTimer;
+
+    moodycamel::BlockingConcurrentQueue<std::shared_ptr<webrtc::VideoFrame>> _frameQ;
+
+    bool _locked = false;
 };

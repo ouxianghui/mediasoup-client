@@ -3,8 +3,8 @@
 #include <type_traits>
 #include <algorithm>
 #include "i_observer.hpp"
-#include "thread_provider.h"
 #include "absl/types/optional.h"
+#include "rtc_base/thread.h"
 
 namespace {
     static std::shared_ptr<vi::NotificationCenter> _defaultCenter = std::make_shared<vi::NotificationCenter>();
@@ -86,14 +86,13 @@ namespace vi {
 
         for (const auto& observer : observers) {
             if (observer && observer->shouldAccept(notification)) {
-                absl::optional<std::string> scheduleThread = observer->scheduleThread();
-                rtc::Thread* thread = TMgr->thread(scheduleThread.value_or(""));
+                rtc::Thread* thread = observer->scheduleThread();
                 assert(thread);
                 if (thread->IsCurrent()) {
 				    observer->notify(notification);
                 }
                 else {
-                    thread->PostTask([obs = std::weak_ptr<IObserver>(observer), notification]() {
+                    thread->PostTask(RTC_FROM_HERE, [obs = std::weak_ptr<IObserver>(observer), notification]() {
 						if (auto observer = obs.lock()) {
 							observer->notify(notification);
 						}

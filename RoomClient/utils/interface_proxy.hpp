@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <utility>
 #include <future>
-#include "utils/thread_provider.h"
+#include "rtc_base/thread.h"
 
 
 /// Example usage 1:
@@ -34,7 +34,8 @@
 ///
 /// TEST_F(InterfaceProxyTest, TestProxy)
 /// {
-///     auto proxy = MyServiceProxy::create(std::make_shared<MyService>(), "CORE");
+///     rtc::Thread* thread = FetchThread("CORE");
+///     auto proxy = MyServiceProxy::create(std::make_shared<MyService>(), thread);
 ///     proxy->func1();
 /// }
 ///
@@ -62,7 +63,8 @@
 ///
 /// TEST_F(InterfaceProxyTest, TestProxy)
 /// {
-///     auto proxy = MyService2Proxy::create(std::make_shared<MyService2>(), "CORE");
+///     rtc::Thread* thread = FetchThread("CORE");
+///     auto proxy = MyService2Proxy::create(std::make_shared<MyService2>(), threads);
 ///     proxy->func1();
 /// }
 
@@ -102,13 +104,12 @@ public:
             
         }
     
-    R marshal(const std::string& name) {
+    R marshal(rtc::Thread* thread) {
 		const auto task = [&]() {
 			this->invoke(std::index_sequence_for<Args...>());
 			_promises.set_value();
 		};
 
-		rtc::Thread* thread = TMgr->thread(name);
 		assert(thread);
 		if (thread->IsCurrent()) {
             task();
@@ -169,21 +170,21 @@ private:
 #define CALL_THREAD_PROXY_MAP_BOILERPLATE(c)                                        \
     public:                                                                         \
     c##ProxyWithInternal(std::shared_ptr<INTERNAL_CLASS> c,                         \
-    const std::string& threadName)                                                  \
-    : _threadName(threadName)                                                      \
-    , _c(c) {}                                                                     \
+    rtc::Thread* thread)                                                            \
+    : _thread(thread)                                                               \
+    , _c(c) {}                                                                      \
     private:                                                                        \
-    const std::string _threadName;
+    rtc::Thread* _thread;
 
 #define SHARED_PROXY_MAP_BOILERPLATE(c)                                             \
     public:                                                                         \
     ~c##ProxyWithInternal() {                                                       \
     MethodCall<c##ProxyWithInternal, void> call(                                    \
     this, &c##ProxyWithInternal::destroyInternal);                                  \
-    call.marshal(_threadName);                                                     \
+    call.marshal(_thread);                                                          \
     }                                                                               \
     private:                                                                        \
-    void destroyInternal() { _c = nullptr; }                                       \
+    void destroyInternal() { _c = nullptr; }                                        \
     std::shared_ptr<INTERNAL_CLASS> _c;
 
 #define BEGIN_PROXY_MAP(c)                                                          \
@@ -192,8 +193,8 @@ private:
     SHARED_PROXY_MAP_BOILERPLATE(c)                                                 \
     public:                                                                         \
     static std::shared_ptr<c##ProxyWithInternal> create(                            \
-    std::shared_ptr<INTERNAL_CLASS> c, const std::string& threadName) {             \
-    return std::make_shared<c##ProxyWithInternal>(c, threadName);                   \
+    std::shared_ptr<INTERNAL_CLASS> c, rtc::Thread* thread) {                       \
+    return std::make_shared<c##ProxyWithInternal>(c, thread);                       \
 }
 
 #define BEGIN_PROXY_MAP_INTERFACE(c, interface)                                     \
@@ -202,50 +203,50 @@ private:
     SHARED_PROXY_MAP_BOILERPLATE(c)                                                 \
     public:                                                                         \
     static std::shared_ptr<c##ProxyWithInternal> create(                            \
-    std::shared_ptr<INTERNAL_CLASS> c, const std::string& threadName) {             \
-    return std::make_shared<c##ProxyWithInternal>(c, threadName);                   \
+    std::shared_ptr<INTERNAL_CLASS> c, rtc::Thread* thread) {                       \
+    return std::make_shared<c##ProxyWithInternal>(c, thread);                       \
 }
 
 #define PROXY_METHOD0(r, method)                                                    \
     r method() override {                                                           \
-    MethodCall<C, r> call(_c.get(), &C::method);                                   \
-    return call.marshal(_threadName);                                              \
+    MethodCall<C, r> call(_c.get(), &C::method);                                    \
+    return call.marshal(_thread);                                                   \
 }
 
 #define PROXY_METHOD1(r, method, t1)                                                \
     r method(t1 a1) override {                                                      \
-    MethodCall<C, r, t1> call(_c.get(), &C::method, std::move(a1));                \
-    return call.marshal(_threadName);                                              \
+    MethodCall<C, r, t1> call(_c.get(), &C::method, std::move(a1));                 \
+    return call.marshal(_thread);                                                   \
 }
 
 #define PROXY_METHOD2(r, method, t1, t2)                                            \
     r method(t1 a1, t2 a2) override {                                               \
-    MethodCall<C, r, t1, t2> call(_c.get(), &C::method, std::move(a1),             \
+    MethodCall<C, r, t1, t2> call(_c.get(), &C::method, std::move(a1),              \
     std::move(a2));                                                                 \
-    return call.marshal(_threadName);                                              \
+    return call.marshal(_thread);                                                   \
 }
 
 #define PROXY_METHOD3(r, method, t1, t2, t3)                                        \
     r method(t1 a1, t2 a2, t3 a3) override {                                        \
-    MethodCall<C, r, t1, t2, t3> call(_c.get(), &C::method, std::move(a1),         \
+    MethodCall<C, r, t1, t2, t3> call(_c.get(), &C::method, std::move(a1),          \
     std::move(a2), std::move(a3));                                                  \
-    return call.marshal(_threadName);                                              \
+    return call.marshal(_thread);                                                   \
 }
 
 #define PROXY_METHOD4(r, method, t1, t2, t3, t4)                                    \
     r method(t1 a1, t2 a2, t3 a3, t4 a4) override {                                 \
-    MethodCall<C, r, t1, t2, t3, t4> call(_c.get(), &C::method, std::move(a1),     \
+    MethodCall<C, r, t1, t2, t3, t4> call(_c.get(), &C::method, std::move(a1),      \
     std::move(a2), std::move(a3),                                                   \
     std::move(a4));                                                                 \
-    return call.marshal(_threadName);                                              \
+    return call.marshal(_thread);                                                   \
 }
 
 #define PROXY_METHOD5(r, method, t1, t2, t3, t4, t5)                                \
     r method(t1 a1, t2 a2, t3 a3, t4 a4, t5 a5) override {                          \
-    MethodCall<C, r, t1, t2, t3, t4, t5> call(_c.get(), &C::method, std::move(a1), \
+    MethodCall<C, r, t1, t2, t3, t4, t5> call(_c.get(), &C::method, std::move(a1),  \
     std::move(a2), std::move(a3),                                                   \
     std::move(a4), std::move(a5));                                                  \
-    return call.marshal(_threadName);                                              \
+    return call.marshal(_thread);                                                   \
 }
 
 }

@@ -5,37 +5,48 @@
 #include <unordered_map>
 #include "utils/interface_proxy.hpp"
 
+namespace rtc {
+    class Thread;
+}
+
 namespace vi {
 
 class IParticipant;
 class IParticipantControllerObserver;
 
-using ParticipantMap = std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<IParticipant>>>;
+using ParticipantMap = std::unordered_map<std::string, std::shared_ptr<IParticipant>>;
 
 class IParticipantController {
 public:
     virtual ~IParticipantController() = default;
 
-    virtual void init() = 0;
-
-    virtual void destroy() = 0;
-
-    virtual void addObserver(std::shared_ptr<IParticipantControllerObserver> observer) = 0;
+    virtual void addObserver(std::shared_ptr<IParticipantControllerObserver> observer, rtc::Thread* callbackThread) = 0;
 
     virtual void removeObserver(std::shared_ptr<IParticipantControllerObserver> observer) = 0;
 
     virtual std::shared_ptr<IParticipant> getParticipant(const std::string& pid) = 0;
 
-    virtual std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<IParticipant>>> getParticipants() = 0;
+    virtual std::unordered_map<std::string, std::shared_ptr<IParticipant>> getParticipants() = 0;
+
+    virtual void muteAudio(const std::string& pid, bool muted) = 0;
+
+    virtual bool isAudioMuted(const std::string& pid) = 0;
+
+    virtual void muteVideo(const std::string& pid, bool muted) = 0;
+
+    virtual bool isVideoMuted(const std::string& pid) = 0;
+
 };
 
 BEGIN_PROXY_MAP(ParticipantController)
-    PROXY_METHOD0(void, init)
-    PROXY_METHOD0(void, destroy)
-    PROXY_METHOD1(void, addObserver, std::shared_ptr<IParticipantControllerObserver>)
+    PROXY_METHOD2(void, addObserver, std::shared_ptr<IParticipantControllerObserver>, rtc::Thread*)
     PROXY_METHOD1(void, removeObserver, std::shared_ptr<IParticipantControllerObserver>)
     PROXY_METHOD1(std::shared_ptr<IParticipant>, getParticipant, const std::string&)
     PROXY_METHOD0(ParticipantMap, getParticipants)
+    PROXY_METHOD2(void, muteAudio, const std::string&, bool)
+    PROXY_METHOD1(bool, isAudioMuted, const std::string&)
+    PROXY_METHOD2(void, muteVideo, const std::string&, bool)
+    PROXY_METHOD1(bool, isVideoMuted, const std::string&)
 END_PROXY_MAP()
 
 }

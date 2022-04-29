@@ -14,7 +14,6 @@
 #include "api/video/video_rotation.h"
 #include "rtc_base/async_invoker.h"
 #include "logger/u_logger.h"
-#include "utils/thread_provider.h"
 
 namespace vi {
 
@@ -95,9 +94,9 @@ namespace vi {
 		}
 	}
 
-	VcmCapturer::VcmCapturer() 
+	VcmCapturer::VcmCapturer(rtc::Thread* thread)
 		: vcm_(nullptr)
-		, thread_(TMgr->thread("capture-session"))
+		, thread_(thread)
 	{
 
 	}
@@ -142,8 +141,9 @@ namespace vi {
 	VcmCapturer* VcmCapturer::Create(size_t width,
 		size_t height,
 		size_t target_fps,
-		size_t capture_device_index) {
-		std::unique_ptr<VcmCapturer> vcm_capturer(new VcmCapturer());
+		size_t capture_device_index,
+		rtc::Thread* thread) {
+		std::unique_ptr<VcmCapturer> vcm_capturer(new VcmCapturer(thread));
 		if (!vcm_capturer->Init(width, height, target_fps, capture_device_index)) {
 			RTC_LOG(LS_WARNING) << "Failed to create VcmCapturer(w = " << width
 				<< ", h = " << height << ", fps = " << target_fps
@@ -156,14 +156,23 @@ namespace vi {
 	void VcmCapturer::Destroy() {
 		if (!vcm_)
 			return;
-		DLOG("destroy capture source1");
 
-		thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_stopCapture, this));
+		if (thread_->IsCurrent()) {
+			_stopCapture();
+		}
+		else {
+			thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_stopCapture, this));
+		}
 
-		vcm_->DeRegisterCaptureDataCallback(); DLOG("destroy capture source3");
+		vcm_->DeRegisterCaptureDataCallback(); 
 
 		// Release reference to VCM.
-		thread_->Invoke<void>(RTC_FROM_HERE, std::bind(&VcmCapturer::_release, this));
+		if (thread_->IsCurrent()) {
+			_release();
+		}
+		else {
+			thread_->Invoke<void>(RTC_FROM_HERE, std::bind(&VcmCapturer::_release, this));
+		}
 	}
 
 	VcmCapturer::~VcmCapturer() {
@@ -173,6 +182,14 @@ namespace vi {
 	void VcmCapturer::OnFrame(const VideoFrame& frame) {
 		SimpleVideoCapturer::OnFrame(frame);
 
+	}
+
+	int32_t VcmCapturer::start() {
+		return thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_startCapture, this));
+	}
+
+	int32_t VcmCapturer::stop() {
+		return thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_stopCapture, this));
 	}
 
 	rtc::scoped_refptr<webrtc::VideoCaptureModule> VcmCapturer::_createDevice(const char* uniqueID) {
@@ -188,8 +205,6 @@ namespace vi {
 	}
 
 	void  VcmCapturer::_release() {
-		DLOG("destroy capture source4");
 		vcm_ = nullptr;
-		DLOG("destroy capture source5");
 	}
 }

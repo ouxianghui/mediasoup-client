@@ -1,15 +1,17 @@
-/*
- *  Copyright 2017 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree. An additional intellectual property rights grant can be found
- *  in the file PATENTS.  All contributing project authors may
- *  be found in the AUTHORS file in the root of the source tree.
- */
+/**
+ * This file is part of janus_client project.
+ * Author:    Jackie Ou
+ * Created:   2020-10-01
+ **/
+
+#pragma once
 
 #include "gl_defines.h"
+#include <memory>
+#include <vector>
+#include "api/video/i420_buffer.h"
 #include "api/video/video_frame.h"
+#include <stdint.h>
 
 // Two sets of 3 textures are used here, one for each of the Y, U and V planes. Having two sets
 // alleviates CPU blockage in the event that the GPU is asked to render to a texture that is already
@@ -18,12 +20,15 @@ static const GLsizei kNumTextureSets = 2;
 static const GLsizei kNumTexturesPerSet = 3;
 static const GLsizei kNumTextures = kNumTexturesPerSet * kNumTextureSets;
 
-class I420TextureCache {
+class I420TextureCache
+    : public std::enable_shared_from_this<I420TextureCache>
+{
 public:
     I420TextureCache();
 
     ~I420TextureCache();
 
+public:
     void init();
 
     void uploadFrameToTextures(const webrtc::VideoFrame& frame);
@@ -37,11 +42,10 @@ public:
 protected:
     void setupTextures();
 
-    void uploadPlane(const uint8_t *plane, GLuint texture, size_t width, size_t height, int32_t stride);
+    void uploadPlane(const uint8_t* plane, GLuint texture, size_t width, size_t height, int32_t stride);
 
 private:
-    bool _hasUnpackRowLength = false;
-
+    bool _hasUnpackRowLength;
     GLint _currentTextureSet = 0;
 
     // Handles for OpenGL constructs.
@@ -50,3 +54,4 @@ private:
     // Used to create a non-padded plane for GPU upload when we receive padded frames.
     std::vector<uint8_t> _planeBuffer;
 };
+

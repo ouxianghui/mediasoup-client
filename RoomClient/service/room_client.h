@@ -11,6 +11,9 @@
 #include "DataProducer.hpp"
 #include "Consumer.hpp"
 #include "DataConsumer.hpp"
+#include "rtc_base/thread.h"
+#include "utils/container.hpp"
+#include "i_media_controller_observer.h"
 
 namespace vi {
 
@@ -19,18 +22,19 @@ class ISignalingClient;
 class IMediasoupApi;
 class MacTrackSource;
 class IParticipant;
-class MediaController;
 class ParticipantController;
+class IMediaController;
 
 class RoomClient :
         public IRoomClient,
         public ISignalingObserver,
         public mediasoupclient::SendTransport::Listener,
         public mediasoupclient::RecvTransport::Listener,
+        public IMediaControllerObserver,
         public UniversalObservable<IRoomClientObserver>,
         public std::enable_shared_from_this<RoomClient> {
 public:
-    RoomClient(std::weak_ptr<IComponentFactory> wcf);
+    RoomClient(std::weak_ptr<IComponentFactory> wcf, rtc::Thread* internalThread, rtc::Thread* transportThread);
 
     ~RoomClient();
 
@@ -38,7 +42,7 @@ public:
 
     void destroy() override;
 
-    void addObserver(std::shared_ptr<IRoomClientObserver> observer) override;
+    void addObserver(std::shared_ptr<IRoomClientObserver> observer, rtc::Thread* callbackThread) override;
 
     void removeObserver(std::shared_ptr<IRoomClientObserver> observer) override;
 
@@ -46,7 +50,23 @@ public:
 
     void leave() override;
 
-    std::shared_ptr<IMediaController> getMediaController() override;
+    RoomState getRoomState() override;
+
+    void enableAudio(bool enabled) override;
+
+    bool isAudioEnabled() override;
+
+    void muteAudio(bool muted) override;
+
+    bool isAudioMuted() override;
+
+    void enableVideo(bool enabled) override;
+
+    bool isVideoEnabled() override;
+
+    int32_t speakingVolume() override;
+
+    std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> getVideoTracks() override;
 
     std::shared_ptr<IParticipantController> getParticipantController() override;
 
@@ -57,32 +77,32 @@ protected:
     void onClosed() override;
 
     // Request from SFU
-    void onNewConsumer(std::shared_ptr<signaling::NewConsumerRequest> request) override;
+    void onNewConsumer(std::shared_ptr<signaling::NewConsumerRequest> request) override {}
 
-    void onNewDataConsumer(std::shared_ptr<signaling::NewDataConsumerRequest> request) override;
+    void onNewDataConsumer(std::shared_ptr<signaling::NewDataConsumerRequest> request) override {}
 
     // Notification from SFU
-    void onProducerScore(std::shared_ptr<signaling::ProducerScoreNotification> notification) override;
+    void onProducerScore(std::shared_ptr<signaling::ProducerScoreNotification> notification) override {}
 
-    void onConsumerScore(std::shared_ptr<signaling::ConsumerScoreNotification> notification) override;
+    void onConsumerScore(std::shared_ptr<signaling::ConsumerScoreNotification> notification) override {}
 
-    void onNewPeer(std::shared_ptr<signaling::NewPeerNotification> notification) override;
+    void onNewPeer(std::shared_ptr<signaling::NewPeerNotification> notification) override {}
 
-    void onPeerClosed(std::shared_ptr<signaling::PeerClosedNotification> notification) override;
+    void onPeerClosed(std::shared_ptr<signaling::PeerClosedNotification> notification) override {}
 
-    void onPeerDisplayNameChanged(std::shared_ptr<signaling::PeerDisplayNameChangedNotification> notification) override;
+    void onPeerDisplayNameChanged(std::shared_ptr<signaling::PeerDisplayNameChangedNotification> notification) override {}
 
-    void onConsumerPaused(std::shared_ptr<signaling::ConsumerPausedNotification> notification) override;
+    void onConsumerPaused(std::shared_ptr<signaling::ConsumerPausedNotification> notification) override {}
 
-    void onConsumerResumed(std::shared_ptr<signaling::ConsumerResumedNotification> notification) override;
+    void onConsumerResumed(std::shared_ptr<signaling::ConsumerResumedNotification> notification) override {}
 
-    void onConsumerClosed(std::shared_ptr<signaling::ConsumerClosedNotification> notification) override;
+    void onConsumerClosed(std::shared_ptr<signaling::ConsumerClosedNotification> notification) override {}
 
-    void onConsumerLayersChanged(std::shared_ptr<signaling::ConsumerLayersChangedNotification> notification) override;
+    void onConsumerLayersChanged(std::shared_ptr<signaling::ConsumerLayersChangedNotification> notification) override {}
 
-    void onDataConsumerClosed(std::shared_ptr<signaling::DataConsumerClosedNotification> notification) override;
+    void onDataConsumerClosed(std::shared_ptr<signaling::DataConsumerClosedNotification> notification) override {}
 
-    void onDownlinkBwe(std::shared_ptr<signaling::DownlinkBweNotification> notification) override;
+    void onDownlinkBwe(std::shared_ptr<signaling::DownlinkBweNotification> notification) override {}
 
     void onActiveSpeaker(std::shared_ptr<signaling::ActiveSpeakerNotification> notification) override;
 
@@ -95,6 +115,28 @@ protected:
     std::future<std::string> OnProduce(mediasoupclient::SendTransport* transport, const std::string& kind, nlohmann::json rtpParameters, const nlohmann::json& appData) override;
 
     std::future<std::string> OnProduceData(mediasoupclient::SendTransport* transport, const nlohmann::json& sctpStreamParameters, const std::string& label, const std::string& protocol, const nlohmann::json& appData) override;
+
+protected:
+    // IMediaControllerObserver
+    void onLocalAudioStateChanged(bool enabled, bool muted) override;
+
+    void onLocalVideoStateChanged(bool enabled) override;
+
+    void onRemoteAudioStateChanged(const std::string& pid, bool muted) override {}
+
+    void onRemoteVideoStateChanged(const std::string& pid, bool muted) override {}
+
+    void onCreateLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>) override;
+
+    void onRemoveLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>) override;
+
+    void onCreateRemoteAudioTrack(const std::string& pid, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>) override {}
+
+    void onRemoveRemoteAudioTrack(const std::string& pid, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>) override {}
+
+    void onCreateRemoteVideoTrack(const std::string& pid, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>) override {}
+
+    void onRemoveRemoteVideoTrack(const std::string& pid, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>) override {}
 
 private:
     void getRouterRtpCapabilities();
@@ -123,13 +165,23 @@ private:
 
     std::string _onProduceData(mediasoupclient::SendTransport* transport, const nlohmann::json& sctpStreamParameters, const std::string& label, const std::string& protocol, const nlohmann::json& appData);
 
+    void onRoomStateChanged(vi::RoomState state);
+
+    void createComponents();
+
+    void destroyComponents();
+
 private:
     std::weak_ptr<IComponentFactory> _wcf;
 
+    rtc::Thread* _internalThread;
+    rtc::Thread* _transportThread;
+
     std::string _hostname;
     uint16_t _port;
-    std::string _peerId;
     std::string _roomId;
+
+    std::string _peerId;
     std::string _displayName;
 
     std::shared_ptr<Options> _options;
@@ -149,11 +201,16 @@ private:
     std::unique_ptr<rtc::Thread> _workerThread;
     rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
 
-    std::weak_ptr<MediaController> _mediaController;
-    std::weak_ptr<ParticipantController> _participantController;
+    std::shared_ptr<IMediaController> _mediaController;
 
-    std::shared_ptr<IMediaController> _mediaControllerProxy;
-    std::shared_ptr<IParticipantController> _participantControllerProxy;
+    std::shared_ptr<ProxyImpl<IParticipantController, ParticipantController>> _participantController;
+
+    RoomState _state = RoomState::CLOSED;
+
+    std::unique_ptr<webrtc::TaskQueueFactory> _taskQueueFactory;
+    rtc::scoped_refptr<webrtc::AudioDeviceModule> _adm;
+
+    int32_t _volume = 0;
 };
 
 

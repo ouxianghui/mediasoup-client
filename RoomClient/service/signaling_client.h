@@ -1,10 +1,12 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 #include "i_signaling_client.h"
 #include "websocket/i_transport_observer.h"
 #include "utils/universal_observable.hpp"
 #include "i_signaling_observer.h"
+#include "rtc_base/thread.h"
 
 namespace vi {
 
@@ -14,7 +16,7 @@ class ITransport;
 class SignalingClient : public ISignalingClient, public ITransportObserver, public UniversalObservable<ISignalingObserver>, public std::enable_shared_from_this<SignalingClient>
 {
 public:
-    SignalingClient();
+    SignalingClient(rtc::Thread* thread);
 
     ~SignalingClient();
 
@@ -53,6 +55,8 @@ private:
     void clearRequests();
 
 private:
+    rtc::Thread* _thread;
+
     std::shared_ptr<ITransport> _transport;
 
     std::mutex _requestMutex;

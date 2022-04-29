@@ -99,7 +99,7 @@ public:
     }
 
 private:
-    int32_t _id = -1;
+    int64_t _id = -1;
     std::string _text;
     std::vector<uint8_t> _data;
     ResolveCallback _resolve;

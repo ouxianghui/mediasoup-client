@@ -48,7 +48,7 @@ namespace vi {
         {
         }
         
-        absl::optional<std::string> scheduleThread() override
+        rtc::Thread* scheduleThread() override
         {
             return _scheduleThread;
         }
@@ -101,7 +101,7 @@ namespace vi {
         rtc::RecursiveCriticalSection _criticalSection;
         std::weak_ptr<T> _object;
         Method _method;
-        absl::optional<std::string> _scheduleThread;
+        rtc::Thread* _scheduleThread;
     };
 
 }

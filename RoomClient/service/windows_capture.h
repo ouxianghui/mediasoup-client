@@ -61,13 +61,17 @@ namespace vi {
 		static VcmCapturer* Create(size_t width,
 			size_t height,
 			size_t target_fps,
-			size_t capture_device_index);
+			size_t capture_device_index, rtc::Thread* thread);
 		virtual ~VcmCapturer();
 
 		void OnFrame(const VideoFrame& frame) override;
 
+		int32_t start();
+
+		int32_t stop();
+
 	private:
-		VcmCapturer();
+		VcmCapturer(rtc::Thread* thread);
 		bool Init(size_t width,
 			size_t height,
 			size_t target_fps,
@@ -85,14 +89,14 @@ namespace vi {
 	private:
 		rtc::scoped_refptr<VideoCaptureModule> vcm_;
 		VideoCaptureCapability capability_;
-		std::unique_ptr<rtc::Thread> thread_;
+		rtc::Thread* thread_;
 	};
 
     class WindowsCapturerTrackSource : public webrtc::VideoTrackSource {
-	public:
+    public:
         ~WindowsCapturerTrackSource() {}
 
-        static rtc::scoped_refptr<WindowsCapturerTrackSource> Create() {
+        static rtc::scoped_refptr<WindowsCapturerTrackSource> Create(rtc::Thread* thread) {
             const size_t kWidth = 1280;
             const size_t kHeight = 720;
 			const size_t kFps = 30;
@@ -103,13 +107,27 @@ namespace vi {
 			}
 			int num_devices = info->NumberOfDevices();
 			for (int i = 0; i < num_devices; ++i) {
-                capturer = absl::WrapUnique(VcmCapturer::Create(kWidth, kHeight, kFps, i));
+                capturer = absl::WrapUnique(VcmCapturer::Create(kWidth, kHeight, kFps, i, thread));
 				if (capturer) {
                     return new rtc::RefCountedObject<WindowsCapturerTrackSource>(std::move(capturer));
 				}
 			}
 
 			return nullptr;
+		}
+
+		int32_t startCapture() {
+			if (!capturer_) {
+				return -1;
+			}
+			return capturer_->start();
+		}
+
+		int32_t stopCapture() {
+			if (!capturer_) {
+				return -1;
+			}
+			return capturer_->stop();
 		}
 
 	protected:

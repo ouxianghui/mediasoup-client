@@ -7,7 +7,6 @@
 
 namespace vi {
 
-class ThreadProvider;
 class ComponentFactory : public IComponentFactory, public std::enable_shared_from_this<ComponentFactory>
 {
 public:
@@ -18,6 +17,8 @@ public:
     void init() override;
 
     void destroy() override;
+
+    const std::unique_ptr<ThreadProvider>& getThreadProvider() override;
 
     std::shared_ptr<IServiceFactory> getServiceFactory() override;
 
@@ -31,7 +32,7 @@ private:
     const ComponentFactory& operator=(const ComponentFactory&) = delete;
 
 private:
-    std::shared_ptr<ThreadProvider> _threadProvider;
+    std::unique_ptr<ThreadProvider> _threadProvider;
 
     std::shared_ptr<IServiceFactory> _serviceFactory;
 

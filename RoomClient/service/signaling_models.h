@@ -270,6 +270,33 @@ struct JoinRequest {
     FIELDS_MAP("request", request, "id", id, "method", method, "data", data);
 };
 
+struct JoinResponse {
+    struct Device {
+        absl::optional<std::string> flag;
+        absl::optional<std::string> name;
+        absl::optional<std::string> version;
+        FIELDS_MAP("flag", flag, "name", name, "version", version);
+    };
+
+    struct Peer {
+        absl::optional<std::string> id;
+        absl::optional<std::string> displayName;
+        absl::optional<Device> device;
+        FIELDS_MAP("id", id, "displayName", displayName, "device", device);
+    };
+
+    struct Data {
+        absl::optional<std::vector<Peer>> peers;
+        FIELDS_MAP("peers", peers);
+    };
+
+    absl::optional<bool> response;
+    absl::optional<int64_t> id;
+    absl::optional<bool> ok;
+    absl::optional<Data> data;
+    FIELDS_MAP("response", response, "id", id, "ok", ok, "data", data);
+};
+
 struct NewDataConsumerRequest {
     struct AppData {
         absl::optional<std::string> peerId;

@@ -1,28 +1,25 @@
-/*
- *  Copyright 2016 The WebRTC project authors. All Rights Reserved.
- *
- *  Use of this source code is governed by a BSD-style license
- *  that can be found in the LICENSE file in the root of the source
- *  tree. An additional intellectual property rights grant can be found
- *  in the file PATENTS.  All contributing project authors may
- *  be found in the AUTHORS file in the root of the source tree.
- */
+/**
+ * This file is part of janus_client project.
+ * Author:    Jackie Ou
+ * Created:   2020-10-01
+ **/
 
 #include "video_shader.h"
-
-#if TARGET_OS_IPHONE
-#include <OpenGLES/ES3/gl.h>
-#else
-#include <OpenGL/gl3.h>
-#endif
-
 #include <algorithm>
 #include <array>
 #include <memory>
-#include <assert.h>
-#include "rtc_base/checks.h"
-#include "rtc_base/logging.h"
 #include "logger/u_logger.h"
+
+// Vertex shader doesn't do anything except pass coordinates through.
+const char kRTCVertexShaderSource[] =
+SHADER_VERSION
+VERTEX_SHADER_IN " vec2 position;\n"
+VERTEX_SHADER_IN " vec2 texcoord;\n"
+VERTEX_SHADER_OUT " vec2 v_texcoord;\n"
+"void main() {\n"
+"    gl_Position = vec4(position.x, position.y, 0.0, 1.0);\n"
+"    v_texcoord = texcoord;\n"
+"}\n";
 
 static const int kYTextureUnit = 0;
 static const int kUTextureUnit = 1;
@@ -32,56 +29,45 @@ static const int kUvTextureUnit = 1;
 // Fragment shader converts YUV values from input textures into a final RGB
 // pixel. The conversion formula is from http://www.fourcc.org/fccyvrgb.php.
 static const char kI420FragmentShaderSource[] =
-  SHADER_VERSION
-  "precision highp float;"
-  FRAGMENT_SHADER_IN " vec2 v_texcoord;\n"
-  "uniform lowp sampler2D s_textureY;\n"
-  "uniform lowp sampler2D s_textureU;\n"
-  "uniform lowp sampler2D s_textureV;\n"
-  FRAGMENT_SHADER_OUT
-  "void main() {\n"
-  "    float y, u, v, r, g, b;\n"
-  "    y = " FRAGMENT_SHADER_TEXTURE "(s_textureY, v_texcoord).r;\n"
-  "    u = " FRAGMENT_SHADER_TEXTURE "(s_textureU, v_texcoord).r;\n"
-  "    v = " FRAGMENT_SHADER_TEXTURE "(s_textureV, v_texcoord).r;\n"
-  "    u = u - 0.5;\n"
-  "    v = v - 0.5;\n"
-  "    r = y + 1.403 * v;\n"
-  "    g = y - 0.344 * u - 0.714 * v;\n"
-  "    b = y + 1.770 * u;\n"
-  "    " FRAGMENT_SHADER_COLOR " = vec4(r, g, b, 1.0);\n"
-  "  }\n";
+SHADER_VERSION
+"precision highp float;"
+FRAGMENT_SHADER_IN " vec2 v_texcoord;\n"
+"uniform lowp sampler2D s_textureY;\n"
+"uniform lowp sampler2D s_textureU;\n"
+"uniform lowp sampler2D s_textureV;\n"
+FRAGMENT_SHADER_OUT
+"void main() {\n"
+"    float y, u, v, r, g, b;\n"
+"    y = " FRAGMENT_SHADER_TEXTURE "(s_textureY, v_texcoord).r;\n"
+"    u = " FRAGMENT_SHADER_TEXTURE "(s_textureU, v_texcoord).r;\n"
+"    v = " FRAGMENT_SHADER_TEXTURE "(s_textureV, v_texcoord).r;\n"
+"    u = u - 0.5;\n"
+"    v = v - 0.5;\n"
+"    r = y + 1.403 * v;\n"
+"    g = y - 0.344 * u - 0.714 * v;\n"
+"    b = y + 1.770 * u;\n"
+"    " FRAGMENT_SHADER_COLOR " = vec4(r, g, b, 1.0);\n"
+"  }\n";
 
 static const char kNV12FragmentShaderSource[] =
-  SHADER_VERSION
-  "precision mediump float;"
-  FRAGMENT_SHADER_IN " vec2 v_texcoord;\n"
-  "uniform lowp sampler2D s_textureY;\n"
-  "uniform lowp sampler2D s_textureUV;\n"
-  FRAGMENT_SHADER_OUT
-  "void main() {\n"
-  "    mediump float y;\n"
-  "    mediump vec2 uv;\n"
-  "    y = " FRAGMENT_SHADER_TEXTURE "(s_textureY, v_texcoord).r;\n"
-  "    uv = " FRAGMENT_SHADER_TEXTURE "(s_textureUV, v_texcoord).ra -\n"
-  "        vec2(0.5, 0.5);\n"
-  "    " FRAGMENT_SHADER_COLOR " = vec4(y + 1.403 * uv.y,\n"
-  "                                     y - 0.344 * uv.x - 0.714 * uv.y,\n"
-  "                                     y + 1.770 * uv.x,\n"
-  "                                     1.0);\n"
-  "  }\n";
+SHADER_VERSION
+"precision mediump float;"
+FRAGMENT_SHADER_IN " vec2 v_texcoord;\n"
+"uniform lowp sampler2D s_textureY;\n"
+"uniform lowp sampler2D s_textureUV;\n"
+FRAGMENT_SHADER_OUT
+"void main() {\n"
+"    mediump float y;\n"
+"    mediump vec2 uv;\n"
+"    y = " FRAGMENT_SHADER_TEXTURE "(s_textureY, v_texcoord).r;\n"
+"    uv = " FRAGMENT_SHADER_TEXTURE "(s_textureUV, v_texcoord).ra -\n"
+"        vec2(0.5, 0.5);\n"
+"    " FRAGMENT_SHADER_COLOR " = vec4(y + 1.403 * uv.y,\n"
+"                                     y - 0.344 * uv.x - 0.714 * uv.y,\n"
+"                                     y + 1.770 * uv.x,\n"
+"                                     1.0);\n"
+"  }\n";
 
-
-// Vertex shader doesn't do anything except pass coordinates through.
-const char kRTCVertexShaderSource[] =
-        SHADER_VERSION
-        VERTEX_SHADER_IN " vec2 position;\n"
-        VERTEX_SHADER_IN " vec2 texcoord;\n"
-        VERTEX_SHADER_OUT " vec2 v_texcoord;\n"
-                          "void main() {\n"
-                          "    gl_Position = vec4(position.x, position.y, 0.0, 1.0);\n"
-                          "    v_texcoord = texcoord;\n"
-                          "}\n";
 
 VideoShader::VideoShader()
 {
@@ -96,7 +82,7 @@ VideoShader::~VideoShader()
     glDeleteVertexArrays(1, &_vertexArray);
 }
 
-// Compiles a shader of the given `type` with GLSL source `source` and returns
+// Compiles a shader of the given |type| with GLSL source |source| and returns
 // the shader handle or 0 on error.
 GLuint VideoShader::createShader(GLenum type, const GLchar *source) {
     GLuint shader = glCreateShader(type);
@@ -115,7 +101,6 @@ GLuint VideoShader::createShader(GLenum type, const GLchar *source) {
             std::unique_ptr<char[]> compileLog(new char[logLength]);
             // The returned string is null terminated.
             glGetShaderInfoLog(shader, logLength, NULL, compileLog.get());
-            //RTC_LOG(LS_ERROR) << "Shader compile error: " << compileLog.get();
             DLOG("Shader compile error: {}", compileLog.get());
         }
         glDeleteShader(shader);
@@ -150,12 +135,12 @@ GLuint VideoShader::createProgram(GLuint vertexShader, GLuint fragmentShader) {
 // a plain vertex shader. Returns the program handle or 0 on error.
 GLuint VideoShader::createProgramFromFragmentSource(const char fragmentShaderSource[]) {
     GLuint vertexShader = createShader(GL_VERTEX_SHADER, kRTCVertexShaderSource);
-    RTC_CHECK(vertexShader) << "failed to create vertex shader";
+    //RTC_CHECK(vertexShader) << "failed to create vertex shader";
     if (vertexShader == 0) {
         DLOG("failed to create vertex shader");
     }
     GLuint fragmentShader = createShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-    RTC_CHECK(fragmentShader) << "failed to create fragment shader";
+    //RTC_CHECK(fragmentShader) << "failed to create fragment shader";
     if (fragmentShader == 0) {
         DLOG("failed to create fragment shader");
     }
@@ -190,13 +175,12 @@ GLuint VideoShader::createProgramFromFragmentSource(const char fragmentShaderSou
 }
 
 bool VideoShader::createVertexBuffer(GLuint *vertexBuffer, GLuint *vertexArray) {
-#if !TARGET_OS_IPHONE
     glGenVertexArrays(1, vertexArray);
     if (*vertexArray == 0) {
         return false;
     }
     glBindVertexArray(*vertexArray);
-#endif
+
     glGenBuffers(1, vertexBuffer);
     if (*vertexBuffer == 0) {
         glDeleteVertexArrays(1, vertexArray);
@@ -216,12 +200,12 @@ void VideoShader::setVertexData(webrtc::VideoRotation rotation) {
     // from (0, 0) to (1, 1) inclusive. Texture coordinates are flipped vertically
     // here because the incoming frame has origin in upper left hand corner but
     // OpenGL expects origin in bottom left corner.
-    std::array<std::array<GLfloat, 2>, 4> UVCoords = {{
-                                                          {{0, 1}},  // Lower left.
-                                                          {{1, 1}},  // Lower right.
-                                                          {{1, 0}},  // Upper right.
-                                                          {{0, 0}},  // Upper left.
-                                                      }};
+    std::array<std::array<GLfloat, 2>, 4> UVCoords = { {
+        {{0, 1}},  // Lower left.
+        {{1, 1}},  // Lower right.
+        {{1, 0}},  // Upper right.
+        {{0, 0}},  // Upper left.
+    } };
 
     // Rotate the UV coordinates.
     int rotation_offset;
@@ -240,13 +224,13 @@ void VideoShader::setVertexData(webrtc::VideoRotation rotation) {
         break;
     }
     std::rotate(UVCoords.begin(), UVCoords.begin() + rotation_offset,
-                UVCoords.end());
+        UVCoords.end());
 
     const GLfloat gVertices[] = {
         // X, Y, U, V.
         -1, -1, UVCoords[0][0], UVCoords[0][1],
-        1, -1, UVCoords[1][0], UVCoords[1][1],
-        1,  1, UVCoords[2][0], UVCoords[2][1],
+         1, -1, UVCoords[1][0], UVCoords[1][1],
+         1,  1, UVCoords[2][0], UVCoords[2][1],
         -1,  1, UVCoords[3][0], UVCoords[3][1],
     };
 
@@ -254,110 +238,121 @@ void VideoShader::setVertexData(webrtc::VideoRotation rotation) {
 }
 
 bool VideoShader::createAndSetupI420Program() {
-  assert(!_i420Program);
-  _i420Program = createProgramFromFragmentSource(kI420FragmentShaderSource);
-  if (!_i420Program) {
-    return false;
-  }
-  GLint ySampler = glGetUniformLocation(_i420Program, "s_textureY");
-  GLint uSampler = glGetUniformLocation(_i420Program, "s_textureU");
-  GLint vSampler = glGetUniformLocation(_i420Program, "s_textureV");
+    assert(!_i420Program);
+    _i420Program = createProgramFromFragmentSource(kI420FragmentShaderSource);
+    if (!_i420Program) {
+        return false;
+    }
+    GLint ySampler = glGetUniformLocation(_i420Program, "s_textureY");
+    GLint uSampler = glGetUniformLocation(_i420Program, "s_textureU");
+    GLint vSampler = glGetUniformLocation(_i420Program, "s_textureV");
 
-  if (ySampler < 0 || uSampler < 0 || vSampler < 0) {
-    DLOG("Failed to get uniform variable locations in I420 shader");
-    glDeleteProgram(_i420Program);
-    _i420Program = 0;
-    return false;
-  }
+    if (ySampler < 0 || uSampler < 0 || vSampler < 0) {
+        DLOG("Failed to get uniform variable locations in I420 shader");
+        glDeleteProgram(_i420Program);
+        _i420Program = 0;
+        return false;
+    }
 
-  glUseProgram(_i420Program);
-  glUniform1i(ySampler, kYTextureUnit);
-  glUniform1i(uSampler, kUTextureUnit);
-  glUniform1i(vSampler, kVTextureUnit);
+    glUseProgram(_i420Program);
+    glUniform1i(ySampler, kYTextureUnit);
+    glUniform1i(uSampler, kUTextureUnit);
+    glUniform1i(vSampler, kVTextureUnit);
 
-  return true;
+    return true;
 }
 
 bool VideoShader::createAndSetupNV12Program() {
-  assert(!_nv12Program);
-  _nv12Program = createProgramFromFragmentSource(kNV12FragmentShaderSource);
-  if (!_nv12Program) {
-    return false;
-  }
-  GLint ySampler = glGetUniformLocation(_nv12Program, "s_textureY");
-  GLint uvSampler = glGetUniformLocation(_nv12Program, "s_textureUV");
+    assert(!_nv12Program);
+    _nv12Program = createProgramFromFragmentSource(kNV12FragmentShaderSource);
+    if (!_nv12Program) {
+        return false;
+    }
+    GLint ySampler = glGetUniformLocation(_nv12Program, "s_textureY");
+    GLint uvSampler = glGetUniformLocation(_nv12Program, "s_textureUV");
 
-  if (ySampler < 0 || uvSampler < 0) {
-    DLOG("Failed to get uniform variable locations in NV12 shader");
-    glDeleteProgram(_nv12Program);
-    _nv12Program = 0;
-    return false;
-  }
+    if (ySampler < 0 || uvSampler < 0) {
+        DLOG("Failed to get uniform variable locations in NV12 shader");
+        glDeleteProgram(_nv12Program);
+        _nv12Program = 0;
+        return false;
+    }
 
-  glUseProgram(_nv12Program);
-  glUniform1i(ySampler, kYTextureUnit);
-  glUniform1i(uvSampler, kUvTextureUnit);
+    glUseProgram(_nv12Program);
+    glUniform1i(ySampler, kYTextureUnit);
+    glUniform1i(uvSampler, kUvTextureUnit);
 
-  return true;
+    return true;
 }
 
-bool VideoShader::prepareVertexBufferWithRotation(webrtc::VideoRotation rotation) {
-  if (!_vertexBuffer && !createVertexBuffer(&_vertexBuffer, &_vertexArray)) {
-    DLOG("Failed to setup vertex buffer");
-    return false;
-  }
-#if !TARGET_OS_IPHONE
-  glBindVertexArray(_vertexArray);
-#endif
-  glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
-  if (!_currentRotation || rotation != *_currentRotation) {
-    _currentRotation = absl::optional<webrtc::VideoRotation>(rotation);
-    setVertexData(*_currentRotation);
-  }
-  return true;
+bool VideoShader::prepareVertexBuffer(webrtc::VideoRotation rotation) {
+    if (!_vertexBuffer && !createVertexBuffer(&_vertexBuffer, &_vertexArray)) {
+        DLOG("Failed to setup vertex buffer");
+        return false;
+    }
+
+    glBindVertexArray(_vertexArray);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _vertexBuffer);
+    if (!_currentRotation || rotation != *_currentRotation) {
+        _currentRotation = absl::optional<webrtc::VideoRotation>(rotation);
+        setVertexData(*_currentRotation);
+    }
+    return true;
 }
 
-void VideoShader::applyShadingForFrame(int width, int height, webrtc::VideoRotation rotation, GLuint yPlane, GLuint uPlane, GLuint vPlane) {
-  if (!prepareVertexBufferWithRotation(rotation)) {
-    return;
-  }
+void VideoShader::applyShadingForFrame(int width,
+    int height,
+    webrtc::VideoRotation rotation,
+    GLuint yPlane,
+    GLuint uPlane,
+    GLuint vPlane) {
+    if (!prepareVertexBuffer(rotation)) {
+        return;
+    }
 
-  if (!_i420Program && !createAndSetupI420Program()) {
-    DLOG("Failed to setup I420 program");
-    return;
-  }
+    if (!_i420Program && !createAndSetupI420Program()) {
+        DLOG("Failed to setup I420 program");
+        return;
+    }
 
-  glUseProgram(_i420Program);
+    glUseProgram(_i420Program);
 
-  glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + kYTextureUnit));
-  glBindTexture(GL_TEXTURE_2D, yPlane);
+    glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + kYTextureUnit));
+    glBindTexture(GL_TEXTURE_2D, yPlane);
 
-  glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + kUTextureUnit));
-  glBindTexture(GL_TEXTURE_2D, uPlane);
+    glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + kUTextureUnit));
+    glBindTexture(GL_TEXTURE_2D, uPlane);
 
-  glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + kVTextureUnit));
-  glBindTexture(GL_TEXTURE_2D, vPlane);
+    glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + kVTextureUnit));
+    glBindTexture(GL_TEXTURE_2D, vPlane);
 
-  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void VideoShader::applyShadingForFrame(int width, int height, webrtc::VideoRotation rotation, GLuint yPlane, GLuint uvPlane) {
-  if (!prepareVertexBufferWithRotation(rotation)) {
-    return;
-  }
+void VideoShader::applyShadingForFrame(int width,
+    int height,
+    webrtc::VideoRotation rotation,
+    GLuint yPlane,
+    GLuint uvPlane) {
+    if (!prepareVertexBuffer(rotation)) {
+        return;
+    }
 
-  if (!_nv12Program && !createAndSetupNV12Program()) {
-    DLOG("Failed to setup NV12 shader");
-    return;
-  }
+    if (!_nv12Program && !createAndSetupNV12Program()) {
+        DLOG("Failed to setup NV12 shader");
+        return;
+    }
 
-  glUseProgram(_nv12Program);
+    glUseProgram(_nv12Program);
 
-  glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + kYTextureUnit));
-  glBindTexture(GL_TEXTURE_2D, yPlane);
+    glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + kYTextureUnit));
+    glBindTexture(GL_TEXTURE_2D, yPlane);
 
-  glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + kUvTextureUnit));
-  glBindTexture(GL_TEXTURE_2D, uvPlane);
+    glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + kUvTextureUnit));
+    glBindTexture(GL_TEXTURE_2D, uvPlane);
 
-  glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
+
+

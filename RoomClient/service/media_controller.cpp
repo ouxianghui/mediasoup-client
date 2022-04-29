@@ -1,23 +1,34 @@
+#include <future>
 #include "media_controller.h"
 #include "Transport.hpp"
 #include "api/peer_connection_interface.h"
 #include "api/rtp_parameters.h"
 #include "logger/u_logger.h"
 #include "mediasoup_api.h"
-#include "mac_capturer.h"
+#include "windows_capture.h"
+#include "service/engine.h"
+#include "modules/audio_device/include/audio_device.h"
 
 namespace vi {
 
-MediaController::MediaController(std::shared_ptr<IMediasoupApi>& mediasoupApi,
+MediaController::MediaController(std::shared_ptr<mediasoupclient::Device>& mediasoupDevice,
+                                 std::shared_ptr<IMediasoupApi>& mediasoupApi,
                                  std::shared_ptr<mediasoupclient::SendTransport>& sendTransport,
                                  std::shared_ptr<mediasoupclient::RecvTransport>& recvTransport,
                                  rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface>& pcf,
-                                 std::shared_ptr<Options>& options)
-    : _mediasoupApi(mediasoupApi)
+                                 std::shared_ptr<Options>& options,
+                                 rtc::Thread* internalThread,
+                                 rtc::Thread* signalingThread,
+                                 rtc::scoped_refptr<webrtc::AudioDeviceModule>& adm)
+    : _mediasoupDevice(mediasoupDevice)
+    , _mediasoupApi(mediasoupApi)
     , _sendTransport(sendTransport)
     , _recvTransport(recvTransport)
     , _peerConnectionFactory(pcf)
     , _options(options)
+    , _internalThread(internalThread)
+    , _signalingThread(signalingThread)
+    , _adm(adm)
 {
 
 }
@@ -59,14 +70,14 @@ void MediaController::destroy()
     }
 
     if (_capturerSource) {
-        _capturerSource->Stop();
+        _capturerSource->startCapture();
         _capturerSource = nullptr;
     }
 }
 
-void MediaController::addObserver(std::shared_ptr<IMediaControllerObserver> observer)
+void MediaController::addObserver(std::shared_ptr<IMediaControllerObserver> observer, rtc::Thread* callbackThread)
 {
-    UniversalObservable<IMediaControllerObserver>::addWeakObserver(observer, "mediasoup-client");
+    UniversalObservable<IMediaControllerObserver>::addWeakObserver(observer, callbackThread);
 }
 
 void MediaController::removeObserver(std::shared_ptr<IMediaControllerObserver> observer)
@@ -103,24 +114,42 @@ void MediaController::configVideoEncodings()
 
 void MediaController::enableAudio(bool enabled)
 {
+    if (!_mediasoupDevice->CanProduce("audio")) {
+        DLOG("cannot produce audio");
+        return;
+    }
+
     if (!_sendTransport) {
         DLOG("_sendTransport is null");
         return;
     }
 
     if (enabled) {
-        rtc::scoped_refptr<webrtc::AudioTrackInterface> track = _peerConnectionFactory->CreateAudioTrack("mic-label", _peerConnectionFactory->CreateAudioSource(cricket::AudioOptions()));
+        if (_micProducer) {
+            DLOG("already has a mic producer");
+            return;
+        }
+
+        cricket::AudioOptions options;
+        options.echo_cancellation = false;
+        DLOG("audio options: {}", options.ToString());
+        rtc::scoped_refptr<webrtc::AudioTrackInterface> track = _peerConnectionFactory->CreateAudioTrack("mic-track", _peerConnectionFactory->CreateAudioSource(options));
 
         nlohmann::json codecOptions = nlohmann::json::object();
         codecOptions["opusStereo"] = true;
         codecOptions["opusDtx"] = true;
 
-        mediasoupclient::Producer* producer = _sendTransport->Produce(this,
-                                                                      track,
-                                                                      nullptr,
-                                                                      &codecOptions,
-                                                                      nullptr);
+        mediasoupclient::Producer* producer = _sendTransport->Produce(this, track, nullptr, &codecOptions, nullptr);
         _micProducer.reset(producer);
+
+        UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+            auto self = wself.lock();
+            if (!self) {
+                DLOG("RoomClient is null");
+                return;
+            }
+            observer->onLocalAudioStateChanged(true, self->_micProducer->IsPaused());
+        });
     }
     else {
         if (!_mediasoupApi) {
@@ -132,6 +161,15 @@ void MediaController::enableAudio(bool enabled)
             DLOG("_micProducer is null");
             return;
         }
+
+        UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+            auto self = wself.lock();
+            if (!self) {
+                DLOG("RoomClient is null");
+                return;
+            }
+            observer->onLocalAudioStateChanged(false, self->_micProducer->IsPaused());
+        });
 
         _mediasoupApi->closeProducer(_micProducer->GetId(), [wself = weak_from_this()](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
             auto self = wself.lock();
@@ -148,6 +186,8 @@ void MediaController::enableAudio(bool enabled)
                 return;
             }
         });
+        _micProducer->Close();
+        _micProducer = nullptr;
     }
 }
 
@@ -190,9 +230,28 @@ void MediaController::muteAudio(bool muted)
                 return;
             }
         });
+
+        UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+            auto self = wself.lock();
+            if (!self) {
+                DLOG("RoomClient is null");
+                return;
+            }
+            observer->onLocalAudioStateChanged(!self->_micProducer->IsClosed(), self->_micProducer->IsPaused());
+        });
+
     }
     else {
         _micProducer->Resume();
+
+        UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+            auto self = wself.lock();
+            if (!self) {
+                DLOG("RoomClient is null");
+                return;
+            }
+            observer->onLocalAudioStateChanged(!self->_micProducer->IsClosed(), self->_micProducer->IsPaused());
+        });
 
         _mediasoupApi->resumeProducer(_micProducer->GetId(), [wself = weak_from_this()](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
             auto self = wself.lock();
@@ -223,27 +282,38 @@ bool MediaController::isAudioMuted()
 
 void MediaController::enableVideo(bool enabled)
 {
+    if (!_mediasoupDevice->CanProduce("video")) {
+        DLOG("cannot produce video");
+        return;
+    }
+
     if (!_sendTransport) {
         DLOG("_sendTransport is null");
         return;
     }
 
     if (enabled) {
+        if (_camProducer) {
+            DLOG("already has a cam producer");
+            return;
+        }
+
         if (!_capturerSource) {
-            std::unique_ptr<MacCapturer> capturer = absl::WrapUnique(MacCapturer::Create(1280, 720, 30, 0));
-            _capturerSource = rtc::make_ref_counted<MacTrackSource>(std::move(capturer), false);
+            //std::unique_ptr<VcmCapturer> capturer = absl::WrapUnique(VcmCapturer::Create(1280, 720, 30, 0));
+            //_capturerSource = rtc::make_ref_counted<WindowsCapturerTrackSource>(std::move(capturer), false);
+            _capturerSource = WindowsCapturerTrackSource::Create(_signalingThread);
         }
 
         DLOG("create capture source");
         if (_capturerSource) {
-            _capturerSource->Start();
+            _capturerSource->startCapture();
             rtc::scoped_refptr<webrtc::VideoTrackInterface> track = _peerConnectionFactory->CreateVideoTrack("camera-track", _capturerSource);
-
+            track->set_enabled(true);
             nlohmann::json codecOptions = nlohmann::json::object();
             codecOptions["videoGoogleStartBitrate"] = 1000;
 
             mediasoupclient::Producer* producer = _sendTransport->Produce(this,
-                                                                          track.release(),
+                                                                          track,
                                                                           _options->useSimulcast.value_or(false) ? &_encodings : nullptr,
                                                                           &codecOptions,
                                                                           nullptr);
@@ -255,7 +325,8 @@ void MediaController::enableVideo(bool enabled)
                     DLOG("RoomClient is null");
                     return;
                 }
-                observer->onCreateVideoTrack(self->_camProducer->GetId(), self->_camProducer->GetTrack());
+                observer->onLocalVideoStateChanged(!self->_camProducer->IsClosed());
+                observer->onCreateLocalVideoTrack(self->_camProducer->GetId(), self->_camProducer->GetTrack());
             });
         }
     }
@@ -284,30 +355,22 @@ void MediaController::enableVideo(bool enabled)
                 DLOG("response is null or response->ok == false");
                 return;
             }
-            TMgr->thread("mediasoup-client")->PostTask([wself](){
-                auto self = wself.lock();
-                if (!self) {
-                    DLOG("RoomClient is null");
-                    return;
-                }
-                self->onCamProducerClosed();
-            });
         });
-    }
-}
 
-void MediaController::onCamProducerClosed()
-{
-    if (!_camProducer) {
-        DLOG("_camProducer is null");
-        return;
-    }
+        UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+            auto self = wself.lock();
+            if (!self) {
+                DLOG("RoomClient is null");
+                return;
+            }
+            observer->onLocalVideoStateChanged(false);
+            observer->onRemoveLocalVideoTrack(self->_camProducer->GetId(), self->_camProducer->GetTrack());
+        });
 
-    _camProducer->GetTrack()->set_enabled(false);
-    _camProducer->Close();
-
-    if (_capturerSource) {
-        _capturerSource->Stop();
+        _capturerSource->stopCapture();
+        _capturerSource = nullptr;
+        _camProducer->Close();
+        _camProducer = nullptr;
     }
 }
 
@@ -320,66 +383,222 @@ bool MediaController::isVideoEnabled()
     return !_camProducer->IsClosed();
 }
 
-void MediaController::muteAudio(const std::string& id, bool muted)
+void MediaController::muteVideo(const std::string& pid, bool muted)
 {
-    if (_consumerMap.find(id) == _consumerMap.end()) {
-        return;
-    }
-
     if (!_mediasoupApi) {
         DLOG("_mediasoupApi is null");
         return;
     }
 
-    auto consumer = _consumerMap[id];
+    for (const auto& pair : _consumerIdToPeerId) {
+        if (pair.second == pid) {
+            auto tid = pair.first;
+            if (_consumerMap.find(tid) == _consumerMap.end()) {
+                return;
+            }
 
-    if (muted) {
-        consumer->Pause();
+            auto consumer = _consumerMap[tid];
 
-        _mediasoupApi->pauseConsumer(consumer->GetId(), [wself = weak_from_this()](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
-            auto self = wself.lock();
-            if (!self) {
-                DLOG("RoomClient is null");
-                return;
-            }
-            if (errorCode != 0) {
-                DLOG("pauseConsumer failed, error code: {}, error info: {}", errorCode, errorInfo);
-                return;
-            }
-            if (!response || !response->ok) {
-                DLOG("response is null or response->ok == false");
-                return;
-            }
-        });
-    }
-    else {
-        consumer->Resume();
+            if (consumer->GetKind() == "video") {
+                if (muted) {
+                    consumer->Pause();
 
-        _mediasoupApi->resumeConsumer(consumer->GetId(), [wself = weak_from_this()](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
-            auto self = wself.lock();
-            if (!self) {
-                DLOG("RoomClient is null");
-                return;
+                    _mediasoupApi->pauseConsumer(consumer->GetId(), [wself = weak_from_this()](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
+                        auto self = wself.lock();
+                        if (!self) {
+                            DLOG("RoomClient is null");
+                            return;
+                        }
+                        if (errorCode != 0) {
+                            DLOG("pauseConsumer failed, error code: {}, error info: {}", errorCode, errorInfo);
+                            return;
+                        }
+                        if (!response || !response->ok) {
+                            DLOG("response is null or response->ok == false");
+                            return;
+                        }
+                    });
+                }
+                else {
+                    consumer->Resume();
+
+                    _mediasoupApi->resumeConsumer(consumer->GetId(), [wself = weak_from_this()](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
+                        auto self = wself.lock();
+                        if (!self) {
+                            DLOG("RoomClient is null");
+                            return;
+                        }
+                        if (errorCode != 0) {
+                            DLOG("resumeConsumer failed, error code: {}, error info: {}", errorCode, errorInfo);
+                            return;
+                        }
+                        if (!response || !response->ok) {
+                            DLOG("response is null or response->ok == false");
+                            return;
+                        }
+                    });
+                }
             }
-            if (errorCode != 0) {
-                DLOG("resumeConsumer failed, error code: {}, error info: {}", errorCode, errorInfo);
-                return;
-            }
-            if (!response || !response->ok) {
-                DLOG("response is null or response->ok == false");
-                return;
-            }
-        });
+        }
     }
 }
 
-bool MediaController::isAudioMuted(const std::string& id)
+bool MediaController::isVideoMuted(const std::string& pid)
 {
-    if (_consumerMap.find(id) != _consumerMap.end()) {
-        auto consumer = _consumerMap[id];
-        return consumer->IsPaused();
+    for (const auto& pair : _consumerIdToPeerId) {
+        if (pair.second == pid) {
+            auto tid = pair.first;
+            auto consumer = _consumerMap[tid];
+            if (consumer->GetKind() == "video" && !consumer->IsPaused()) {
+                return false;
+            }
+        }
     }
     return true;
+}
+
+std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> MediaController::getLocalVideoTracks()
+{
+    std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> tracks;
+    if (_camProducer) {
+        tracks[_camProducer->GetId()] = _camProducer->GetTrack();
+    }
+    return tracks;
+}
+
+std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> MediaController::getRemoteAudioTracks(const std::string& pid)
+{
+    std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> tracks;
+    for (const auto& pair : _consumerMap) {
+        if (pair.second->GetKind() == "audio") {
+            tracks[pair.first] = pair.second->GetTrack();
+        }
+    }
+    return tracks;
+}
+
+std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> MediaController::getRemoteVideoTracks(const std::string& pid)
+{
+    std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> tracks;
+    for (const auto& pair : _consumerMap) {
+        auto peerId = _consumerIdToPeerId[pair.first];
+        if (pair.second->GetKind() == "video" && peerId == pid) {
+            tracks[pair.first] = pair.second->GetTrack();
+        }
+    }
+    return tracks;
+}
+
+void MediaController::muteAudio(const std::string& pid, bool muted)
+{
+    if (!_mediasoupApi) {
+        DLOG("_mediasoupApi is null");
+        return;
+    }
+
+    for (const auto& pair : _consumerIdToPeerId) {
+        if (pair.second == pid) {
+            auto tid = pair.first;
+            if (_consumerMap.find(tid) == _consumerMap.end()) {
+                return;
+            }
+
+            auto consumer = _consumerMap[tid];
+
+            if (consumer->GetKind() == "audio") {
+                if (muted) {
+                    consumer->Pause();
+
+                    _mediasoupApi->pauseConsumer(consumer->GetId(), [wself = weak_from_this()](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
+                        auto self = wself.lock();
+                        if (!self) {
+                            DLOG("RoomClient is null");
+                            return;
+                        }
+                        if (errorCode != 0) {
+                            DLOG("pauseConsumer failed, error code: {}, error info: {}", errorCode, errorInfo);
+                            return;
+                        }
+                        if (!response || !response->ok) {
+                            DLOG("response is null or response->ok == false");
+                            return;
+                        }
+                    });
+                }
+                else {
+                    consumer->Resume();
+
+                    _mediasoupApi->resumeConsumer(consumer->GetId(), [wself = weak_from_this()](int32_t errorCode, const std::string& errorInfo, std::shared_ptr<signaling::BasicResponse> response){
+                        auto self = wself.lock();
+                        if (!self) {
+                            DLOG("RoomClient is null");
+                            return;
+                        }
+                        if (errorCode != 0) {
+                            DLOG("resumeConsumer failed, error code: {}, error info: {}", errorCode, errorInfo);
+                            return;
+                        }
+                        if (!response || !response->ok) {
+                            DLOG("response is null or response->ok == false");
+                            return;
+                        }
+                    });
+                }
+            }
+        }
+    }
+}
+
+bool MediaController::isAudioMuted(const std::string& pid)
+{
+    for (const auto& pair : _consumerIdToPeerId) {
+        if (pair.second == pid) {
+            auto tid = pair.first;
+            auto consumer = _consumerMap[tid];
+            if (consumer->GetKind() == "audio" && !consumer->IsPaused()) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+void MediaController::updateConsumer(const std::string& tid, bool paused)
+{
+    for (const auto& consumer : _consumerMap) {
+        if (consumer.second->GetId() == tid) {
+            auto peerId = _consumerIdToPeerId[consumer.second->GetId()];
+            if (paused) {
+                consumer.second->Pause();
+            }
+            else {
+                consumer.second->Resume();
+            }
+            auto paused = consumer.second->IsPaused();
+            if (consumer.second->GetKind() == "audio") {
+                UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this(), peerId, paused](const auto& observer){
+                    auto self = wself.lock();
+                    if (!self) {
+                        DLOG("RoomClient is null");
+                        return;
+                    }
+
+                    observer->onRemoteAudioStateChanged(peerId, paused);
+                });
+            }
+            else if (consumer.second->GetKind() == "video") {
+                UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this(), peerId, paused](const auto& observer) {
+                    auto self = wself.lock();
+                    if (!self) {
+                        DLOG("RoomClient is null");
+                        return;
+                    }
+
+                    observer->onRemoteVideoStateChanged(peerId, paused);
+                });
+            }
+        }
+    }
 }
 
 void MediaController::createNewConsumer(std::shared_ptr<signaling::NewConsumerRequest> request)
@@ -410,16 +629,22 @@ void MediaController::createNewConsumer(std::shared_ptr<signaling::NewConsumerRe
     std::shared_ptr<mediasoupclient::Consumer> ptr;
     ptr.reset(consumer);
     _consumerMap[request->data->id.value()] = ptr;
+    _consumerIdToPeerId[request->data->id.value()] = request->data->peerId.value_or("");
+    bool producerPaused = request->data->producerPaused.value();
 
-    UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this(), ptr](const auto& observer){
+    UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this(), ptr, request, producerPaused](const auto& observer){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
             return;
         }
-        if (ptr->GetKind() == "video") {
-            observer->onCreateVideoTrack(ptr->GetId(), ptr->GetTrack());
-            ptr->GetTrack()->set_enabled(true);
+        if (ptr->GetKind() == "audio") {
+            observer->onCreateRemoteAudioTrack(request->data->peerId.value(), ptr->GetId(), ptr->GetTrack());
+            observer->onRemoteAudioStateChanged(request->data->peerId.value(), producerPaused);
+        }
+        else if (ptr->GetKind() == "video") {
+            observer->onCreateRemoteVideoTrack(request->data->peerId.value(), ptr->GetId(), ptr->GetTrack());
+            observer->onRemoteVideoStateChanged(request->data->peerId.value(), producerPaused);
         }
     });
 
@@ -468,6 +693,10 @@ void MediaController::createNewDataConsumer(std::shared_ptr<signaling::NewDataCo
     std::shared_ptr<mediasoupclient::DataConsumer> ptr;
     ptr.reset(consumer);
     _dataConsumerMap[request->data->id.value()] = ptr;
+    _consumerIdToPeerId[request->data->id.value()] = request->data->peerId.value_or("");
+
+    auto id1 = request->data->id.value();
+    auto id2 = request->data->dataProducerId.value();
 
     if (!_mediasoupApi) {
         DLOG("_mediasoupApi is null");
@@ -541,20 +770,10 @@ void MediaController::OnTransportClose(mediasoupclient::DataConsumer* dataConsum
 
 }
 
-void MediaController::onOpened()
-{
-
-}
-
-void MediaController::onClosed()
-{
-
-}
-
 // Request from SFU
 void MediaController::onNewConsumer(std::shared_ptr<signaling::NewConsumerRequest> request)
 {
-    TMgr->thread("mediasoup-client")->PostTask([wself = weak_from_this(), request](){
+    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), request](){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -566,7 +785,7 @@ void MediaController::onNewConsumer(std::shared_ptr<signaling::NewConsumerReques
 
 void MediaController::onNewDataConsumer(std::shared_ptr<signaling::NewDataConsumerRequest> request)
 {
-    TMgr->thread("mediasoup-client")->PostTask([wself = weak_from_this(), request](){
+    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), request](){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -587,43 +806,89 @@ void MediaController::onConsumerScore(std::shared_ptr<signaling::ConsumerScoreNo
 
 }
 
-void MediaController::onNewPeer(std::shared_ptr<signaling::NewPeerNotification> notification)
-{
-
-}
-
-void MediaController::onPeerClosed(std::shared_ptr<signaling::PeerClosedNotification> notification)
-{
-
-}
-
-void MediaController::onPeerDisplayNameChanged(std::shared_ptr<signaling::PeerDisplayNameChangedNotification> notification)
-{
-
-}
-
 void MediaController::onConsumerPaused(std::shared_ptr<signaling::ConsumerPausedNotification> notification)
 {
+    if (!notification) {
+        return;
+    }
 
-}
+    auto tid = notification->data->consumerId.value_or("");
+    if (tid.empty()) {
+        return;
+    }
 
-void MediaController::onConsumerResumed(std::shared_ptr<signaling::ConsumerResumedNotification> notification)
-{
-
-}
-
-void MediaController::onConsumerClosed(std::shared_ptr<signaling::ConsumerClosedNotification> notification)
-{
-    UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this(), notification](const auto& observer){
+    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), tid](){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
             return;
         }
+
+        self->updateConsumer(tid, true);
+    });
+}
+
+void MediaController::onConsumerResumed(std::shared_ptr<signaling::ConsumerResumedNotification> notification)
+{
+    if (!notification) {
+        return;
+    }
+
+    auto tid = notification->data->consumerId.value_or("");
+    if (tid.empty()) {
+        return;
+    }
+
+    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), tid](){
+        auto self = wself.lock();
+        if (!self) {
+            DLOG("RoomClient is null");
+            return;
+        }
+        self->updateConsumer(tid, false);
+    });
+}
+
+void MediaController::onConsumerClosed(std::shared_ptr<signaling::ConsumerClosedNotification> notification)
+{
+    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), notification](){
+        auto self = wself.lock();
+        if (!self) {
+            DLOG("RoomClient is null");
+            return;
+        }
+
         for (const auto& consumer : self->_consumerMap) {
-            if (consumer.second->GetId() == notification->data->consumerId.value_or("") && consumer.second->GetKind() == "video") {
-                observer->onRemoveVideoTrack(consumer.second->GetId(), consumer.second->GetTrack());
-                self->_consumerMap.erase(consumer.second->GetId());
+            if (consumer.second->GetId() == notification->data->consumerId.value_or("")) {
+                auto peerId = self->_consumerIdToPeerId[consumer.second->GetId()];
+                auto tid = consumer.second->GetId();
+                //auto track = consumer.second->GetTrack();
+                
+                if (consumer.second->GetKind() == "audio") {
+                    self->UniversalObservable<IMediaControllerObserver>::notifyObservers([wself, peerId, tid](const auto& observer){
+                        auto self = wself.lock();
+                        if (!self) {
+                            DLOG("RoomClient is null");
+                            return;
+                        }
+                        observer->onRemoteAudioStateChanged(peerId, true);
+                        observer->onRemoveRemoteAudioTrack(peerId, tid, nullptr);
+                    });
+                }
+                else if (consumer.second->GetKind() == "video") {
+                    self->UniversalObservable<IMediaControllerObserver>::notifyObservers([wself, peerId, tid](const auto& observer) {
+                        auto self = wself.lock();
+                        if (!self) {
+                            DLOG("RoomClient is null");
+                            return;
+                        }
+                        observer->onRemoteVideoStateChanged(peerId, true);
+                        observer->onRemoveRemoteVideoTrack(peerId, tid, nullptr);
+                    });
+                }
+                consumer.second->Close();
+                self->_consumerIdToPeerId.erase(tid);
+                self->_consumerMap.erase(tid);
                 return;
             }
         }
@@ -641,11 +906,6 @@ void MediaController::onDataConsumerClosed(std::shared_ptr<signaling::DataConsum
 }
 
 void MediaController::onDownlinkBwe(std::shared_ptr<signaling::DownlinkBweNotification> notification)
-{
-
-}
-
-void MediaController::onActiveSpeaker(std::shared_ptr<signaling::ActiveSpeakerNotification> notification)
 {
 
 }

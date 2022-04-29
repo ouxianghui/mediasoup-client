@@ -11,6 +11,8 @@
 #include "DataConsumer.hpp"
 #include "options.h"
 #include "signaling_models.h"
+#include "rtc_base/thread.h"
+#include "Device.hpp"
 
 namespace mediasoupclient {
     class SendTransport;
@@ -20,7 +22,7 @@ namespace mediasoupclient {
 namespace vi {
 
 class IMediasoupApi;
-class MacTrackSource;
+class WindowsCapturerTrackSource;
 
 class MediaController :
         public IMediaController,
@@ -33,11 +35,15 @@ class MediaController :
         public std::enable_shared_from_this<MediaController>
 {
 public:
-    MediaController(std::shared_ptr<IMediasoupApi>& mediasoupApi,
+    MediaController(std::shared_ptr<mediasoupclient::Device>& mediasoupDevice,
+                    std::shared_ptr<IMediasoupApi>& mediasoupApi,
                     std::shared_ptr<mediasoupclient::SendTransport>& sendTransport,
                     std::shared_ptr<mediasoupclient::RecvTransport>& recvTransport,
                     rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface>& pcf,
-                    std::shared_ptr<Options>& options);
+                    std::shared_ptr<Options>& options,
+                    rtc::Thread* internalThread,
+                    rtc::Thread* signalingThread,
+                    rtc::scoped_refptr<webrtc::AudioDeviceModule>& adm);
 
     ~MediaController();
 
@@ -45,7 +51,7 @@ public:
 
     void destroy() override;
 
-    void addObserver(std::shared_ptr<IMediaControllerObserver> observer) override;
+    void addObserver(std::shared_ptr<IMediaControllerObserver> observer, rtc::Thread* callbackThread) override;
 
     void removeObserver(std::shared_ptr<IMediaControllerObserver> observer) override;
 
@@ -61,9 +67,19 @@ public:
 
     bool isVideoEnabled() override;
 
-    void muteAudio(const std::string& id, bool muted) override;
+    void muteAudio(const std::string& pid, bool muted) override;
 
-    bool isAudioMuted(const std::string& id) override;
+    bool isAudioMuted(const std::string& pid) override;
+
+    void muteVideo(const std::string& pid, bool muted) override;
+
+    bool isVideoMuted(const std::string& pid) override;
+
+    std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> getLocalVideoTracks() override;
+
+    std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> getRemoteAudioTracks(const std::string& pid) override;
+
+    std::unordered_map<std::string, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface>> getRemoteVideoTracks(const std::string& pid) override;
 
 protected:
     // Producer::Listener
@@ -96,9 +112,9 @@ protected:
 
 protected:
     // ISignalingObserver
-    void onOpened() override;
+    void onOpened() override {}
 
-    void onClosed() override;
+    void onClosed() override {}
 
     // Request from SFU
     void onNewConsumer(std::shared_ptr<signaling::NewConsumerRequest> request) override;
@@ -110,11 +126,11 @@ protected:
 
     void onConsumerScore(std::shared_ptr<signaling::ConsumerScoreNotification> notification) override;
 
-    void onNewPeer(std::shared_ptr<signaling::NewPeerNotification> notification) override;
+    void onNewPeer(std::shared_ptr<signaling::NewPeerNotification> notification) override {}
 
-    void onPeerClosed(std::shared_ptr<signaling::PeerClosedNotification> notification) override;
+    void onPeerClosed(std::shared_ptr<signaling::PeerClosedNotification> notification) override {}
 
-    void onPeerDisplayNameChanged(std::shared_ptr<signaling::PeerDisplayNameChangedNotification> notification) override;
+    void onPeerDisplayNameChanged(std::shared_ptr<signaling::PeerDisplayNameChangedNotification> notification) override {}
 
     void onConsumerPaused(std::shared_ptr<signaling::ConsumerPausedNotification> notification) override;
 
@@ -128,7 +144,7 @@ protected:
 
     void onDownlinkBwe(std::shared_ptr<signaling::DownlinkBweNotification> notification) override;
 
-    void onActiveSpeaker(std::shared_ptr<signaling::ActiveSpeakerNotification> notification) override;
+    void onActiveSpeaker(std::shared_ptr<signaling::ActiveSpeakerNotification> notification) override {}
 
 private:
      void configVideoEncodings();
@@ -137,9 +153,13 @@ private:
 
      void createNewDataConsumer(std::shared_ptr<signaling::NewDataConsumerRequest> request);
 
-     void onCamProducerClosed();
+     void updateConsumer(const std::string& tid, bool paused);
 
 private:
+     rtc::Thread* _internalThread;
+
+     std::shared_ptr<mediasoupclient::Device>& _mediasoupDevice;
+
      std::shared_ptr<IMediasoupApi>& _mediasoupApi;
 
      std::shared_ptr<mediasoupclient::SendTransport>& _sendTransport;
@@ -153,13 +173,20 @@ private:
 
      std::shared_ptr<mediasoupclient::Producer> _micProducer;
      std::shared_ptr<mediasoupclient::Producer> _camProducer;
-     rtc::scoped_refptr<MacTrackSource> _capturerSource;
+     rtc::scoped_refptr<WindowsCapturerTrackSource> _capturerSource;
 
-     // key: consumer id
+     // key: consumerId
      std::unordered_map<std::string, std::shared_ptr<mediasoupclient::Consumer>> _consumerMap;
 
-     // key: data consumer id
+     // key: dataConsumerId
      std::unordered_map<std::string, std::shared_ptr<mediasoupclient::DataConsumer>> _dataConsumerMap;
+
+     // key: consumerId, value: peerId
+     std::unordered_map<std::string, std::string> _consumerIdToPeerId;
+
+     rtc::Thread* _signalingThread;
+
+     rtc::scoped_refptr<webrtc::AudioDeviceModule>& _adm;
 };
 
 }

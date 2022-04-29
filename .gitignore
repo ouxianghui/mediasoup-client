@@ -37,7 +37,18 @@
 UI/UI.APS
 /*.pro.user
 
+/App/logs
+
 /Debug
 /Release
 
+/App/release
+/RoomClient/release
+
+/App/debug
+/RoomClient/debug
+
 /deps/webrtc
+
+*.vcxproj.*
+.qmake.stash

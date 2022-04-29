@@ -1,9 +1,11 @@
 #pragma once
 
-#ifdef WEBRTC_MAC
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
+#if TARGET_OS_IPHONE
+#include <OpenGLES/ES3/gl.h>
+#elif TARGET_OS_MAC
+#include <OpenGL/gl3.h>
+#elif WIN32
+#include <GL/glew.h>
 #endif
 
 #if TARGET_OS_IPHONE

@@ -20,9 +20,6 @@ ThreadProvider::ThreadProvider() : _inited(false), _destroy(true)
 ThreadProvider::~ThreadProvider()
 {
     DLOG("~ThreadProvider()");
-    if (!_destroy) {
-        stopAll();
-    }
 }
 
 void ThreadProvider::init()
@@ -36,6 +33,9 @@ void ThreadProvider::init()
 
 void ThreadProvider::destroy()
 {
+    if (!_destroy) {
+        stopAll();
+    }
     _destroy = true;
 }
 

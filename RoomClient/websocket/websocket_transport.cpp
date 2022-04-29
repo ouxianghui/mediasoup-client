@@ -13,7 +13,8 @@
 #include "i_transport_observer.h"
 
 namespace vi {
-WebsocketTransport::WebsocketTransport()
+WebsocketTransport::WebsocketTransport(rtc::Thread* thread)
+    : _thread(thread)
 {
 
 }
@@ -44,7 +45,7 @@ bool WebsocketTransport::isValid()
 // ITransport
 void WebsocketTransport::addObserver(std::shared_ptr<ITransportObserver> observer)
 {
-    UniversalObservable<ITransportObserver>::addWeakObserver(observer, "signaling-transport");
+    UniversalObservable<ITransportObserver>::addWeakObserver(observer, _thread);
 }
 
 void WebsocketTransport::removeObserver(std::shared_ptr<ITransportObserver> observer)

@@ -1,9 +1,14 @@
 #include "participant_controller.h"
 #include "logger/u_logger.h"
+#include "i_participant_controller_observer.h"
+#include "participant.h"
+#include "media_controller.h"
 
 namespace vi {
 
-ParticipantController::ParticipantController()
+ParticipantController::ParticipantController(rtc::Thread* internalThread, std::shared_ptr<IMediaController> mediaController)
+    : _internalThread(internalThread)
+    , _mediaController(mediaController)
 {
 
 }
@@ -15,20 +20,17 @@ ParticipantController::~ParticipantController()
 
 void ParticipantController::init()
 {
-    _participantMap = std::make_shared<std::unordered_map<std::string, std::shared_ptr<IParticipant>>>();
+
 }
 
 void ParticipantController::destroy()
 {
-    if (_participantMap) {
-        _participantMap->clear();
-        _participantMap = nullptr;
-    }
+    _participantMap.clear();
 }
 
-void ParticipantController::addObserver(std::shared_ptr<IParticipantControllerObserver> observer)
+void ParticipantController::addObserver(std::shared_ptr<IParticipantControllerObserver> observer, rtc::Thread* callbackThread)
 {
-    UniversalObservable<IParticipantControllerObserver>::addWeakObserver(observer, "mediasoup-client");
+    UniversalObservable<IParticipantControllerObserver>::addWeakObserver(observer, callbackThread);
 }
 
 void ParticipantController::removeObserver(std::shared_ptr<IParticipantControllerObserver> observer)
@@ -38,102 +40,293 @@ void ParticipantController::removeObserver(std::shared_ptr<IParticipantControlle
 
 std::shared_ptr<IParticipant> ParticipantController::getParticipant(const std::string& pid)
 {
-    if (!_participantMap) {
-        return nullptr;
-    }
-
-    if (_participantMap->find(pid) != _participantMap->end()) {
-        return (*_participantMap)[pid];
+    if (_participantMap.find(pid) != _participantMap.end()) {
+        return _participantMap[pid];
     }
 
     return nullptr;
 }
 
-std::shared_ptr<std::unordered_map<std::string, std::shared_ptr<IParticipant>>> ParticipantController::getParticipants()
+std::unordered_map<std::string, std::shared_ptr<IParticipant>> ParticipantController::getParticipants()
 {
     return _participantMap;
 }
 
-void ParticipantController::onOpened()
+void ParticipantController::muteAudio(const std::string& pid, bool muted)
 {
-
+    _mediaController->muteAudio(pid, muted);
 }
 
-void ParticipantController::onClosed()
+bool ParticipantController::isAudioMuted(const std::string& pid)
 {
-
+    return _mediaController->isAudioMuted(pid);
 }
 
-// Request from SFU
-void ParticipantController::onNewConsumer(std::shared_ptr<signaling::NewConsumerRequest> request)
+void ParticipantController::muteVideo(const std::string& pid, bool muted)
 {
-
+    _mediaController->muteVideo(pid, muted);
 }
 
-void ParticipantController::onNewDataConsumer(std::shared_ptr<signaling::NewDataConsumerRequest> request)
+bool ParticipantController::isVideoMuted(const std::string& pid)
 {
-
+    return _mediaController->isVideoMuted(pid);
 }
 
-// Notification from SFU
-void ParticipantController::onProducerScore(std::shared_ptr<signaling::ProducerScoreNotification> notification)
+void ParticipantController::createParticipant(const std::string& pid, const std::string& displayName)
 {
+    if (_participantMap.find(pid) != _participantMap.end()) {
+        return;
+    }
 
-}
+    _participantMap[pid] = std::make_shared<Participant>(pid, displayName);
 
-void ParticipantController::onConsumerScore(std::shared_ptr<signaling::ConsumerScoreNotification> notification)
-{
+    auto participant = _participantMap[pid];
+    if (!participant) {
+        return;
+    }
 
+    auto impl = std::dynamic_pointer_cast<Participant>(participant);
+    impl->setActive(true);
+    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onParticipantJoin(participant);
+    });
 }
 
 void ParticipantController::onNewPeer(std::shared_ptr<signaling::NewPeerNotification> notification)
 {
+    if (!notification) {
+        return;
+    }
 
+    auto pid = notification->data->id.value_or("");
+    if (pid.empty()) {
+        return;
+    }
+
+    if (_participantMap.find(pid) == _participantMap.end()) {
+        createParticipant(pid, notification->data->displayName.value_or(""));
+    }
 }
 
 void ParticipantController::onPeerClosed(std::shared_ptr<signaling::PeerClosedNotification> notification)
 {
+    if (!notification) {
+        return;
+    }
 
+    auto pid = notification->data->peerId.value_or("");
+    if (pid.empty()) {
+        return;
+    }
+
+    auto participant = _participantMap[pid];
+    if (!participant) {
+        return;
+    }
+
+    auto impl = std::dynamic_pointer_cast<Participant>(participant);
+    impl->setActive(false);
+
+    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onParticipantLeave(participant);
+    });
+
+    _participantMap.erase(pid);
 }
 
 void ParticipantController::onPeerDisplayNameChanged(std::shared_ptr<signaling::PeerDisplayNameChangedNotification> notification)
 {
+    if (!notification) {
+        return;
+    }
 
-}
+    auto pid = notification->data->peerId.value_or("");
+    if (pid.empty()) {
+        return;
+    }
 
-void ParticipantController::onConsumerPaused(std::shared_ptr<signaling::ConsumerPausedNotification> notification)
-{
+    auto participant = _participantMap[pid];
+    if (!participant) {
+        return;
+    }
 
-}
-
-void ParticipantController::onConsumerResumed(std::shared_ptr<signaling::ConsumerResumedNotification> notification)
-{
-
-}
-
-void ParticipantController::onConsumerClosed(std::shared_ptr<signaling::ConsumerClosedNotification> notification)
-{
-
-}
-
-void ParticipantController::onConsumerLayersChanged(std::shared_ptr<signaling::ConsumerLayersChangedNotification> notification)
-{
-
-}
-
-void ParticipantController::onDataConsumerClosed(std::shared_ptr<signaling::DataConsumerClosedNotification> notification)
-{
-
-}
-
-void ParticipantController::onDownlinkBwe(std::shared_ptr<signaling::DownlinkBweNotification> notification)
-{
-
+    auto impl = std::dynamic_pointer_cast<Participant>(participant);
+    impl->setDisplayName(notification->data->displayName.value_or(""));
+    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onDisplayNameChanged(participant);
+    });
 }
 
 void ParticipantController::onActiveSpeaker(std::shared_ptr<signaling::ActiveSpeakerNotification> notification)
 {
+    if (!notification) {
+        return;
+    }
 
+    auto pid = notification->data->peerId.value_or("");
+    if (pid.empty()) {
+        return;
+    }
+
+    auto participant = _participantMap[pid];
+    if (!participant) {
+        return;
+    }
+
+    int32_t volume = notification->data->volume.value_or(0);
+    //// The exact formula to convert from dBs (-100..0) to linear (0..1) is: Math.pow(10, dBs / 20)
+    //// However it does not produce a visually useful output, so let exagerate
+    //// it a bit. Also, let convert it from 0..1 to 0..10 and avoid value 1 to
+    //// minimize component renderings.
+    //auto volume = std::round(std::pow<double>(10, (double)dBs / 85) * 10);
+
+    //if (volume == 1) {
+    //    volume = 0;
+    //}
+    //DLOG("ParticipantController: dBs = {}, volume = {}", dBs, volume);
+    auto impl = std::dynamic_pointer_cast<Participant>(participant);
+    impl->setSpeakingVolume(volume);
+    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant, volume](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onRemoteActiveSpeaker(participant, volume);
+    });
+}
+
+void ParticipantController::onRemoteAudioStateChanged(const std::string& pid, bool muted)
+{
+    if (pid.empty()) {
+        return;
+    }
+
+    auto participant = _participantMap[pid];
+    if (!participant) {
+        return;
+    }
+
+    auto impl = std::dynamic_pointer_cast<Participant>(participant);
+    impl->setAudioMuted(muted);
+
+    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant, muted](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onRemoteAudioStateChanged(participant, muted);
+    });
+}
+
+void ParticipantController::onRemoteVideoStateChanged(const std::string& pid, bool muted)
+{
+    if (pid.empty()) {
+        return;
+    }
+
+    auto participant = _participantMap[pid];
+    if (!participant) {
+        return;
+    }
+
+    auto impl = std::dynamic_pointer_cast<Participant>(participant);
+    impl->setVideoMuted(muted);
+
+    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant, muted](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onRemoteVideoStateChanged(participant, muted);
+    });
+}
+
+void ParticipantController::onCreateRemoteAudioTrack(const std::string& pid, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
+{
+    if (pid.empty()) {
+        return;
+    }
+
+    auto participant = _participantMap[pid];
+    if (!participant) {
+        return;
+    }
+
+    auto impl = std::dynamic_pointer_cast<Participant>(participant);
+    impl->setAudioTracks(_mediaController->getRemoteAudioTracks(pid));
+}
+
+void ParticipantController::onRemoveRemoteAudioTrack(const std::string& pid, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
+{
+    if (pid.empty()) {
+        return;
+    }
+
+    auto participant = _participantMap[pid];
+    if (!participant) {
+        return;
+    }
+
+    auto impl = std::dynamic_pointer_cast<Participant>(participant);
+    impl->setAudioTracks(_mediaController->getRemoteAudioTracks(pid));
+}
+
+void ParticipantController::onCreateRemoteVideoTrack(const std::string& pid, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
+{
+    if (pid.empty()) {
+        return;
+    }
+
+    auto participant = _participantMap[pid];
+    if (!participant) {
+        return;
+    }
+
+    auto impl = std::dynamic_pointer_cast<Participant>(participant);
+    impl->setVideoTracks(_mediaController->getRemoteVideoTracks(pid));
+
+    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant, tid, track](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onCreateRemoteVideoTrack(participant, tid, track);
+    });
+}
+
+void ParticipantController::onRemoveRemoteVideoTrack(const std::string& pid, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
+{
+    if (pid.empty()) {
+        return;
+    }
+
+    auto participant = _participantMap[pid];
+    if (!participant) {
+        return;
+    }
+
+    auto impl = std::dynamic_pointer_cast<Participant>(participant);
+    impl->setVideoTracks(_mediaController->getRemoteVideoTracks(pid));
+
+    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant, tid, track](const auto& observer) {
+        auto self = wself.lock();
+        if (!self) {
+            return;
+        }
+        observer->onRemoveRemoteVideoTrack(participant, tid, track);
+    });
 }
 
 }

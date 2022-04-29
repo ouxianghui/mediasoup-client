@@ -16,7 +16,7 @@
 
 namespace vi {
 
-    class ThreadProvider : public vi::Singleton<ThreadProvider>
+    class ThreadProvider
 	{
 	public:
 		ThreadProvider();
@@ -53,5 +53,3 @@ namespace vi {
 		std::atomic_bool _destroy;
 	};
 }
-
-#define TMgr ThreadProvider::sharedInstance()

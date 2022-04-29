@@ -1,17 +1,29 @@
+/**
+ * This file is part of janus_client project.
+ * Author:    Jackie Ou
+ * Created:   2020-10-01
+ **/
+
+#include "opengl/video_shader.h"
+#include "opengl/i420_texture_cache.h"
 #include "video_renderer.h"
 #include <thread>
 #include <array>
-#include "opengl/video_shader.h"
-#include "opengl/i420_texture_cache.h"
+#include <QTimer>
+#include <QLabel>
+#include <QFont>
+#include "logger/u_logger.h"
 #include "absl/types/optional.h"
 #include "api/video/video_rotation.h"
 #include "common_video/libyuv/include/webrtc_libyuv.h"
-#include "logger/u_logger.h"
+#include "common_video/include/video_frame_buffer_pool.h"
 
 VideoRenderer::VideoRenderer(QWidget *parent)
     : QOpenGLWidget(parent)
 {
-
+    _renderingTimer = new QTimer(this);
+    connect(_renderingTimer, SIGNAL(timeout()), this, SLOT(onRendering()));
+    _renderingTimer->start(30);
 }
 
 VideoRenderer::~VideoRenderer()
@@ -24,12 +36,21 @@ void VideoRenderer::init()
     //setAttribute(Qt::WA_StyledBackground, true);
     //setStyleSheet("background-color:rgb(255, 0, 255)");
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    connect(this, &VideoRenderer::frameArrived, this, &VideoRenderer::onFrameArrived);
 }
 
 void VideoRenderer::destroy()
 {
-    disconnect(this, &VideoRenderer::frameArrived, this, &VideoRenderer::onFrameArrived);
+
+}
+
+void VideoRenderer::clear()
+{
+    _locked = true;
+}
+
+void VideoRenderer::reset()
+{
+    _locked = false;
 }
 
 void VideoRenderer::initializeGL()
@@ -37,6 +58,8 @@ void VideoRenderer::initializeGL()
     connect(context(), &QOpenGLContext::aboutToBeDestroyed, this, &VideoRenderer::cleanup);
 
     initializeOpenGLFunctions();
+
+    glewInit();
 
     glEnable(GL_DEPTH_TEST);
 
@@ -49,49 +72,87 @@ void VideoRenderer::initializeGL()
 
     // Set up the rendering context, load shaders and other resources, etc.:
     //QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 }
 
-void VideoRenderer::resizeGL(int /*w*/, int /*h*/)
+void VideoRenderer::resizeGL(int w, int h)
 {
     // Update projection matrix and other size related settings:
-    makeCurrent();
-    resizeViewport();
-    doneCurrent();
+    //if (_frame) {
+    //	glViewport(0, 0, _frame->width(), _frame->height());
+    //}
+    //else {
+    //	glViewport(0, 0, 640, 480);
+    //}
 }
 
 void VideoRenderer::paintGL()
 {
-    if (!_cacheFrame) {
-        return;
-    }
+    if (_cacheFrame) {
 
-    resizeViewport();
+        float imageRatio = (float)_cacheFrame->width() / (float)_cacheFrame->height();
+        float canvasRatio = (float)width() / (float)height();
+
+        int32_t viewportX = 0;
+        int32_t viewportY = 0;
+
+        int32_t viewportW = 0;
+        int32_t viewportH = 0;
+
+        if (canvasRatio >= imageRatio) {
+            viewportH = height();
+            viewportW = viewportH * imageRatio;
+            viewportX = (float)(width() - viewportW) / 2.0f;
+        }
+        else {
+            viewportW = width();
+            viewportH = viewportW / imageRatio;
+            viewportY = (float)(height() - viewportH) / 2.0f;
+        }
+
+        glViewport(viewportX*devicePixelRatio(), viewportY*devicePixelRatio(), viewportW*devicePixelRatio(), viewportH*devicePixelRatio());
+    }
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
-    //static int counter = 0;
-    //DLOG("--> frame: {}, ts: {}", ++counter, _cacheFrame->timestamp_us());
-    _i420TextureCache->uploadFrameToTextures(*_cacheFrame);
-    _videoShader->applyShadingForFrame(_cacheFrame->width(),
-                                       _cacheFrame->height(),
-                                       _cacheFrame->rotation(),
-                                       _i420TextureCache->yTexture(),
-                                       _i420TextureCache->uTexture(),
-                                       _i420TextureCache->vTexture());
+    std::shared_ptr<webrtc::VideoFrame> frame;
+
+    if (_frameQ.try_dequeue(frame)) {
+        _cacheFrame = frame;
+    }
+
+    if (!_locked && _cacheFrame) {
+        _i420TextureCache->uploadFrameToTextures(*_cacheFrame);
+        _videoShader->applyShadingForFrame(_cacheFrame->width(),
+            _cacheFrame->height(),
+            _cacheFrame->rotation(),
+            _i420TextureCache->yTexture(),
+            _i420TextureCache->uTexture(),
+            _i420TextureCache->vTexture());
+    }
 }
 
 void VideoRenderer::OnFrame(const webrtc::VideoFrame& frame)
 {
-    emit frameArrived(frame);
+    auto videeoFrame = std::make_shared<webrtc::VideoFrame>(frame);
+
+    if (_frameQ.size_approx() >= 300) {
+        for (int i = 0; i < 100; ++i) {
+            std::shared_ptr<webrtc::VideoFrame> dropFrame;
+            if (_frameQ.try_dequeue(dropFrame)) {
+                DLOG("drop frame .");
+            }
+        }
+    }
+    _frameQ.enqueue(videeoFrame);
+    //static int counter = 0;
+    //DLOG("--> frame: {}", ++counter);
 }
 
-void VideoRenderer::onFrameArrived(const webrtc::VideoFrame& frame)
+void VideoRenderer::onRendering()
 {
-    _cacheFrame = std::make_shared<webrtc::VideoFrame>(frame);
-
     QWidget::update();
 }
 
@@ -105,24 +166,7 @@ void VideoRenderer::cleanup()
     doneCurrent();
 }
 
-void VideoRenderer::resizeViewport()
+void VideoRenderer::resizeEvent(QResizeEvent *e)
 {
-    if (_cacheFrame) {
-        float imageRatio = (float)_cacheFrame->width() / (float)_cacheFrame->height();
-        float canvaRatio = (float)width() / (float)height();
-        float viewportX = 0, viewportY = 0, viewportW = 0, viewportH = 0;
-
-        if (canvaRatio >= imageRatio) {
-            viewportH = height();
-            viewportW = viewportH * imageRatio;
-            viewportX = (float)(width() - viewportW) / 2.0f;
-        }
-        else {
-            viewportW = width();
-            viewportH = viewportW / imageRatio;
-            viewportY = (float)(height() - viewportH) / 2.0f;
-        }
-
-        glViewport(viewportX*window()->devicePixelRatio(), viewportY*window()->devicePixelRatio(), viewportW*window()->devicePixelRatio(), viewportH*window()->devicePixelRatio());
-    }
+    QOpenGLWidget::resizeEvent(e);
 }

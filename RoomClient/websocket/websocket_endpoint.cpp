@@ -11,6 +11,11 @@
 #include <websocketpp/transport/asio/endpoint.hpp>
 #include <websocketpp/transport/asio/security/tls.hpp>
 
+#ifdef _MSC_VER
+    #define strcasecmp _stricmp
+    #define strncasecmp _strnicmp
+#endif
+
 typedef std::shared_ptr<asio::ssl::context> context_ptr;
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;

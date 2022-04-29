@@ -35,9 +35,9 @@ void MediasoupApi::createWebRtcTransport(std::shared_ptr<signaling::CreateWebRtc
     send<signaling::CreateWebRtcTransportRequest, signaling::CreateWebRtcTransportResponse>(request, callback);
 }
 
-void MediasoupApi::join(std::shared_ptr<signaling::JoinRequest> request, std::function<void(int32_t, const std::string&, std::shared_ptr<signaling::BasicResponse>)> callback)
+void MediasoupApi::join(std::shared_ptr<signaling::JoinRequest> request, std::function<void(int32_t, const std::string&, std::shared_ptr<signaling::JoinResponse>)> callback)
 {
-    send<signaling::JoinRequest, signaling::BasicResponse>(request, callback);
+    send<signaling::JoinRequest, signaling::JoinResponse>(request, callback);
 }
 
 void MediasoupApi::connectWebRtcTransport(std::shared_ptr<signaling::ConnectWebRtcTransportRequest> request, std::function<void(int32_t, const std::string&, std::shared_ptr<signaling::BasicResponse>)> callback)
@@ -59,6 +59,7 @@ void MediasoupApi::pauseProducer(const std::string& producerId, std::function<vo
 {
     auto request = std::make_shared<signaling::ProducerRequest>();
     request->method = "pauseProducer";
+    request->data = signaling::ProducerRequest::Data();
     request->data->producerId = producerId;
     send<signaling::ProducerRequest, signaling::BasicResponse>(request, callback);
 }
