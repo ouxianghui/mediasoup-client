@@ -1,6 +1,6 @@
 ## mediasoup-client
 * C++ client side library for building mediasoup based applications
-* macOS
+* Windows
 
 ## Dependencies
 
