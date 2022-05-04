@@ -17,6 +17,21 @@
 #include "api/video/video_rotation.h"
 #include "common_video/libyuv/include/webrtc_libyuv.h"
 #include "common_video/include/video_frame_buffer_pool.h"
+#include <sstream>
+
+namespace {
+    void saveFrameToFile(const webrtc::VideoFrame& frame, FILE* fp)
+    {
+        rtc::scoped_refptr<webrtc::VideoFrameBuffer> vfb = frame.video_frame_buffer();
+        
+        if (fp != NULL) {
+            fwrite(vfb.get()->GetI420()->DataY(), 1, frame.height() * frame.width(), fp);
+            fwrite(vfb.get()->GetI420()->DataU(), 1, frame.height() * frame.width() / 4, fp);
+            fwrite(vfb.get()->GetI420()->DataV(), 1, frame.height() * frame.width() / 4, fp);
+            fflush(fp);
+        }
+    }
+}
 
 VideoRenderer::VideoRenderer(QWidget *parent)
     : QOpenGLWidget(parent)
@@ -24,6 +39,13 @@ VideoRenderer::VideoRenderer(QWidget *parent)
     _renderingTimer = new QTimer(this);
     connect(_renderingTimer, SIGNAL(timeout()), this, SLOT(onRendering()));
     _renderingTimer->start(30);
+
+    //static int32_t cnt = 0;
+    //++cnt;
+    //std::stringstream sstr;
+    //sstr << "C:\\Users\\admin\\Documents\\GitHub\\mediasoup-client\\Debug\\test" << cnt << ".yuv";
+    //_fp = fopen(sstr.str().c_str(), "wb+");
+
 }
 
 VideoRenderer::~VideoRenderer()
@@ -33,14 +55,16 @@ VideoRenderer::~VideoRenderer()
 
 void VideoRenderer::init()
 {
-    //setAttribute(Qt::WA_StyledBackground, true);
-    //setStyleSheet("background-color:rgb(255, 0, 255)");
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 void VideoRenderer::destroy()
 {
-
+    //if (_fp) {
+    //    fflush(_fp);
+    //    fclose(_fp);
+    //    _fp = nullptr;
+    //}
 }
 
 void VideoRenderer::clear()
@@ -77,18 +101,47 @@ void VideoRenderer::initializeGL()
 
 void VideoRenderer::resizeGL(int w, int h)
 {
-    // Update projection matrix and other size related settings:
-    //if (_frame) {
-    //	glViewport(0, 0, _frame->width(), _frame->height());
-    //}
-    //else {
-    //	glViewport(0, 0, 640, 480);
-    //}
+
 }
 
 void VideoRenderer::paintGL()
 {
-    if (_cacheFrame) {
+    makeCurrent();
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+
+    std::shared_ptr<webrtc::VideoFrame> frame;
+
+    if (_frameQ.try_dequeue(frame)) {
+        _cacheFrame = frame;
+    }
+
+    if (!_locked && _cacheFrame) {
+
+        //saveFrameToFile(*_cacheFrame.get(), _fp);
+
+        rtc::scoped_refptr<webrtc::VideoFrameBuffer> vfb = _cacheFrame->video_frame_buffer();
+        if (!vfb) {
+            return;
+        }
+
+        if (_cacheFrame->rotation() != webrtc::kVideoRotation_0) {
+            rtc::scoped_refptr<webrtc::VideoFrameBuffer> buffer;
+            if (vfb->type() != webrtc::VideoFrameBuffer::Type::kI420) {
+                buffer = vfb->ToI420();
+            }
+            else {
+                buffer = vfb;
+            }
+            webrtc::VideoFrame rotated_frame(*_cacheFrame.get());
+            rotated_frame.set_video_frame_buffer(webrtc::I420Buffer::Rotate(*buffer->GetI420(), _cacheFrame->rotation()));
+            rotated_frame.set_rotation(webrtc::kVideoRotation_0);
+            rotated_frame.set_timestamp_us(_cacheFrame->timestamp_us());
+
+            _cacheFrame = std::make_shared<webrtc::VideoFrame>(rotated_frame);
+        }
 
         float imageRatio = (float)_cacheFrame->width() / (float)_cacheFrame->height();
         float canvasRatio = (float)width() / (float)height();
@@ -110,20 +163,8 @@ void VideoRenderer::paintGL()
             viewportY = (float)(height() - viewportH) / 2.0f;
         }
 
-        glViewport(viewportX*devicePixelRatio(), viewportY*devicePixelRatio(), viewportW*devicePixelRatio(), viewportH*devicePixelRatio());
-    }
+        glViewport(viewportX * devicePixelRatioF(), viewportY * devicePixelRatioF(), viewportW * devicePixelRatioF(), viewportH * devicePixelRatioF());
 
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-
-    std::shared_ptr<webrtc::VideoFrame> frame;
-
-    if (_frameQ.try_dequeue(frame)) {
-        _cacheFrame = frame;
-    }
-
-    if (!_locked && _cacheFrame) {
         _i420TextureCache->uploadFrameToTextures(*_cacheFrame);
         _videoShader->applyShadingForFrame(_cacheFrame->width(),
             _cacheFrame->height(),
@@ -132,12 +173,17 @@ void VideoRenderer::paintGL()
             _i420TextureCache->uTexture(),
             _i420TextureCache->vTexture());
     }
+    else if (_locked) {
+        _cacheFrame = nullptr;
+    }
+
+    doneCurrent();
 }
 
 void VideoRenderer::OnFrame(const webrtc::VideoFrame& frame)
 {
     auto videeoFrame = std::make_shared<webrtc::VideoFrame>(frame);
-
+   
     if (_frameQ.size_approx() >= 300) {
         for (int i = 0; i < 100; ++i) {
             std::shared_ptr<webrtc::VideoFrame> dropFrame;

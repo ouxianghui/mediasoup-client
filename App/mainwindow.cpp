@@ -28,6 +28,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     this->setMinimumWidth(1920);
     this->setMinimumHeight(1080);
+    //QPalette palette;
+    //palette.setColor(QPalette::Background, QColor("red"));
+    //this->setPalette(palette);
+    //this->setAutoFillBackground(true);
 }
 
 MainWindow::~MainWindow()
@@ -47,13 +51,6 @@ void MainWindow::init()
         _galleryView->setFrameShape(QFrame::Shape::Box);
         setCentralWidget(_galleryView);
     }
-
-    //_participantListView = std::make_shared<ParticipantListView>(RClient, this);
-    //QDockWidget* dockWidget = new QDockWidget(this);
-    //dockWidget->setMinimumWidth(400);
-    //dockWidget->setWindowTitle("Participants List");
-    //dockWidget->setWidget(_participantListView.get());
-    //this->addDockWidget(Qt::RightDockWidgetArea, dockWidget);
 
     ui->toolBar->setIconSize(QSize(64, 64));
 
@@ -219,7 +216,6 @@ void MainWindow::destroy()
 
 void MainWindow::onJoinRoom()
 {
-    //RClient->join("meeting.allptt.com", 4443, "test", "jackie", nullptr);
     RClient->join("192.168.198.1", 4443, "test", "jackie", nullptr);
 }
 
@@ -294,6 +290,7 @@ void MainWindow::onRemoveLocalVideoTrack(const std::string& tid, rtc::scoped_ref
 void MainWindow::onLocalAudioStateChanged(bool enabled, bool muted)
 {
     updateToolBar();
+    _galleryView->update(myself());
 }
 
 void MainWindow::onLocalVideoStateChanged(bool enabled)

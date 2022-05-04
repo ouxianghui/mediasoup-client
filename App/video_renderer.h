@@ -63,4 +63,6 @@ private:
     moodycamel::BlockingConcurrentQueue<std::shared_ptr<webrtc::VideoFrame>> _frameQ;
 
     bool _locked = false;
+
+    //FILE* _fp = nullptr;
 };

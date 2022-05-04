@@ -74,7 +74,6 @@ public:
     void init()  {
         _renderer->init();
         QFont font = QFont("Times", 10, QFont::Normal, false);
-        _labelName = new QLabel(this);
         _labelName->setFont(font);
         _labelName->setStyleSheet("color:red");
         _labelName->setAlignment(Qt::AlignmentFlag::AlignCenter);
@@ -140,7 +139,7 @@ public:
 
         _buttonAudio->setIcon(QIcon(":/app/resource/icons8-block-microphone-100.png"));
 
-        _buttonAudio->setIcon(QIcon(":/app/resource/icons8-no-video-100.png"));
+        _buttonVideo->setIcon(QIcon(":/app/resource/icons8-no-video-100.png"));
 
         _progressBarVolume->setValue(0);
 
