@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/app">
+        <file>resource/icons8-meeting-room-100.png</file>
+        <file>resource/icons8-microphone-100.png</file>
+        <file>resource/icons8-mute-100.png</file>
+        <file>resource/icons8-no-video-100.png</file>
+        <file>resource/icons8-video-call-100.png</file>
+        <file>resource/icons8-block-microphone-100.png</file>
+        <file>resource/icons8-voice-100.png</file>
+        <file>resource/icons8-connected-100.png</file>
+        <file>resource/icons8-disconnected-100.png</file>
+    </qresource>
+</RCC>
