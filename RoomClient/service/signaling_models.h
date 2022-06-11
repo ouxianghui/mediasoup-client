@@ -72,7 +72,7 @@ struct GetRouterRtpCapabilitiesResponse {
         absl::optional<int32_t> packetizationMode;
         absl::optional<std::string> profileLevelId;
         absl::optional<int32_t> xGoogleStartBitrate;
-        FIELDS_MAP("apt", apt, "level-asymmetry-allowed", levelAsymmetryAllowed, "packetization-mode", packetizationMode, "profile-level-id:", profileLevelId, "x-google-start-bitrate", xGoogleStartBitrate);
+        FIELDS_MAP("apt", apt, "level-asymmetry-allowed", levelAsymmetryAllowed, "packetization-mode", packetizationMode, "profile-level-id", profileLevelId, "x-google-start-bitrate", xGoogleStartBitrate);
     };
 
     struct Codec {
@@ -215,7 +215,7 @@ struct JoinRequest {
         absl::optional<int32_t> minptime;
         absl::optional<int32_t> useinbandfec;
         absl::optional<int32_t> profileId;
-        FIELDS_MAP("level-asymmetry-allowed", levelAsymmetryAllowed, "packetization-mode", packetizationMode, "profile-level-id:", profileLevelId, "x-google-start-bitrate", xGoogleStartBitrate, "minptime", minptime, "useinbandfec", useinbandfec, "profile-id", profileId);
+        FIELDS_MAP("level-asymmetry-allowed", levelAsymmetryAllowed, "packetization-mode", packetizationMode, "profile-level-id", profileLevelId, "x-google-start-bitrate", xGoogleStartBitrate, "minptime", minptime, "useinbandfec", useinbandfec, "profile-id", profileId);
     };
 
     struct Codec {
