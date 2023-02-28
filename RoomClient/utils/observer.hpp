@@ -14,14 +14,7 @@ namespace vi {
     public:
         typedef void (T::*Method)(const std::shared_ptr<N>&);
 
-        Observer(const std::shared_ptr<T>& object, Method method)
-        : _object(object)
-        , _method(method)
-        , _scheduleThread(std::string("main"))
-        {
-        }
-        
-        Observer(const std::shared_ptr<T>& object, Method method, absl::optional<std::string> scheduleThread)
+        Observer(const std::shared_ptr<T>& object, Method method, rtc::Thread* scheduleThread)
         : _object(object)
         , _method(method)
         , _scheduleThread(scheduleThread)
