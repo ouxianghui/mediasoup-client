@@ -165,14 +165,14 @@ private:
 private:
      rtc::Thread* _mediasoupThread;
 
-     std::shared_ptr<mediasoupclient::Device>& _mediasoupDevice;
+     std::shared_ptr<mediasoupclient::Device> _mediasoupDevice;
 
      std::shared_ptr<IMediasoupApi>& _mediasoupApi;
 
-     std::shared_ptr<mediasoupclient::SendTransport>& _sendTransport;
-     std::shared_ptr<mediasoupclient::RecvTransport>& _recvTransport;
+     std::shared_ptr<mediasoupclient::SendTransport> _sendTransport;
+     std::shared_ptr<mediasoupclient::RecvTransport> _recvTransport;
 
-     rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface>& _peerConnectionFactory;
+     rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
 
      std::shared_ptr<Options>& _options;
 
@@ -193,7 +193,7 @@ private:
 
      rtc::Thread* _signalingThread;
 
-     rtc::scoped_refptr<webrtc::AudioDeviceModule>& _adm;
+     rtc::scoped_refptr<webrtc::AudioDeviceModule> _adm;
 };
 
 }

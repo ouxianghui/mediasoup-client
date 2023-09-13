@@ -135,7 +135,8 @@ void MediaController::enableAudio(bool enabled)
         cricket::AudioOptions options;
         options.echo_cancellation = false;
         DLOG("audio options: {}", options.ToString());
-        rtc::scoped_refptr<webrtc::AudioTrackInterface> track = _peerConnectionFactory->CreateAudioTrack("mic-track", _peerConnectionFactory->CreateAudioSource(options));
+        auto source = _peerConnectionFactory->CreateAudioSource(options);
+        auto track = _peerConnectionFactory->CreateAudioTrack("mic-track", source);
 
         nlohmann::json codecOptions = nlohmann::json::object();
         codecOptions["opusStereo"] = true;

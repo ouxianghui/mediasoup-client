@@ -186,7 +186,7 @@ RoomState RoomClient::getRoomState()
 
 void RoomClient::enableAudio(bool enabled)
 {
-    //_mediaController->enableAudio(enabled);
+    _mediaController->enableAudio(enabled);
 }
 
 bool RoomClient::isAudioEnabled()
