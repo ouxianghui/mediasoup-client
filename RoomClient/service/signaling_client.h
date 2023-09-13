@@ -2,11 +2,15 @@
 
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 #include "i_signaling_client.h"
 #include "websocket/i_transport_observer.h"
 #include "utils/universal_observable.hpp"
 #include "i_signaling_observer.h"
-#include "rtc_base/thread.h"
+
+namespace rtc {
+    class Thread;
+}
 
 namespace vi {
 

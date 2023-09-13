@@ -2,6 +2,10 @@
 
 #include "i_participant.h"
 
+namespace webrtc {
+    class MediaStreamTrackInterface;
+}
+
 namespace vi {
 
     class Participant : public IParticipant

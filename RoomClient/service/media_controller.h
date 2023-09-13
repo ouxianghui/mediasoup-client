@@ -2,7 +2,7 @@
 
 #include <memory>
 #include "i_media_controller.h"
-#include "i_media_controller_observer.h"
+#include "i_media_event_handler.h"
 #include "i_signaling_observer.h"
 #include "utils/universal_observable.hpp"
 #include "Producer.hpp"
@@ -11,8 +11,15 @@
 #include "DataConsumer.hpp"
 #include "options.h"
 #include "signaling_models.h"
-#include "rtc_base/thread.h"
 #include "Device.hpp"
+
+namespace rtc {
+    class Thread;
+}
+
+namespace webrtc {
+    class MediaStreamTrackInterface;
+}
 
 namespace mediasoupclient {
     class SendTransport;
@@ -31,7 +38,7 @@ class MediaController :
         public mediasoupclient::Consumer::Listener,
         public mediasoupclient::DataProducer::Listener,
         public mediasoupclient::DataConsumer::Listener,
-        public UniversalObservable<IMediaControllerObserver>,
+        public UniversalObservable<IMediaEventHandler>,
         public std::enable_shared_from_this<MediaController>
 {
 public:
@@ -41,7 +48,7 @@ public:
                     std::shared_ptr<mediasoupclient::RecvTransport>& recvTransport,
                     rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface>& pcf,
                     std::shared_ptr<Options>& options,
-                    rtc::Thread* internalThread,
+                    rtc::Thread* mediasoupThread,
                     rtc::Thread* signalingThread,
                     rtc::scoped_refptr<webrtc::AudioDeviceModule>& adm);
 
@@ -51,9 +58,9 @@ public:
 
     void destroy() override;
 
-    void addObserver(std::shared_ptr<IMediaControllerObserver> observer, rtc::Thread* callbackThread) override;
+    void addObserver(std::shared_ptr<IMediaEventHandler> observer, rtc::Thread* callbackThread) override;
 
-    void removeObserver(std::shared_ptr<IMediaControllerObserver> observer) override;
+    void removeObserver(std::shared_ptr<IMediaEventHandler> observer) override;
 
     void enableAudio(bool enabled) override;
 
@@ -156,7 +163,7 @@ private:
      void updateConsumer(const std::string& tid, bool paused);
 
 private:
-     rtc::Thread* _internalThread;
+     rtc::Thread* _mediasoupThread;
 
      std::shared_ptr<mediasoupclient::Device>& _mediasoupDevice;
 

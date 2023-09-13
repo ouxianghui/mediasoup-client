@@ -2,11 +2,18 @@
 
 #include <memory>
 #include "i_participant_controller.h"
-#include "i_media_controller_observer.h"
+#include "i_media_event_handler.h"
 #include "utils/universal_observable.hpp"
 #include "i_signaling_observer.h"
-#include "rtc_base/thread.h"
-#include "service/i_media_controller_observer.h"
+#include "i_media_event_handler.h"
+
+namespace rtc {
+    class Thread;
+}
+
+namespace webrtc {
+    class MediaStreamTrackInterface;
+}
 
 namespace vi {
 
@@ -16,12 +23,12 @@ namespace vi {
     class ParticipantController :
             public IParticipantController,
             public ISignalingObserver,
-            public IMediaControllerObserver,
-            public UniversalObservable<IParticipantControllerObserver>,
+            public IMediaEventHandler,
+            public UniversalObservable<IParticipantEventHandler>,
             public std::enable_shared_from_this<ParticipantController>
     {
     public:
-        ParticipantController(rtc::Thread* internalThread, std::shared_ptr<IMediaController> mediaController);
+        ParticipantController(rtc::Thread* mediasoupThread, std::shared_ptr<IMediaController> mediaController);
 
         ~ParticipantController();
 
@@ -29,9 +36,9 @@ namespace vi {
 
         void destroy();
 
-        void addObserver(std::shared_ptr<IParticipantControllerObserver> observer, rtc::Thread* callbackThread) override;
+        void addObserver(std::shared_ptr<IParticipantEventHandler> observer, rtc::Thread* callbackThread) override;
 
-        void removeObserver(std::shared_ptr<IParticipantControllerObserver> observer) override;
+        void removeObserver(std::shared_ptr<IParticipantEventHandler> observer) override;
 
         std::shared_ptr<IParticipant> getParticipant(const std::string& pid) override;
 
@@ -84,7 +91,7 @@ namespace vi {
         void onActiveSpeaker(std::shared_ptr<signaling::ActiveSpeakerNotification> notification) override;
 
     protected:
-        // IMediaControllerObserver
+        // IMediaEventHandler
         void onLocalAudioStateChanged(bool enabled, bool muted) override {}
 
         void onLocalVideoStateChanged(bool enabled) override {}
@@ -105,7 +112,7 @@ namespace vi {
 
         void onRemoveRemoteVideoTrack(const std::string& pid, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) override;
     private:
-        rtc::Thread* _internalThread;
+        rtc::Thread* _mediasoupThread;
 
         std::shared_ptr<IMediaController> _mediaController;
 

@@ -14,7 +14,7 @@ namespace webrtc {
 
 namespace vi {
 
-class IMediaControllerObserver;
+class IMediaEventHandler;
 
 class IMediaController {
 public:
@@ -24,9 +24,9 @@ public:
 
     virtual void destroy() = 0;
 
-    virtual void addObserver(std::shared_ptr<IMediaControllerObserver> observer, rtc::Thread* callbackThread) = 0;
+    virtual void addObserver(std::shared_ptr<IMediaEventHandler> observer, rtc::Thread* callbackThread) = 0;
 
-    virtual void removeObserver(std::shared_ptr<IMediaControllerObserver> observer) = 0;
+    virtual void removeObserver(std::shared_ptr<IMediaEventHandler> observer) = 0;
 
     virtual void enableAudio(bool enabled) = 0;
 

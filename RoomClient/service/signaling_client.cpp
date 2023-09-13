@@ -1,10 +1,11 @@
 #include "signaling_client.h"
 #include "component_factory.h"
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 #include "signaling_models.h"
 #include "websocket/i_transport_observer.h"
 #include "websocket/websocket_request.h"
 #include "websocket/websocket_transport.h"
+#include "rtc_base/thread.h"
 
 namespace vi {
 

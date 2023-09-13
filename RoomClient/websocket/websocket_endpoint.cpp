@@ -6,7 +6,7 @@
 
 #include "websocket_endpoint.h"
 #include "i_connection_observer.h"
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 #include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/transport/asio/endpoint.hpp>
 #include <websocketpp/transport/asio/security/tls.hpp>

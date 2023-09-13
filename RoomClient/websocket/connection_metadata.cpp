@@ -15,7 +15,7 @@
 #include <map>
 #include <string>
 #include <sstream>
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 
 namespace vi {
     ConnectionMetadata::ConnectionMetadata(int id, websocketpp::connection_hdl hdl, const std::string& uri, std::shared_ptr<IConnectionObserver> observer)

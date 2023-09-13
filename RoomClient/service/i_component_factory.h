@@ -19,8 +19,6 @@ namespace vi {
         virtual const std::unique_ptr<ThreadProvider>& getThreadProvider() = 0;
 
         virtual std::shared_ptr<IServiceFactory> getServiceFactory() = 0;
-
-        virtual std::shared_ptr<IRoomClient> getRoomClient() = 0;
     };
 
 }

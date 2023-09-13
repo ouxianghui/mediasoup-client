@@ -1,13 +1,14 @@
 #include "participant_controller.h"
-#include "logger/u_logger.h"
-#include "i_participant_controller_observer.h"
+#include "logger/spd_logger.h"
+#include "i_participant_event_handler.h"
 #include "participant.h"
 #include "media_controller.h"
+#include "rtc_base/thread.h"
 
 namespace vi {
 
-ParticipantController::ParticipantController(rtc::Thread* internalThread, std::shared_ptr<IMediaController> mediaController)
-    : _internalThread(internalThread)
+ParticipantController::ParticipantController(rtc::Thread* mediasoupThread, std::shared_ptr<IMediaController> mediaController)
+    : _mediasoupThread(mediasoupThread)
     , _mediaController(mediaController)
 {
 
@@ -28,14 +29,14 @@ void ParticipantController::destroy()
     _participantMap.clear();
 }
 
-void ParticipantController::addObserver(std::shared_ptr<IParticipantControllerObserver> observer, rtc::Thread* callbackThread)
+void ParticipantController::addObserver(std::shared_ptr<IParticipantEventHandler> observer, rtc::Thread* callbackThread)
 {
-    UniversalObservable<IParticipantControllerObserver>::addWeakObserver(observer, callbackThread);
+    UniversalObservable<IParticipantEventHandler>::addWeakObserver(observer, callbackThread);
 }
 
-void ParticipantController::removeObserver(std::shared_ptr<IParticipantControllerObserver> observer)
+void ParticipantController::removeObserver(std::shared_ptr<IParticipantEventHandler> observer)
 {
-    UniversalObservable<IParticipantControllerObserver>::removeObserver(observer);
+    UniversalObservable<IParticipantEventHandler>::removeObserver(observer);
 }
 
 std::shared_ptr<IParticipant> ParticipantController::getParticipant(const std::string& pid)
@@ -87,7 +88,7 @@ void ParticipantController::createParticipant(const std::string& pid, const std:
 
     auto impl = std::dynamic_pointer_cast<Participant>(participant);
     impl->setActive(true);
-    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant](const auto& observer) {
+    UniversalObservable<IParticipantEventHandler>::notifyObservers([wself = weak_from_this(), participant](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -131,7 +132,7 @@ void ParticipantController::onPeerClosed(std::shared_ptr<signaling::PeerClosedNo
     auto impl = std::dynamic_pointer_cast<Participant>(participant);
     impl->setActive(false);
 
-    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant](const auto& observer) {
+    UniversalObservable<IParticipantEventHandler>::notifyObservers([wself = weak_from_this(), participant](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -160,7 +161,7 @@ void ParticipantController::onPeerDisplayNameChanged(std::shared_ptr<signaling::
 
     auto impl = std::dynamic_pointer_cast<Participant>(participant);
     impl->setDisplayName(notification->data->displayName.value_or(""));
-    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant](const auto& observer) {
+    UniversalObservable<IParticipantEventHandler>::notifyObservers([wself = weak_from_this(), participant](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -198,7 +199,7 @@ void ParticipantController::onActiveSpeaker(std::shared_ptr<signaling::ActiveSpe
     //DLOG("ParticipantController: dBs = {}, volume = {}", dBs, volume);
     auto impl = std::dynamic_pointer_cast<Participant>(participant);
     impl->setSpeakingVolume(volume);
-    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant, volume](const auto& observer) {
+    UniversalObservable<IParticipantEventHandler>::notifyObservers([wself = weak_from_this(), participant, volume](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -221,7 +222,7 @@ void ParticipantController::onRemoteAudioStateChanged(const std::string& pid, bo
     auto impl = std::dynamic_pointer_cast<Participant>(participant);
     impl->setAudioMuted(muted);
 
-    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant, muted](const auto& observer) {
+    UniversalObservable<IParticipantEventHandler>::notifyObservers([wself = weak_from_this(), participant, muted](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -244,7 +245,7 @@ void ParticipantController::onRemoteVideoStateChanged(const std::string& pid, bo
     auto impl = std::dynamic_pointer_cast<Participant>(participant);
     impl->setVideoMuted(muted);
 
-    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant, muted](const auto& observer) {
+    UniversalObservable<IParticipantEventHandler>::notifyObservers([wself = weak_from_this(), participant, muted](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -297,7 +298,7 @@ void ParticipantController::onCreateRemoteVideoTrack(const std::string& pid, con
     auto impl = std::dynamic_pointer_cast<Participant>(participant);
     impl->setVideoTracks(_mediaController->getRemoteVideoTracks(pid));
 
-    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant, tid, track](const auto& observer) {
+    UniversalObservable<IParticipantEventHandler>::notifyObservers([wself = weak_from_this(), participant, tid, track](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -320,7 +321,7 @@ void ParticipantController::onRemoveRemoteVideoTrack(const std::string& pid, con
     auto impl = std::dynamic_pointer_cast<Participant>(participant);
     impl->setVideoTracks(_mediaController->getRemoteVideoTracks(pid));
 
-    UniversalObservable<IParticipantControllerObserver>::notifyObservers([wself = weak_from_this(), participant, tid, track](const auto& observer) {
+    UniversalObservable<IParticipantEventHandler>::notifyObservers([wself = weak_from_this(), participant, tid, track](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;

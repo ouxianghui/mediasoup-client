@@ -11,9 +11,16 @@
 #include "DataProducer.hpp"
 #include "Consumer.hpp"
 #include "DataConsumer.hpp"
-#include "rtc_base/thread.h"
 #include "utils/container.hpp"
-#include "i_media_controller_observer.h"
+#include "i_media_event_handler.h"
+
+namespace rtc {
+    class Thread;
+}
+
+namespace webrtc {
+    class MediaStreamTrackInterface;
+}
 
 namespace vi {
 
@@ -24,23 +31,26 @@ class MacTrackSource;
 class IParticipant;
 class ParticipantController;
 class IMediaController;
+class RTCContext;
 
 class RoomClient :
         public IRoomClient,
         public ISignalingObserver,
         public mediasoupclient::SendTransport::Listener,
         public mediasoupclient::RecvTransport::Listener,
-        public IMediaControllerObserver,
+        public IMediaEventHandler,
         public UniversalObservable<IRoomClientObserver>,
         public std::enable_shared_from_this<RoomClient> {
 public:
-    RoomClient(std::weak_ptr<IComponentFactory> wcf, rtc::Thread* internalThread, rtc::Thread* transportThread);
+    RoomClient(std::weak_ptr<IComponentFactory> wcf, std::shared_ptr<RTCContext> rtcContext, rtc::Thread* mediasoupThread, rtc::Thread* signalingThread);
 
     ~RoomClient();
 
     void init() override;
 
     void destroy() override;
+
+    std::string getId() override { return _id; }
 
     void addObserver(std::shared_ptr<IRoomClientObserver> observer, rtc::Thread* callbackThread) override;
 
@@ -117,7 +127,7 @@ protected:
     std::future<std::string> OnProduceData(mediasoupclient::SendTransport* transport, const nlohmann::json& sctpStreamParameters, const std::string& label, const std::string& protocol, const nlohmann::json& appData) override;
 
 protected:
-    // IMediaControllerObserver
+    // IMediaEventHandler
     void onLocalAudioStateChanged(bool enabled, bool muted) override;
 
     void onLocalVideoStateChanged(bool enabled) override;
@@ -157,7 +167,7 @@ private:
 
     void createTransportImpl(bool producing, bool consuming, std::shared_ptr<signaling::CreateWebRtcTransportResponse> transportInfo);
 
-    void configWebrtc();
+    void configure();
 
     void _onConnect(mediasoupclient::Transport* transport, const nlohmann::json& dtlsParameters);
 
@@ -172,10 +182,14 @@ private:
     void destroyComponents();
 
 private:
+    std::string _id = std::to_string(rtc::CreateRandomId());
+
     std::weak_ptr<IComponentFactory> _wcf;
 
-    rtc::Thread* _internalThread;
-    rtc::Thread* _transportThread;
+    std::shared_ptr<RTCContext> _rtcContext;
+
+    rtc::Thread* _mediasoupThread;
+    rtc::Thread* _signalingThread;
 
     std::string _hostname;
     uint16_t _port;
@@ -196,19 +210,11 @@ private:
 
     std::shared_ptr<mediasoupclient::PeerConnection::Options> _peerConnectionOptions;
 
-    std::unique_ptr<rtc::Thread> _networkThread;
-    std::unique_ptr<rtc::Thread> _signalingThread;
-    std::unique_ptr<rtc::Thread> _workerThread;
-    rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
-
     std::shared_ptr<IMediaController> _mediaController;
 
     std::shared_ptr<ProxyImpl<IParticipantController, ParticipantController>> _participantController;
 
     RoomState _state = RoomState::CLOSED;
-
-    std::unique_ptr<webrtc::TaskQueueFactory> _taskQueueFactory;
-    rtc::scoped_refptr<webrtc::AudioDeviceModule> _adm;
 
     int32_t _volume = 0;
 };

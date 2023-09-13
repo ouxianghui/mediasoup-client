@@ -22,8 +22,6 @@ public:
 
     std::shared_ptr<IServiceFactory> getServiceFactory() override;
 
-    std::shared_ptr<IRoomClient> getRoomClient() override;
-
 private:
     ComponentFactory(ComponentFactory&&) = delete;
 
@@ -35,8 +33,6 @@ private:
     std::unique_ptr<ThreadProvider> _threadProvider;
 
     std::shared_ptr<IServiceFactory> _serviceFactory;
-
-    std::shared_ptr<IRoomClient> _roomClient;
 };
 
 }

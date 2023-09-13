@@ -3,11 +3,13 @@
 #include "Transport.hpp"
 #include "api/peer_connection_interface.h"
 #include "api/rtp_parameters.h"
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 #include "mediasoup_api.h"
-#include "windows_capture.h"
-#include "service/engine.h"
+#include "engine.h"
 #include "modules/audio_device/include/audio_device.h"
+#include "rtc_context.hpp"
+#include "rtc_base/thread.h"
+#include "windows_capture.h"
 
 namespace vi {
 
@@ -17,7 +19,7 @@ MediaController::MediaController(std::shared_ptr<mediasoupclient::Device>& media
                                  std::shared_ptr<mediasoupclient::RecvTransport>& recvTransport,
                                  rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface>& pcf,
                                  std::shared_ptr<Options>& options,
-                                 rtc::Thread* internalThread,
+                                 rtc::Thread* mediasoupThread,
                                  rtc::Thread* signalingThread,
                                  rtc::scoped_refptr<webrtc::AudioDeviceModule>& adm)
     : _mediasoupDevice(mediasoupDevice)
@@ -26,7 +28,7 @@ MediaController::MediaController(std::shared_ptr<mediasoupclient::Device>& media
     , _recvTransport(recvTransport)
     , _peerConnectionFactory(pcf)
     , _options(options)
-    , _internalThread(internalThread)
+    , _mediasoupThread(mediasoupThread)
     , _signalingThread(signalingThread)
     , _adm(adm)
 {
@@ -75,14 +77,14 @@ void MediaController::destroy()
     }
 }
 
-void MediaController::addObserver(std::shared_ptr<IMediaControllerObserver> observer, rtc::Thread* callbackThread)
+void MediaController::addObserver(std::shared_ptr<IMediaEventHandler> observer, rtc::Thread* callbackThread)
 {
-    UniversalObservable<IMediaControllerObserver>::addWeakObserver(observer, callbackThread);
+    UniversalObservable<IMediaEventHandler>::addWeakObserver(observer, callbackThread);
 }
 
-void MediaController::removeObserver(std::shared_ptr<IMediaControllerObserver> observer)
+void MediaController::removeObserver(std::shared_ptr<IMediaEventHandler> observer)
 {
-    UniversalObservable<IMediaControllerObserver>::removeObserver(observer);
+    UniversalObservable<IMediaEventHandler>::removeObserver(observer);
 }
 
 void MediaController::configVideoEncodings()
@@ -142,7 +144,7 @@ void MediaController::enableAudio(bool enabled)
         mediasoupclient::Producer* producer = _sendTransport->Produce(this, track, nullptr, &codecOptions, nullptr);
         _micProducer.reset(producer);
 
-        UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+        UniversalObservable<IMediaEventHandler>::notifyObservers([wself = weak_from_this()](const auto& observer){
             auto self = wself.lock();
             if (!self) {
                 DLOG("RoomClient is null");
@@ -162,7 +164,7 @@ void MediaController::enableAudio(bool enabled)
             return;
         }
 
-        UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+        UniversalObservable<IMediaEventHandler>::notifyObservers([wself = weak_from_this()](const auto& observer){
             auto self = wself.lock();
             if (!self) {
                 DLOG("RoomClient is null");
@@ -231,7 +233,7 @@ void MediaController::muteAudio(bool muted)
             }
         });
 
-        UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+        UniversalObservable<IMediaEventHandler>::notifyObservers([wself = weak_from_this()](const auto& observer){
             auto self = wself.lock();
             if (!self) {
                 DLOG("RoomClient is null");
@@ -244,7 +246,7 @@ void MediaController::muteAudio(bool muted)
     else {
         _micProducer->Resume();
 
-        UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+        UniversalObservable<IMediaEventHandler>::notifyObservers([wself = weak_from_this()](const auto& observer){
             auto self = wself.lock();
             if (!self) {
                 DLOG("RoomClient is null");
@@ -307,7 +309,17 @@ void MediaController::enableVideo(bool enabled)
         DLOG("create capture source");
         if (_capturerSource) {
             _capturerSource->startCapture();
-            rtc::scoped_refptr<webrtc::VideoTrackInterface> track = _peerConnectionFactory->CreateVideoTrack("camera-track", _capturerSource);
+            auto track = _peerConnectionFactory->CreateVideoTrack("camera-track", _capturerSource);
+
+            // TODO:
+            //auto url = "rtsp://192.168.0.254:554/live/main_stream";
+            //std::map<std::string, std::string> opts;
+            //opts["rtptransport"] = "tcp";
+            //opts["timeout"] = "60";
+            //std::regex reg = std::regex(".*");
+            //auto track = createVideoTrack(url, opts, reg);
+
+            //auto track = createVideoTrack("");
             track->set_enabled(true);
             nlohmann::json codecOptions = nlohmann::json::object();
             codecOptions["videoGoogleStartBitrate"] = 1000;
@@ -319,7 +331,7 @@ void MediaController::enableVideo(bool enabled)
                                                                           nullptr);
             _camProducer.reset(producer);
 
-            UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+            UniversalObservable<IMediaEventHandler>::notifyObservers([wself = weak_from_this()](const auto& observer){
                 auto self = wself.lock();
                 if (!self) {
                     DLOG("RoomClient is null");
@@ -357,7 +369,7 @@ void MediaController::enableVideo(bool enabled)
             }
         });
 
-        UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this()](const auto& observer){
+        UniversalObservable<IMediaEventHandler>::notifyObservers([wself = weak_from_this()](const auto& observer){
             auto self = wself.lock();
             if (!self) {
                 DLOG("RoomClient is null");
@@ -576,7 +588,7 @@ void MediaController::updateConsumer(const std::string& tid, bool paused)
             }
             auto paused = consumer.second->IsPaused();
             if (consumer.second->GetKind() == "audio") {
-                UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this(), peerId, paused](const auto& observer){
+                UniversalObservable<IMediaEventHandler>::notifyObservers([wself = weak_from_this(), peerId, paused](const auto& observer){
                     auto self = wself.lock();
                     if (!self) {
                         DLOG("RoomClient is null");
@@ -587,7 +599,7 @@ void MediaController::updateConsumer(const std::string& tid, bool paused)
                 });
             }
             else if (consumer.second->GetKind() == "video") {
-                UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this(), peerId, paused](const auto& observer) {
+                UniversalObservable<IMediaEventHandler>::notifyObservers([wself = weak_from_this(), peerId, paused](const auto& observer) {
                     auto self = wself.lock();
                     if (!self) {
                         DLOG("RoomClient is null");
@@ -632,7 +644,7 @@ void MediaController::createNewConsumer(std::shared_ptr<signaling::NewConsumerRe
     _consumerIdToPeerId[request->data->id.value()] = request->data->peerId.value_or("");
     bool producerPaused = request->data->producerPaused.value();
 
-    UniversalObservable<IMediaControllerObserver>::notifyObservers([wself = weak_from_this(), ptr, request, producerPaused](const auto& observer){
+    UniversalObservable<IMediaEventHandler>::notifyObservers([wself = weak_from_this(), ptr, request, producerPaused](const auto& observer){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -773,7 +785,7 @@ void MediaController::OnTransportClose(mediasoupclient::DataConsumer* dataConsum
 // Request from SFU
 void MediaController::onNewConsumer(std::shared_ptr<signaling::NewConsumerRequest> request)
 {
-    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), request](){
+    _mediasoupThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), request](){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -785,7 +797,7 @@ void MediaController::onNewConsumer(std::shared_ptr<signaling::NewConsumerReques
 
 void MediaController::onNewDataConsumer(std::shared_ptr<signaling::NewDataConsumerRequest> request)
 {
-    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), request](){
+    _mediasoupThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), request](){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -817,7 +829,7 @@ void MediaController::onConsumerPaused(std::shared_ptr<signaling::ConsumerPaused
         return;
     }
 
-    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), tid](){
+    _mediasoupThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), tid](){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -839,7 +851,7 @@ void MediaController::onConsumerResumed(std::shared_ptr<signaling::ConsumerResum
         return;
     }
 
-    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), tid](){
+    _mediasoupThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), tid](){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -851,7 +863,7 @@ void MediaController::onConsumerResumed(std::shared_ptr<signaling::ConsumerResum
 
 void MediaController::onConsumerClosed(std::shared_ptr<signaling::ConsumerClosedNotification> notification)
 {
-    _internalThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), notification](){
+    _mediasoupThread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), notification](){
         auto self = wself.lock();
         if (!self) {
             DLOG("RoomClient is null");
@@ -865,7 +877,7 @@ void MediaController::onConsumerClosed(std::shared_ptr<signaling::ConsumerClosed
                 //auto track = consumer.second->GetTrack();
                 
                 if (consumer.second->GetKind() == "audio") {
-                    self->UniversalObservable<IMediaControllerObserver>::notifyObservers([wself, peerId, tid](const auto& observer){
+                    self->UniversalObservable<IMediaEventHandler>::notifyObservers([wself, peerId, tid](const auto& observer){
                         auto self = wself.lock();
                         if (!self) {
                             DLOG("RoomClient is null");
@@ -876,7 +888,7 @@ void MediaController::onConsumerClosed(std::shared_ptr<signaling::ConsumerClosed
                     });
                 }
                 else if (consumer.second->GetKind() == "video") {
-                    self->UniversalObservable<IMediaControllerObserver>::notifyObservers([wself, peerId, tid](const auto& observer) {
+                    self->UniversalObservable<IMediaEventHandler>::notifyObservers([wself, peerId, tid](const auto& observer) {
                         auto self = wself.lock();
                         if (!self) {
                             DLOG("RoomClient is null");

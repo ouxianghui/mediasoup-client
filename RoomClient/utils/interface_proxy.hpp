@@ -34,7 +34,7 @@
 ///
 /// TEST_F(InterfaceProxyTest, TestProxy)
 /// {
-///     rtc::Thread* thread = FetchThread("CORE");
+///     rtc::Thread* thread = getThread("CORE");
 ///     auto proxy = MyServiceProxy::create(std::make_shared<MyService>(), thread);
 ///     proxy->func1();
 /// }
@@ -63,7 +63,7 @@
 ///
 /// TEST_F(InterfaceProxyTest, TestProxy)
 /// {
-///     rtc::Thread* thread = FetchThread("CORE");
+///     rtc::Thread* thread = getThread("CORE");
 ///     auto proxy = MyService2Proxy::create(std::make_shared<MyService2>(), threads);
 ///     proxy->func1();
 /// }

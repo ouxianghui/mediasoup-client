@@ -52,3 +52,4 @@ UI/UI.APS
 
 *.vcxproj.*
 .qmake.stash
+/App/x64

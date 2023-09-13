@@ -9,9 +9,9 @@ namespace webrtc {
 
 namespace vi {
 
-    class IMediaControllerObserver {
+    class IMediaEventHandler {
     public:
-        virtual ~IMediaControllerObserver() = default;
+        virtual ~IMediaEventHandler() = default;
 
         virtual void onLocalAudioStateChanged(bool enabled, bool muted) = 0;
 

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Release|x64">
@@ -13,10 +13,13 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2699A9A5-A898-3F38-8810-A03771952408}</ProjectGuid>
     <RootNamespace>App</RootNamespace>
-    <Keyword>Qt4VSv1.0</Keyword>
+    <Keyword>QtVS_v304</Keyword>
+    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.22000.0</WindowsTargetPlatformMinVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <PlatformToolset>v142</PlatformToolset>
     <OutputDirectory>..\Release\</OutputDirectory>
     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
@@ -25,7 +28,7 @@
     <IntermediateDirectory>release\</IntermediateDirectory>
     <PrimaryOutput>App</PrimaryOutput>
   </PropertyGroup>
-  <PropertyGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <PlatformToolset>v142</PlatformToolset>
     <OutputDirectory>..\Debug\</OutputDirectory>
     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
@@ -35,28 +38,42 @@
     <PrimaryOutput>App</PrimaryOutput>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(QtMsBuild)\qt_defaults.props" Condition="Exists('$(QtMsBuild)\qt_defaults.props')" />
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtInstall>5.15.2_msvc2019_64</QtInstall>
+    <QtModules>core;opengl;gui;widgets</QtModules>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <QtInstall>5.15.2_msvc2019_64</QtInstall>
+    <QtModules>core;opengl;gui;widgets</QtModules>
+  </PropertyGroup>
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') OR !Exists('$(QtMsBuild)\Qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
   <ImportGroup Label="ExtensionSettings" />
-  <ImportGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists(&apos;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&apos;)" />
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+    <Import Project="$(QtMsBuild)\Qt.props" />
   </ImportGroup>
-  <ImportGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists(&apos;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&apos;)" />
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+    <Import Project="$(QtMsBuild)\Qt.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">..\Release\</OutDir>
-    <IntDir Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">release\</IntDir>
-    <TargetName Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">App</TargetName>
-    <IgnoreImportLibrary Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">true</IgnoreImportLibrary>
-    <LinkIncremental Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">false</LinkIncremental>
-    <OutDir Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">..\Debug\</OutDir>
-    <IntDir Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">debug\</IntDir>
-    <TargetName Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">App</TargetName>
-    <IgnoreImportLibrary Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">true</IgnoreImportLibrary>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">App</TargetName>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</IgnoreImportLibrary>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">App</TargetName>
+    <IgnoreImportLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</IgnoreImportLibrary>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..\RoomClient;C:/Users/admin/Documents/GitHub/mediasoup-client/App/../RoomClient/client/include;..\deps\webrtc\include;..\deps\webrtc\include\third_party;..\deps\webrtc\include\third_party\abseil-cpp;..\deps\webrtc\include\third_party\boringssl\src\include;..\deps\libsdptransform\include;..\deps\spdlog\include;..\deps\rapidjson\include;..\deps\asio\asio\include;..\deps\websocketpp;..\deps\libmediasoupclient\include;..\deps\glew\include;..\deps\concurrentqueue;C:\Qt5\5.15.2\msvc2019_64\include;C:\Qt5\5.15.2\msvc2019_64\include\QtOpenGL;C:\Qt5\5.15.2\msvc2019_64\include\QtWidgets;C:\Qt5\5.15.2\msvc2019_64\include\QtGui;C:\Qt5\5.15.2\msvc2019_64\include\QtANGLE;C:\Qt5\5.15.2\msvc2019_64\include\QtCore;release;.;/include;C:\Qt5\5.15.2\msvc2019_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\RoomClient;..\deps\webrtc\include;..\deps\webrtc\include\third_party;..\deps\webrtc\include\third_party\abseil-cpp;..\deps\webrtc\include\third_party\boringssl\src\include;..\deps\libsdptransform\include;..\deps\spdlog\include;..\deps\rapidjson\include;..\deps\asio\asio\include;..\deps\websocketpp;..\deps\libmediasoupclient\include;..\deps\glew\include;..\deps\concurrentqueue;$(QTDIR)\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtCore;release;/include;$(QTDIR)\mkspecs\win32-msvc;..\deps\cpr\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>release\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -66,18 +83,20 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ObjectFileName>release\</ObjectFileName>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;NDEBUG;QT_NO_DEBUG;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;NDEBUG;QT_NO_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
-      <ProgramDataBaseFileName></ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>
+      </ProgramDataBaseFileName>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <WarningLevel>Level3</WarningLevel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>C:\Users\admin\Documents\GitHub\mediasoup-client\deps\glew\lib\Release\x64\glew32.lib;Advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;opengl32.lib;glu32.lib;C:\Users\admin\Documents\GitHub\mediasoup-client\deps\webrtc\lib\windows_release_x64\webrtc.lib;C:\Users\admin\Documents\GitHub\mediasoup-client\Release\RoomClient.lib;C:\Qt5\5.15.2\msvc2019_64\lib\Qt5OpenGL.lib;C:\Qt5\5.15.2\msvc2019_64\lib\Qt5Widgets.lib;C:\Qt5\5.15.2\msvc2019_64\lib\Qt5Gui.lib;C:\Qt5\5.15.2\msvc2019_64\lib\Qt5Core.lib;C:\Qt5\5.15.2\msvc2019_64\lib\qtmain.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\openssl\lib;C:\Utils\my_sql\mysql-5.7.25-winx64\lib;C:\Utils\postgresql\pgsql\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalOptions>&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot; %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>glew32.lib;Advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;opengl32.lib;glu32.lib;webrtc.lib;RoomClient.lib;$(QTDIR)\lib\Qt5OpenGL.lib;$(QTDIR)\lib\Qt5Widgets.lib;$(QTDIR)\lib\Qt5Gui.lib;$(QTDIR)\lib\Qt5Core.lib;$(QTDIR)\lib\qtmain.lib;cpr.lib;libcurl.lib;zlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;..\deps\webrtc\lib\windows_release_x64;..\Release;..\deps\glew\\lib\Release\x64;..\deps\cpr\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -96,10 +115,30 @@
     <ResourceCompile>
       <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;NDEBUG;QT_NO_DEBUG;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
+    <QtMoc>
+      <CompilerFlavor>msvc</CompilerFlavor>
+      <Include>./$(Configuration)/moc_predefs.h</Include>
+      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+      <DynamicSource>output</DynamicSource>
+      <QtMocDir>$(Configuration)</QtMocDir>
+      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+    </QtMoc>
+    <QtRcc>
+      <InitFuncName>icons</InitFuncName>
+      <Compression>default</Compression>
+      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+      <QtRccDir>$(Configuration)</QtRccDir>
+      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+    </QtRcc>
+    <QtUic>
+      <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
+      <QtUicDir>$(ProjectDir)</QtUicDir>
+      <QtUicFileName>ui_%(Filename).h</QtUicFileName>
+    </QtUic>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..\RoomClient;C:/Users/admin/Documents/GitHub/mediasoup-client/App/../RoomClient/client/include;..\deps\webrtc\include;..\deps\webrtc\include\third_party;..\deps\webrtc\include\third_party\abseil-cpp;..\deps\webrtc\include\third_party\boringssl\src\include;..\deps\libsdptransform\include;..\deps\spdlog\include;..\deps\rapidjson\include;..\deps\asio\asio\include;..\deps\websocketpp;..\deps\libmediasoupclient\include;..\deps\glew\include;..\deps\concurrentqueue;C:\Qt5\5.15.2\msvc2019_64\include;C:\Qt5\5.15.2\msvc2019_64\include\QtOpenGL;C:\Qt5\5.15.2\msvc2019_64\include\QtWidgets;C:\Qt5\5.15.2\msvc2019_64\include\QtGui;C:\Qt5\5.15.2\msvc2019_64\include\QtANGLE;C:\Qt5\5.15.2\msvc2019_64\include\QtCore;debug;.;/include;C:\Qt5\5.15.2\msvc2019_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\RoomClient;..\deps\webrtc\include;..\deps\webrtc\include\third_party;..\deps\webrtc\include\third_party\abseil-cpp;..\deps\webrtc\include\third_party\boringssl\src\include;..\deps\libsdptransform\include;..\deps\spdlog\include;..\deps\rapidjson\include;..\deps\asio\asio\include;..\deps\websocketpp;..\deps\libmediasoupclient\include;..\deps\glew\include;..\deps\concurrentqueue;$(QTDIR)\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtCore;debug;$(QTDIR)\mkspecs\win32-msvc;..\deps\cpr\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>debug\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -109,17 +148,18 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ObjectFileName>debug\</ObjectFileName>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <WarningLevel>Level3</WarningLevel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>C:\Users\admin\Documents\GitHub\mediasoup-client\deps\glew\lib\Release\x64\glew32.lib;Advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;opengl32.lib;glu32.lib;C:\Users\admin\Documents\GitHub\mediasoup-client\deps\webrtc\lib\windows_debug_x64\webrtc.lib;C:\Users\admin\Documents\GitHub\mediasoup-client\Debug\RoomClient.lib;C:\Qt5\5.15.2\msvc2019_64\lib\Qt5OpenGLd.lib;C:\Qt5\5.15.2\msvc2019_64\lib\Qt5Widgetsd.lib;C:\Qt5\5.15.2\msvc2019_64\lib\Qt5Guid.lib;C:\Qt5\5.15.2\msvc2019_64\lib\Qt5Cored.lib;C:\Qt5\5.15.2\msvc2019_64\lib\qtmaind.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\openssl\lib;C:\Utils\my_sql\mysql-5.7.25-winx64\lib;C:\Utils\postgresql\pgsql\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalOptions>&quot;/MANIFESTDEPENDENCY:type=&apos;win32&apos; name=&apos;Microsoft.Windows.Common-Controls&apos; version=&apos;6.0.0.0&apos; publicKeyToken=&apos;6595b64144ccf1df&apos; language=&apos;*&apos; processorArchitecture=&apos;*&apos;&quot; %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>Advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;opengl32.lib;glu32.lib;webrtc.lib;RoomClient.lib;$(QTDIR)\lib\Qt5OpenGLd.lib;$(QTDIR)\lib\Qt5Widgetsd.lib;$(QTDIR)\lib\Qt5Guid.lib;$(QTDIR)\lib\Qt5Cored.lib;$(QTDIR)\lib\qtmaind.lib;cpr.lib;libcurl-d.lib;glew32.lib;zlibd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;..\deps\cpr\debug\lib;..\deps\webrtc\lib\windows_debug_x64;..\Debug;..\deps\glew\lib\Release\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
@@ -136,6 +176,26 @@
     <ResourceCompile>
       <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
+    <QtMoc>
+      <CompilerFlavor>msvc</CompilerFlavor>
+      <Include>./$(Configuration)/moc_predefs.h</Include>
+      <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
+      <DynamicSource>output</DynamicSource>
+      <QtMocDir>$(Configuration)</QtMocDir>
+      <QtMocFileName>moc_%(Filename).cpp</QtMocFileName>
+    </QtMoc>
+    <QtRcc>
+      <InitFuncName>icons</InitFuncName>
+      <Compression>default</Compression>
+      <ExecutionDescription>Rcc'ing %(Identity)...</ExecutionDescription>
+      <QtRccDir>$(Configuration)</QtRccDir>
+      <QtRccFileName>qrc_%(Filename).cpp</QtRccFileName>
+    </QtRcc>
+    <QtUic>
+      <ExecutionDescription>Uic'ing %(Identity)...</ExecutionDescription>
+      <QtUicDir>$(ProjectDir)</QtUicDir>
+      <QtUicFileName>ui_%(Filename).h</QtUicFileName>
+    </QtUic>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="gallery_view.cpp" />
@@ -147,174 +207,39 @@
     <ClCompile Include="video_renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="gallery_view.h">
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">gallery_view.h;release\moc_predefs.h;C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe  -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DGL_SILENCE_DEPRECATION -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DBUILD_STATIC -DUSE_AURA=1 -DNO_TCMALLOC -DFULL_SAFE_BROWSING -DSAFE_BROWSING_CSD -DSAFE_BROWSING_DB_LOCAL -DCHROMIUM_BUILD -D_HAS_EXCEPTIONS=0 -D__STD_C -D_CRT_RAND_S -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_ATL_NO_OPENGL -DCERT_CHAIN_PARA_HAS_EXTRA_FIELDS -DPSAPI_VERSION=2 -D_SECURE_ATL -D_USING_V110_SDK71_ -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNTDDI_VERSION=NTDDI_WIN10_RS2 -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DWTF_USE_DYNAMIC_ANNOTATIONS=1 -DWEBRTC_ENABLE_PROTOBUF=1 -DWEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE -DRTC_ENABLE_VP9 -DHAVE_SCTP -DWEBRTC_USE_H264 -DWEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0 -DWEBRTC_WIN -DABSL_ALLOCATOR_NOTHROW=1 -DHAVE_WEBRTC_VIDEO -DHAVE_WEBRTC_VOICE -DASIO_STANDALONE -DNDEBUG -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB --compiler-flavor=msvc --include C:/Users/admin/Documents/GitHub/mediasoup-client/App/release/moc_predefs.h -IC:/Qt5/5.15.2/msvc2019_64/mkspecs/win32-msvc -IC:/Users/admin/Documents/GitHub/mediasoup-client/App -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient/client/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/abseil-cpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/boringssl/src/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libsdptransform/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/spdlog/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/rapidjson/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/asio/asio/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/websocketpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libmediasoupclient/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/glew/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/concurrentqueue -IC:/Qt5/5.15.2/msvc2019_64/include -IC:/Qt5/5.15.2/msvc2019_64/include/QtOpenGL -IC:/Qt5/5.15.2/msvc2019_64/include/QtWidgets -IC:/Qt5/5.15.2/msvc2019_64/include/QtGui -IC:/Qt5/5.15.2/msvc2019_64/include/QtANGLE -IC:/Qt5/5.15.2/msvc2019_64/include/QtCore -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include&quot; -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include&quot; -I&quot;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\cppwinrt&quot; gallery_view.h -o release\moc_gallery_view.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">MOC gallery_view.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">release\moc_gallery_view.cpp;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">gallery_view.h;debug\moc_predefs.h;C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe  -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DGL_SILENCE_DEPRECATION -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DBUILD_STATIC -DUSE_AURA=1 -DNO_TCMALLOC -DFULL_SAFE_BROWSING -DSAFE_BROWSING_CSD -DSAFE_BROWSING_DB_LOCAL -DCHROMIUM_BUILD -D_HAS_EXCEPTIONS=0 -D__STD_C -D_CRT_RAND_S -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_ATL_NO_OPENGL -DCERT_CHAIN_PARA_HAS_EXTRA_FIELDS -DPSAPI_VERSION=2 -D_SECURE_ATL -D_USING_V110_SDK71_ -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNTDDI_VERSION=NTDDI_WIN10_RS2 -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DWTF_USE_DYNAMIC_ANNOTATIONS=1 -DWEBRTC_ENABLE_PROTOBUF=1 -DWEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE -DRTC_ENABLE_VP9 -DHAVE_SCTP -DWEBRTC_USE_H264 -DWEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0 -DWEBRTC_WIN -DABSL_ALLOCATOR_NOTHROW=1 -DHAVE_WEBRTC_VIDEO -DHAVE_WEBRTC_VOICE -DASIO_STANDALONE -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB --compiler-flavor=msvc --include C:/Users/admin/Documents/GitHub/mediasoup-client/App/debug/moc_predefs.h -IC:/Qt5/5.15.2/msvc2019_64/mkspecs/win32-msvc -IC:/Users/admin/Documents/GitHub/mediasoup-client/App -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient/client/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/abseil-cpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/boringssl/src/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libsdptransform/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/spdlog/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/rapidjson/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/asio/asio/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/websocketpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libmediasoupclient/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/glew/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/concurrentqueue -IC:/Qt5/5.15.2/msvc2019_64/include -IC:/Qt5/5.15.2/msvc2019_64/include/QtOpenGL -IC:/Qt5/5.15.2/msvc2019_64/include/QtWidgets -IC:/Qt5/5.15.2/msvc2019_64/include/QtGui -IC:/Qt5/5.15.2/msvc2019_64/include/QtANGLE -IC:/Qt5/5.15.2/msvc2019_64/include/QtCore -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include&quot; -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include&quot; -I&quot;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\cppwinrt&quot; gallery_view.h -o debug\moc_gallery_view.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">MOC gallery_view.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">debug\moc_gallery_view.cpp;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="mainwindow.h">
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">mainwindow.h;release\moc_predefs.h;C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe  -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DGL_SILENCE_DEPRECATION -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DBUILD_STATIC -DUSE_AURA=1 -DNO_TCMALLOC -DFULL_SAFE_BROWSING -DSAFE_BROWSING_CSD -DSAFE_BROWSING_DB_LOCAL -DCHROMIUM_BUILD -D_HAS_EXCEPTIONS=0 -D__STD_C -D_CRT_RAND_S -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_ATL_NO_OPENGL -DCERT_CHAIN_PARA_HAS_EXTRA_FIELDS -DPSAPI_VERSION=2 -D_SECURE_ATL -D_USING_V110_SDK71_ -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNTDDI_VERSION=NTDDI_WIN10_RS2 -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DWTF_USE_DYNAMIC_ANNOTATIONS=1 -DWEBRTC_ENABLE_PROTOBUF=1 -DWEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE -DRTC_ENABLE_VP9 -DHAVE_SCTP -DWEBRTC_USE_H264 -DWEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0 -DWEBRTC_WIN -DABSL_ALLOCATOR_NOTHROW=1 -DHAVE_WEBRTC_VIDEO -DHAVE_WEBRTC_VOICE -DASIO_STANDALONE -DNDEBUG -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB --compiler-flavor=msvc --include C:/Users/admin/Documents/GitHub/mediasoup-client/App/release/moc_predefs.h -IC:/Qt5/5.15.2/msvc2019_64/mkspecs/win32-msvc -IC:/Users/admin/Documents/GitHub/mediasoup-client/App -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient/client/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/abseil-cpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/boringssl/src/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libsdptransform/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/spdlog/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/rapidjson/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/asio/asio/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/websocketpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libmediasoupclient/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/glew/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/concurrentqueue -IC:/Qt5/5.15.2/msvc2019_64/include -IC:/Qt5/5.15.2/msvc2019_64/include/QtOpenGL -IC:/Qt5/5.15.2/msvc2019_64/include/QtWidgets -IC:/Qt5/5.15.2/msvc2019_64/include/QtGui -IC:/Qt5/5.15.2/msvc2019_64/include/QtANGLE -IC:/Qt5/5.15.2/msvc2019_64/include/QtCore -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include&quot; -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include&quot; -I&quot;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\cppwinrt&quot; mainwindow.h -o release\moc_mainwindow.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">MOC mainwindow.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">release\moc_mainwindow.cpp;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">mainwindow.h;debug\moc_predefs.h;C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe  -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DGL_SILENCE_DEPRECATION -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DBUILD_STATIC -DUSE_AURA=1 -DNO_TCMALLOC -DFULL_SAFE_BROWSING -DSAFE_BROWSING_CSD -DSAFE_BROWSING_DB_LOCAL -DCHROMIUM_BUILD -D_HAS_EXCEPTIONS=0 -D__STD_C -D_CRT_RAND_S -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_ATL_NO_OPENGL -DCERT_CHAIN_PARA_HAS_EXTRA_FIELDS -DPSAPI_VERSION=2 -D_SECURE_ATL -D_USING_V110_SDK71_ -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNTDDI_VERSION=NTDDI_WIN10_RS2 -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DWTF_USE_DYNAMIC_ANNOTATIONS=1 -DWEBRTC_ENABLE_PROTOBUF=1 -DWEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE -DRTC_ENABLE_VP9 -DHAVE_SCTP -DWEBRTC_USE_H264 -DWEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0 -DWEBRTC_WIN -DABSL_ALLOCATOR_NOTHROW=1 -DHAVE_WEBRTC_VIDEO -DHAVE_WEBRTC_VOICE -DASIO_STANDALONE -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB --compiler-flavor=msvc --include C:/Users/admin/Documents/GitHub/mediasoup-client/App/debug/moc_predefs.h -IC:/Qt5/5.15.2/msvc2019_64/mkspecs/win32-msvc -IC:/Users/admin/Documents/GitHub/mediasoup-client/App -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient/client/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/abseil-cpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/boringssl/src/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libsdptransform/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/spdlog/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/rapidjson/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/asio/asio/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/websocketpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libmediasoupclient/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/glew/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/concurrentqueue -IC:/Qt5/5.15.2/msvc2019_64/include -IC:/Qt5/5.15.2/msvc2019_64/include/QtOpenGL -IC:/Qt5/5.15.2/msvc2019_64/include/QtWidgets -IC:/Qt5/5.15.2/msvc2019_64/include/QtGui -IC:/Qt5/5.15.2/msvc2019_64/include/QtANGLE -IC:/Qt5/5.15.2/msvc2019_64/include/QtCore -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include&quot; -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include&quot; -I&quot;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\cppwinrt&quot; mainwindow.h -o debug\moc_mainwindow.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">MOC mainwindow.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">debug\moc_mainwindow.cpp;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="participant_item_view.h">
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">participant_item_view.h;release\moc_predefs.h;C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe  -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DGL_SILENCE_DEPRECATION -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DBUILD_STATIC -DUSE_AURA=1 -DNO_TCMALLOC -DFULL_SAFE_BROWSING -DSAFE_BROWSING_CSD -DSAFE_BROWSING_DB_LOCAL -DCHROMIUM_BUILD -D_HAS_EXCEPTIONS=0 -D__STD_C -D_CRT_RAND_S -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_ATL_NO_OPENGL -DCERT_CHAIN_PARA_HAS_EXTRA_FIELDS -DPSAPI_VERSION=2 -D_SECURE_ATL -D_USING_V110_SDK71_ -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNTDDI_VERSION=NTDDI_WIN10_RS2 -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DWTF_USE_DYNAMIC_ANNOTATIONS=1 -DWEBRTC_ENABLE_PROTOBUF=1 -DWEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE -DRTC_ENABLE_VP9 -DHAVE_SCTP -DWEBRTC_USE_H264 -DWEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0 -DWEBRTC_WIN -DABSL_ALLOCATOR_NOTHROW=1 -DHAVE_WEBRTC_VIDEO -DHAVE_WEBRTC_VOICE -DASIO_STANDALONE -DNDEBUG -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB --compiler-flavor=msvc --include C:/Users/admin/Documents/GitHub/mediasoup-client/App/release/moc_predefs.h -IC:/Qt5/5.15.2/msvc2019_64/mkspecs/win32-msvc -IC:/Users/admin/Documents/GitHub/mediasoup-client/App -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient/client/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/abseil-cpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/boringssl/src/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libsdptransform/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/spdlog/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/rapidjson/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/asio/asio/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/websocketpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libmediasoupclient/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/glew/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/concurrentqueue -IC:/Qt5/5.15.2/msvc2019_64/include -IC:/Qt5/5.15.2/msvc2019_64/include/QtOpenGL -IC:/Qt5/5.15.2/msvc2019_64/include/QtWidgets -IC:/Qt5/5.15.2/msvc2019_64/include/QtGui -IC:/Qt5/5.15.2/msvc2019_64/include/QtANGLE -IC:/Qt5/5.15.2/msvc2019_64/include/QtCore -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include&quot; -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include&quot; -I&quot;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\cppwinrt&quot; participant_item_view.h -o release\moc_participant_item_view.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">MOC participant_item_view.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">release\moc_participant_item_view.cpp;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">participant_item_view.h;debug\moc_predefs.h;C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe  -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DGL_SILENCE_DEPRECATION -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DBUILD_STATIC -DUSE_AURA=1 -DNO_TCMALLOC -DFULL_SAFE_BROWSING -DSAFE_BROWSING_CSD -DSAFE_BROWSING_DB_LOCAL -DCHROMIUM_BUILD -D_HAS_EXCEPTIONS=0 -D__STD_C -D_CRT_RAND_S -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_ATL_NO_OPENGL -DCERT_CHAIN_PARA_HAS_EXTRA_FIELDS -DPSAPI_VERSION=2 -D_SECURE_ATL -D_USING_V110_SDK71_ -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNTDDI_VERSION=NTDDI_WIN10_RS2 -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DWTF_USE_DYNAMIC_ANNOTATIONS=1 -DWEBRTC_ENABLE_PROTOBUF=1 -DWEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE -DRTC_ENABLE_VP9 -DHAVE_SCTP -DWEBRTC_USE_H264 -DWEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0 -DWEBRTC_WIN -DABSL_ALLOCATOR_NOTHROW=1 -DHAVE_WEBRTC_VIDEO -DHAVE_WEBRTC_VOICE -DASIO_STANDALONE -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB --compiler-flavor=msvc --include C:/Users/admin/Documents/GitHub/mediasoup-client/App/debug/moc_predefs.h -IC:/Qt5/5.15.2/msvc2019_64/mkspecs/win32-msvc -IC:/Users/admin/Documents/GitHub/mediasoup-client/App -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient/client/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/abseil-cpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/boringssl/src/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libsdptransform/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/spdlog/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/rapidjson/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/asio/asio/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/websocketpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libmediasoupclient/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/glew/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/concurrentqueue -IC:/Qt5/5.15.2/msvc2019_64/include -IC:/Qt5/5.15.2/msvc2019_64/include/QtOpenGL -IC:/Qt5/5.15.2/msvc2019_64/include/QtWidgets -IC:/Qt5/5.15.2/msvc2019_64/include/QtGui -IC:/Qt5/5.15.2/msvc2019_64/include/QtANGLE -IC:/Qt5/5.15.2/msvc2019_64/include/QtCore -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include&quot; -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include&quot; -I&quot;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\cppwinrt&quot; participant_item_view.h -o debug\moc_participant_item_view.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">MOC participant_item_view.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">debug\moc_participant_item_view.cpp;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="participant_list_view.h">
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">participant_list_view.h;release\moc_predefs.h;C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe  -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DGL_SILENCE_DEPRECATION -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DBUILD_STATIC -DUSE_AURA=1 -DNO_TCMALLOC -DFULL_SAFE_BROWSING -DSAFE_BROWSING_CSD -DSAFE_BROWSING_DB_LOCAL -DCHROMIUM_BUILD -D_HAS_EXCEPTIONS=0 -D__STD_C -D_CRT_RAND_S -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_ATL_NO_OPENGL -DCERT_CHAIN_PARA_HAS_EXTRA_FIELDS -DPSAPI_VERSION=2 -D_SECURE_ATL -D_USING_V110_SDK71_ -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNTDDI_VERSION=NTDDI_WIN10_RS2 -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DWTF_USE_DYNAMIC_ANNOTATIONS=1 -DWEBRTC_ENABLE_PROTOBUF=1 -DWEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE -DRTC_ENABLE_VP9 -DHAVE_SCTP -DWEBRTC_USE_H264 -DWEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0 -DWEBRTC_WIN -DABSL_ALLOCATOR_NOTHROW=1 -DHAVE_WEBRTC_VIDEO -DHAVE_WEBRTC_VOICE -DASIO_STANDALONE -DNDEBUG -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB --compiler-flavor=msvc --include C:/Users/admin/Documents/GitHub/mediasoup-client/App/release/moc_predefs.h -IC:/Qt5/5.15.2/msvc2019_64/mkspecs/win32-msvc -IC:/Users/admin/Documents/GitHub/mediasoup-client/App -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient/client/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/abseil-cpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/boringssl/src/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libsdptransform/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/spdlog/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/rapidjson/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/asio/asio/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/websocketpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libmediasoupclient/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/glew/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/concurrentqueue -IC:/Qt5/5.15.2/msvc2019_64/include -IC:/Qt5/5.15.2/msvc2019_64/include/QtOpenGL -IC:/Qt5/5.15.2/msvc2019_64/include/QtWidgets -IC:/Qt5/5.15.2/msvc2019_64/include/QtGui -IC:/Qt5/5.15.2/msvc2019_64/include/QtANGLE -IC:/Qt5/5.15.2/msvc2019_64/include/QtCore -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include&quot; -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include&quot; -I&quot;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\cppwinrt&quot; participant_list_view.h -o release\moc_participant_list_view.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">MOC participant_list_view.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">release\moc_participant_list_view.cpp;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">participant_list_view.h;debug\moc_predefs.h;C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe  -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DGL_SILENCE_DEPRECATION -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DBUILD_STATIC -DUSE_AURA=1 -DNO_TCMALLOC -DFULL_SAFE_BROWSING -DSAFE_BROWSING_CSD -DSAFE_BROWSING_DB_LOCAL -DCHROMIUM_BUILD -D_HAS_EXCEPTIONS=0 -D__STD_C -D_CRT_RAND_S -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_ATL_NO_OPENGL -DCERT_CHAIN_PARA_HAS_EXTRA_FIELDS -DPSAPI_VERSION=2 -D_SECURE_ATL -D_USING_V110_SDK71_ -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNTDDI_VERSION=NTDDI_WIN10_RS2 -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DWTF_USE_DYNAMIC_ANNOTATIONS=1 -DWEBRTC_ENABLE_PROTOBUF=1 -DWEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE -DRTC_ENABLE_VP9 -DHAVE_SCTP -DWEBRTC_USE_H264 -DWEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0 -DWEBRTC_WIN -DABSL_ALLOCATOR_NOTHROW=1 -DHAVE_WEBRTC_VIDEO -DHAVE_WEBRTC_VOICE -DASIO_STANDALONE -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB --compiler-flavor=msvc --include C:/Users/admin/Documents/GitHub/mediasoup-client/App/debug/moc_predefs.h -IC:/Qt5/5.15.2/msvc2019_64/mkspecs/win32-msvc -IC:/Users/admin/Documents/GitHub/mediasoup-client/App -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient/client/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/abseil-cpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/boringssl/src/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libsdptransform/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/spdlog/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/rapidjson/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/asio/asio/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/websocketpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libmediasoupclient/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/glew/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/concurrentqueue -IC:/Qt5/5.15.2/msvc2019_64/include -IC:/Qt5/5.15.2/msvc2019_64/include/QtOpenGL -IC:/Qt5/5.15.2/msvc2019_64/include/QtWidgets -IC:/Qt5/5.15.2/msvc2019_64/include/QtGui -IC:/Qt5/5.15.2/msvc2019_64/include/QtANGLE -IC:/Qt5/5.15.2/msvc2019_64/include/QtCore -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include&quot; -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include&quot; -I&quot;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\cppwinrt&quot; participant_list_view.h -o debug\moc_participant_list_view.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">MOC participant_list_view.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">debug\moc_participant_list_view.cpp;%(Outputs)</Outputs>
-    </CustomBuild>
+    <QtMoc Include="gallery_view.h" />
+    <QtMoc Include="mainwindow.h" />
+    <QtMoc Include="participant_item_view.h" />
+    <QtMoc Include="participant_list_view.h" />
     <ClInclude Include="table.h" />
-    <CustomBuild Include="video_renderer.h">
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">video_renderer.h;release\moc_predefs.h;C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe  -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DGL_SILENCE_DEPRECATION -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DBUILD_STATIC -DUSE_AURA=1 -DNO_TCMALLOC -DFULL_SAFE_BROWSING -DSAFE_BROWSING_CSD -DSAFE_BROWSING_DB_LOCAL -DCHROMIUM_BUILD -D_HAS_EXCEPTIONS=0 -D__STD_C -D_CRT_RAND_S -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_ATL_NO_OPENGL -DCERT_CHAIN_PARA_HAS_EXTRA_FIELDS -DPSAPI_VERSION=2 -D_SECURE_ATL -D_USING_V110_SDK71_ -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNTDDI_VERSION=NTDDI_WIN10_RS2 -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DWTF_USE_DYNAMIC_ANNOTATIONS=1 -DWEBRTC_ENABLE_PROTOBUF=1 -DWEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE -DRTC_ENABLE_VP9 -DHAVE_SCTP -DWEBRTC_USE_H264 -DWEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0 -DWEBRTC_WIN -DABSL_ALLOCATOR_NOTHROW=1 -DHAVE_WEBRTC_VIDEO -DHAVE_WEBRTC_VOICE -DASIO_STANDALONE -DNDEBUG -DQT_NO_DEBUG -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB --compiler-flavor=msvc --include C:/Users/admin/Documents/GitHub/mediasoup-client/App/release/moc_predefs.h -IC:/Qt5/5.15.2/msvc2019_64/mkspecs/win32-msvc -IC:/Users/admin/Documents/GitHub/mediasoup-client/App -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient/client/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/abseil-cpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/boringssl/src/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libsdptransform/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/spdlog/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/rapidjson/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/asio/asio/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/websocketpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libmediasoupclient/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/glew/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/concurrentqueue -IC:/Qt5/5.15.2/msvc2019_64/include -IC:/Qt5/5.15.2/msvc2019_64/include/QtOpenGL -IC:/Qt5/5.15.2/msvc2019_64/include/QtWidgets -IC:/Qt5/5.15.2/msvc2019_64/include/QtGui -IC:/Qt5/5.15.2/msvc2019_64/include/QtANGLE -IC:/Qt5/5.15.2/msvc2019_64/include/QtCore -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include&quot; -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include&quot; -I&quot;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\cppwinrt&quot; video_renderer.h -o release\moc_video_renderer.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">MOC video_renderer.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">release\moc_video_renderer.cpp;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">video_renderer.h;debug\moc_predefs.h;C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\moc.exe  -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DGL_SILENCE_DEPRECATION -DUNICODE -D_UNICODE -DWIN32 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -DWIN64 -DBUILD_STATIC -DUSE_AURA=1 -DNO_TCMALLOC -DFULL_SAFE_BROWSING -DSAFE_BROWSING_CSD -DSAFE_BROWSING_DB_LOCAL -DCHROMIUM_BUILD -D_HAS_EXCEPTIONS=0 -D__STD_C -D_CRT_RAND_S -D_CRT_SECURE_NO_DEPRECATE -D_SCL_SECURE_NO_DEPRECATE -D_ATL_NO_OPENGL -DCERT_CHAIN_PARA_HAS_EXTRA_FIELDS -DPSAPI_VERSION=2 -D_SECURE_ATL -D_USING_V110_SDK71_ -DWINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP -DWIN32_LEAN_AND_MEAN -DNOMINMAX -DNTDDI_VERSION=NTDDI_WIN10_RS2 -D_WIN32_WINNT=0x0A00 -DWINVER=0x0A00 -DDYNAMIC_ANNOTATIONS_ENABLED=1 -DWTF_USE_DYNAMIC_ANNOTATIONS=1 -DWEBRTC_ENABLE_PROTOBUF=1 -DWEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE -DRTC_ENABLE_VP9 -DHAVE_SCTP -DWEBRTC_USE_H264 -DWEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0 -DWEBRTC_WIN -DABSL_ALLOCATOR_NOTHROW=1 -DHAVE_WEBRTC_VIDEO -DHAVE_WEBRTC_VOICE -DASIO_STANDALONE -DQT_OPENGL_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB --compiler-flavor=msvc --include C:/Users/admin/Documents/GitHub/mediasoup-client/App/debug/moc_predefs.h -IC:/Qt5/5.15.2/msvc2019_64/mkspecs/win32-msvc -IC:/Users/admin/Documents/GitHub/mediasoup-client/App -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient -IC:/Users/admin/Documents/GitHub/mediasoup-client/RoomClient/client/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/abseil-cpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/webrtc/include/third_party/boringssl/src/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libsdptransform/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/spdlog/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/rapidjson/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/asio/asio/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/websocketpp -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/libmediasoupclient/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/glew/include -IC:/Users/admin/Documents/GitHub/mediasoup-client/deps/concurrentqueue -IC:/Qt5/5.15.2/msvc2019_64/include -IC:/Qt5/5.15.2/msvc2019_64/include/QtOpenGL -IC:/Qt5/5.15.2/msvc2019_64/include/QtWidgets -IC:/Qt5/5.15.2/msvc2019_64/include/QtGui -IC:/Qt5/5.15.2/msvc2019_64/include/QtANGLE -IC:/Qt5/5.15.2/msvc2019_64/include/QtCore -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\ATLMFC\include&quot; -I&quot;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include&quot; -I&quot;C:\Program Files (x86)\Windows Kits\NETFXSDK\4.8\include\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\ucrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\shared&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\um&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\winrt&quot; -I&quot;C:\Program Files (x86)\Windows Kits\10\include\10.0.19041.0\cppwinrt&quot; video_renderer.h -o debug\moc_video_renderer.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">MOC video_renderer.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">debug\moc_video_renderer.cpp;%(Outputs)</Outputs>
-    </CustomBuild>
+    <QtMoc Include="video_renderer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="debug\moc_gallery_view.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="release\moc_gallery_view.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="debug\moc_mainwindow.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="release\moc_mainwindow.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="debug\moc_participant_item_view.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="release\moc_participant_item_view.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="debug\moc_participant_list_view.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="release\moc_participant_list_view.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
     <CustomBuild Include="debug\moc_predefs.h.cbt">
       <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">true</ExcludedFromBuild>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\mkspecs\features\data\dummy.cpp;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">cl -BxC:\Qt5\5.15.2\msvc2019_64\bin\qmake.exe -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus /MTd /Zi -std:c++17 -W3 -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 -wd4577 -wd4467 -E C:\Qt5\5.15.2\msvc2019_64\mkspecs\features\data\dummy.cpp 2&gt;NUL &gt;debug\moc_predefs.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">Generate moc_predefs.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">debug\moc_predefs.h;%(Outputs)</Outputs>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\mkspecs\features\data\dummy.cpp;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">cl -Bx"$(QTDIR)\bin\qmake.exe" -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus /MTd /Zi -std:c++17 -W3 -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 -wd4577 -wd4467 -E $(QTDIR)\mkspecs\features\data\dummy.cpp 2&gt;NUL &gt;debug\moc_predefs.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate moc_predefs.h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">debug\moc_predefs.h;%(Outputs)</Outputs>
     </CustomBuild>
     <CustomBuild Include="release\moc_predefs.h.cbt">
       <FileType>Document</FileType>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\mkspecs\features\data\dummy.cpp;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">cl -BxC:\Qt5\5.15.2\msvc2019_64\bin\qmake.exe -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus /MT -std:c++17 -W3 -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 -wd4577 -wd4467 -E C:\Qt5\5.15.2\msvc2019_64\mkspecs\features\data\dummy.cpp 2&gt;NUL &gt;release\moc_predefs.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">Generate moc_predefs.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">release\moc_predefs.h;%(Outputs)</Outputs>
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">true</ExcludedFromBuild>
-    </CustomBuild>
-    <ClCompile Include="debug\moc_video_renderer.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="release\moc_video_renderer.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="debug\qrc_icons.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="release\qrc_icons.cpp">
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClInclude Include="ui_gallery_view.h" />
-    <ClInclude Include="ui_mainwindow.h" />
-    <ClInclude Include="ui_participant_item_view.h" />
-    <ClInclude Include="ui_participant_list_view.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="gallery_view.ui">
-      <FileType>Document</FileType>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">gallery_view.ui;C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe gallery_view.ui -o ui_gallery_view.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">UIC gallery_view.ui</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">ui_gallery_view.h;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">gallery_view.ui;C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe gallery_view.ui -o ui_gallery_view.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">UIC gallery_view.ui</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">ui_gallery_view.h;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="mainwindow.ui">
-      <FileType>Document</FileType>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">mainwindow.ui;C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe mainwindow.ui -o ui_mainwindow.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">UIC mainwindow.ui</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">ui_mainwindow.h;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">mainwindow.ui;C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe mainwindow.ui -o ui_mainwindow.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">UIC mainwindow.ui</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">ui_mainwindow.h;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="participant_item_view.ui">
-      <FileType>Document</FileType>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">participant_item_view.ui;C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe participant_item_view.ui -o ui_participant_item_view.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">UIC participant_item_view.ui</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">ui_participant_item_view.h;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">participant_item_view.ui;C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe participant_item_view.ui -o ui_participant_item_view.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">UIC participant_item_view.ui</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">ui_participant_item_view.h;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="participant_list_view.ui">
-      <FileType>Document</FileType>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">participant_list_view.ui;C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe participant_list_view.ui -o ui_participant_list_view.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">UIC participant_list_view.ui</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">ui_participant_list_view.h;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">participant_list_view.ui;C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\uic.exe participant_list_view.ui -o ui_participant_list_view.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">UIC participant_list_view.ui</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">ui_participant_list_view.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\mkspecs\features\data\dummy.cpp;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cl -Bx"$(QTDIR)\bin\qmake.exe" -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus /MT -std:c++17 -W3 -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 -wd4577 -wd4467 -E $(QTDIR)\mkspecs\features\data\dummy.cpp 2&gt;NUL &gt;release\moc_predefs.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate moc_predefs.h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">release\moc_predefs.h;%(Outputs)</Outputs>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="icons.qrc">
-      <FileType>Document</FileType>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">icons.qrc;C:\Qt5\5.15.2\msvc2019_64\bin\rcc.exe;resource\icons8-block-microphone-100.png;resource\icons8-disconnected-100.png;resource\icons8-mute-100.png;resource\icons8-voice-100.png;resource\icons8-no-video-100.png;resource\icons8-video-call-100.png;resource\icons8-meeting-room-100.png;resource\icons8-connected-100.png;resource\icons8-microphone-100.png;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\rcc.exe -name icons icons.qrc -o release\qrc_icons.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">RCC icons.qrc</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">release\qrc_icons.cpp;%(Outputs)</Outputs>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">icons.qrc;C:\Qt5\5.15.2\msvc2019_64\bin\rcc.exe;resource\icons8-block-microphone-100.png;resource\icons8-disconnected-100.png;resource\icons8-mute-100.png;resource\icons8-voice-100.png;resource\icons8-no-video-100.png;resource\icons8-video-call-100.png;resource\icons8-meeting-room-100.png;resource\icons8-connected-100.png;resource\icons8-microphone-100.png;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt5\5.15.2\msvc2019_64\bin\rcc.exe -name icons icons.qrc -o debug\qrc_icons.cpp</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">RCC icons.qrc</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">debug\qrc_icons.cpp;%(Outputs)</Outputs>
-    </CustomBuild>
+    <QtUic Include="gallery_view.ui" />
+    <QtUic Include="mainwindow.ui" />
+    <QtUic Include="participant_item_view.ui" />
+    <QtUic Include="participant_list_view.ui" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="icons.qrc" />
     <None Include="resource\icons8-block-microphone-100.png" />
     <None Include="resource\icons8-connected-100.png" />
     <None Include="resource\icons8-disconnected-100.png" />
@@ -326,5 +251,6 @@
     <None Include="resource\icons8-voice-100.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(QtMsBuild)\qt.targets" Condition="Exists('$(QtMsBuild)\qt.targets')" />
   <ImportGroup Label="ExtensionTargets" />
 </Project>

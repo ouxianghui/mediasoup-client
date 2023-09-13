@@ -12,7 +12,7 @@ namespace rtc {
 namespace vi {
 
 class IParticipant;
-class IParticipantControllerObserver;
+class IParticipantEventHandler;
 
 using ParticipantMap = std::unordered_map<std::string, std::shared_ptr<IParticipant>>;
 
@@ -20,9 +20,9 @@ class IParticipantController {
 public:
     virtual ~IParticipantController() = default;
 
-    virtual void addObserver(std::shared_ptr<IParticipantControllerObserver> observer, rtc::Thread* callbackThread) = 0;
+    virtual void addObserver(std::shared_ptr<IParticipantEventHandler> observer, rtc::Thread* callbackThread) = 0;
 
-    virtual void removeObserver(std::shared_ptr<IParticipantControllerObserver> observer) = 0;
+    virtual void removeObserver(std::shared_ptr<IParticipantEventHandler> observer) = 0;
 
     virtual std::shared_ptr<IParticipant> getParticipant(const std::string& pid) = 0;
 
@@ -39,8 +39,8 @@ public:
 };
 
 BEGIN_PROXY_MAP(ParticipantController)
-    PROXY_METHOD2(void, addObserver, std::shared_ptr<IParticipantControllerObserver>, rtc::Thread*)
-    PROXY_METHOD1(void, removeObserver, std::shared_ptr<IParticipantControllerObserver>)
+    PROXY_METHOD2(void, addObserver, std::shared_ptr<IParticipantEventHandler>, rtc::Thread*)
+    PROXY_METHOD1(void, removeObserver, std::shared_ptr<IParticipantEventHandler>)
     PROXY_METHOD1(std::shared_ptr<IParticipant>, getParticipant, const std::string&)
     PROXY_METHOD0(ParticipantMap, getParticipants)
     PROXY_METHOD2(void, muteAudio, const std::string&, bool)

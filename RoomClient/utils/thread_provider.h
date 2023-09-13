@@ -11,8 +11,11 @@
 #include <atomic>
 #include <string>
 #include <list>
-#include "rtc_base/thread.h"
 #include "singleton.h"
+
+namespace rtc {
+    class Thread;
+}
 
 namespace vi {
 
@@ -42,7 +45,7 @@ namespace vi {
 		void stopAll();
 
 	private:
-        std::unordered_map<std::string, std::shared_ptr<rtc::Thread>> _threadsMap;
+        std::unordered_map<std::string, rtc::Thread*> _threadsMap;
 		
 		std::mutex _mutex;
 

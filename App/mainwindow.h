@@ -6,7 +6,7 @@
 #include "service/mediasoup_api.h"
 #include "service/i_room_client_observer.h"
 #include "service/i_media_controller.h"
-#include "service/i_participant_controller_observer.h"
+#include "service/i_participant_event_handler.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -14,6 +14,7 @@ QT_END_NAMESPACE
 
 namespace vi {
     class IParticipant;
+    class IRoomClient;
 }
 
 class GalleryView;
@@ -21,7 +22,7 @@ class ParticipantListView;
 class QToolButton;
 class QAction;
 
-class MainWindow : public QMainWindow, public vi::IRoomClientObserver, public vi::IParticipantControllerObserver, public std::enable_shared_from_this<MainWindow>
+class MainWindow : public QMainWindow, public vi::IRoomClientObserver, public vi::IParticipantEventHandler, public std::enable_shared_from_this<MainWindow>
 {
     Q_OBJECT
 
@@ -48,7 +49,7 @@ protected:
 
     void onLocalActiveSpeaker(int32_t volume) override;
 
-    // IParticipantControllerObserver
+    // IParticipantEventHandler
     void onParticipantJoin(std::shared_ptr<vi::IParticipant> participant) override;
 
     void onParticipantLeave(std::shared_ptr<vi::IParticipant> participant) override;
@@ -113,5 +114,7 @@ private:
     QToolButton* _videoButton;
     QAction* _enableVideoAction;
     QAction* _disableVideoAction;
+
+    std::shared_ptr<vi::IRoomClient> _roomClient;
 };
 #endif // MAINWINDOW_H

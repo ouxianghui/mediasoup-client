@@ -26,6 +26,8 @@ public:
 
     virtual void destroy() = 0;
 
+    virtual std::string getId() = 0;
+
     virtual void addObserver(std::shared_ptr<IRoomClientObserver> observer, rtc::Thread* callbackThread) = 0;
 
     virtual void removeObserver(std::shared_ptr<IRoomClientObserver> observer) = 0;
@@ -60,6 +62,7 @@ using TrackMap = std::unordered_map<std::string, rtc::scoped_refptr<webrtc::Medi
 BEGIN_PROXY_MAP(RoomClient)
     PROXY_METHOD0(void, init)
     PROXY_METHOD0(void, destroy)
+    PROXY_METHOD0(std::string, getId)
     PROXY_METHOD2(void, addObserver, std::shared_ptr<IRoomClientObserver>, rtc::Thread*)
     PROXY_METHOD1(void, removeObserver, std::shared_ptr<IRoomClientObserver>)
     PROXY_METHOD5(void, join, const std::string&, uint16_t, const std::string&, const std::string&, std::shared_ptr<Options>)

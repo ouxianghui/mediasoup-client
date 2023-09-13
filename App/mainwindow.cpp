@@ -10,7 +10,7 @@
 #include "service/room_client.h"
 #include "websocket/websocket_request.h"
 #include "service/signaling_models.h"
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 #include "service/engine.h"
 #include "gallery_view.h"
 #include "service/i_media_controller.h"
@@ -42,8 +42,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::init()
 {
-    rtc::Thread* callbackThread = FetchThread("main");
-    RClient->addObserver(shared_from_this(), callbackThread);
+    _roomClient = getEngine()->createRoomClient();
+    rtc::Thread* callbackThread = getThread("main");
+    _roomClient->addObserver(shared_from_this(), callbackThread);
 
     if (!_galleryView) {
         _galleryView = new GalleryView(this);
@@ -125,18 +126,18 @@ void MainWindow::init()
 
 void MainWindow::updateToolBar()
 {
-    if (RClient->getRoomState() == vi::RoomState::CLOSED) {
+    if (_roomClient->getRoomState() == vi::RoomState::CLOSED) {
         _connectButton->setDefaultAction(_joinAction);
         _audioButton->setDisabled(true);
         _microphoneButton->setDisabled(true);
         _videoButton->setDisabled(true);
     }
-    else if (RClient->getRoomState() == vi::RoomState::CONNECTED) {
+    else if (_roomClient->getRoomState() == vi::RoomState::CONNECTED) {
         _connectButton->setDefaultAction(_leaveAction);
         _audioButton->setEnabled(true);
         _videoButton->setEnabled(true);
 
-        if (RClient->isAudioEnabled()) {
+        if (_roomClient->isAudioEnabled()) {
             _audioButton->setDefaultAction(_disableAudioAction);
             _microphoneButton->setEnabled(true);
         }
@@ -145,14 +146,14 @@ void MainWindow::updateToolBar()
             _microphoneButton->setDisabled(true);
         }
 
-        if (RClient->isAudioMuted()) {
+        if (_roomClient->isAudioMuted()) {
             _microphoneButton->setDefaultAction(_unmuteMicrophoneAction);
         }
         else {
             _microphoneButton->setDefaultAction(_muteMicrophoneAction);
         }
 
-        if (RClient->isVideoEnabled()) {
+        if (_roomClient->isVideoEnabled()) {
             _videoButton->setDefaultAction(_disableVideoAction);
         }
         else {
@@ -165,8 +166,8 @@ std::shared_ptr<vi::IParticipant> MainWindow::myself()
 {
     auto myself = std::make_shared<vi::Participant>("0", "[You]");
 
-    if (RClient->isAudioEnabled()) {
-        if (RClient->isAudioMuted()) {
+    if (_roomClient->isAudioEnabled()) {
+        if (_roomClient->isAudioMuted()) {
             myself->setAudioMuted(true);
         }
         else {
@@ -177,16 +178,16 @@ std::shared_ptr<vi::IParticipant> MainWindow::myself()
         myself->setAudioMuted(true);
     }
 
-    if (RClient->isVideoEnabled()) {
+    if (_roomClient->isVideoEnabled()) {
         myself->setVideoMuted(false);
     }
     else {
         myself->setVideoMuted(true);
     }
 
-    myself->setVideoTracks(RClient->getVideoTracks());
+    myself->setVideoTracks(_roomClient->getVideoTracks());
 
-    myself->setSpeakingVolume(RClient->speakingVolume());
+    myself->setSpeakingVolume(_roomClient->speakingVolume());
 
     return myself;
 }
@@ -195,7 +196,7 @@ void MainWindow::loadParticipants()
 {
     _galleryView->attach(myself());
 
-    auto pc = RClient->getParticipantController();
+    auto pc = _roomClient->getParticipantController();
     if (!pc) {
         return;
     }
@@ -207,7 +208,7 @@ void MainWindow::loadParticipants()
 
 void MainWindow::destroy()
 {
-    RClient->removeObserver(shared_from_this());
+    _roomClient->removeObserver(shared_from_this());
 
     if (_galleryView) {
         _galleryView->destroy();
@@ -216,42 +217,42 @@ void MainWindow::destroy()
 
 void MainWindow::onJoinRoom()
 {
-    RClient->join("192.168.198.1", 4443, "test", "jackie", nullptr);
+    _roomClient->join("wevisit.cn", 4443, "test", "jackie", nullptr);
 }
 
 void MainWindow::onLeaveRoom()
 {
-    RClient->leave();
+    _roomClient->leave();
 }
 
 void MainWindow::onEnableAudio()
 {
-    RClient->enableAudio(true);
+    _roomClient->enableAudio(true);
 }
 
 void MainWindow::onDisableAudio()
 {
-    RClient->enableAudio(false);
+    _roomClient->enableAudio(false);
 }
 
 void MainWindow::onMuteMicrophone()
 {
-    RClient->muteAudio(true);
+    _roomClient->muteAudio(true);
 }
 
 void MainWindow::onUnmuteMicrophone()
 {
-    RClient->muteAudio(false);
+    _roomClient->muteAudio(false);
 }
 
 void MainWindow::onEnableVideo()
 {
-    RClient->enableVideo(true);
+    _roomClient->enableVideo(true);
 }
 
 void MainWindow::onDisableVideo()
 {
-    RClient->enableVideo(false);
+    _roomClient->enableVideo(false);
 }
 
 void MainWindow::onRoomStateChanged(vi::RoomState state)
@@ -264,13 +265,13 @@ void MainWindow::onRoomStateChanged(vi::RoomState state)
 
         _galleryView->setLayout(2, 2);
 
-        rtc::Thread* callbackThread = FetchThread("main");
-        RClient->getParticipantController()->addObserver(shared_from_this(), callbackThread);
+        rtc::Thread* callbackThread = getThread("main");
+        _roomClient->getParticipantController()->addObserver(shared_from_this(), callbackThread);
 
         loadParticipants();
 
-        RClient->enableAudio(true);
-        RClient->enableVideo(true);
+        _roomClient->enableAudio(true);
+        _roomClient->enableVideo(true);
     }
     else if (state == vi::RoomState::CLOSED) {
         _galleryView->reset();

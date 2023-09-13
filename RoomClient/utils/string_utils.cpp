@@ -8,7 +8,7 @@
 #include <random>
 #include <time.h>
 #include <chrono>
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 
 namespace vi {
 	// Helper method to create random identifiers (e.g., transaction)

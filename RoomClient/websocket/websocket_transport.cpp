@@ -6,7 +6,7 @@
 
 #include "websocket_transport.h"
 #include <iostream>
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 #include "json/serialization.hpp"
 #include "i_connection_observer.h"
 #include "websocket_endpoint.h"
@@ -131,9 +131,9 @@ bool WebsocketTransport::onValidate()
 void WebsocketTransport::onTextMessage(const std::string& json)
 {
     DLOG("json = {}", json.c_str());
-    UniversalObservable<ITransportObserver>::notifyObservers([wself = WebsocketTransport::weak_from_this(), json](const auto& observer) {
+    UniversalObservable<ITransportObserver>::notifyObservers([wself = WebsocketTransport::weak_from_this(), msg = json](const auto& observer) {
         if (auto self = wself.lock()) {
-            observer->onMessage(json);
+            observer->onMessage(msg);
         }
     });
 }

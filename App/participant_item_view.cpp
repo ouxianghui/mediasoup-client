@@ -2,7 +2,7 @@
 #include "ui_participant_item_view.h"
 #include <QAction>
 #include <QTimer>
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 #include "service/i_room_client.h"
 #include "service/i_participant.h"
 #include "service/i_participant_controller.h"

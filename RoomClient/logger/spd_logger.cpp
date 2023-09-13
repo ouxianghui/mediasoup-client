@@ -4,7 +4,7 @@
  * Created:   2021-11-01
  **/
 
-#include "u_logger.h"
+#include "spd_logger.h"
 #include <memory>
 #include "spdlog/cfg/env.h"
 #include "spdlog/logger.h"
@@ -16,23 +16,23 @@
 
 namespace vi {
 
-    std::shared_ptr<spdlog::logger> ULogger::_appLogger;
+    std::shared_ptr<spdlog::logger> Logger::_appLogger;
 
-    std::shared_ptr<spdlog::logger> ULogger::_rtcLogger;
+    std::shared_ptr<spdlog::logger> Logger::_rtcLogger;
 
-    std::unique_ptr<RTCLogSink> ULogger::_rtcLogSink;
+    std::unique_ptr<RTCLogSink> Logger::_rtcLogSink;
 
-    ULogger::ULogger()
+    Logger::Logger()
 	{
 
 	}
 
-    ULogger::~ULogger()
+    Logger::~Logger()
 	{
 		destroy();
 	}
 
-    void ULogger::init()
+    void Logger::init()
 	{
         spdlog::cfg::load_env_levels();
 
@@ -40,7 +40,7 @@ namespace vi {
 
 		std::string pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%l] [%t] [%s:%#] [%!] %v");
 
-        auto consoleSink = std::make_shared<spdlog::sinks::windebug_sink_mt>();
+        auto consoleSink = std::make_shared<spdlog::sinks::wincolor_stdout_sink_mt>();
         consoleSink->set_level(spdlog::level::trace);
         consoleSink->set_pattern(pattern);
 
@@ -59,7 +59,7 @@ namespace vi {
 		}
 	}
 
-    void ULogger::destroy()
+    void Logger::destroy()
 	{
 		_rtcLogger->flush();
 		_appLogger->flush();
@@ -70,12 +70,12 @@ namespace vi {
 		}
 	}
 
-    std::shared_ptr<spdlog::logger>& ULogger::rtcLogger()
+    std::shared_ptr<spdlog::logger>& Logger::rtcLogger()
 	{
 		return _rtcLogger;
 	}
 
-    std::shared_ptr<spdlog::logger>& ULogger::appLogger()
+    std::shared_ptr<spdlog::logger>& Logger::appLogger()
 	{
 		return _appLogger;
 	}

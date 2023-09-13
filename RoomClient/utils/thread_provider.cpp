@@ -8,7 +8,8 @@
 #include <memory>
 #include <mutex>
 #include "rtc_base/physical_socket_server.h"
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
+#include "rtc_base/thread.h"
 
 namespace vi {
 
@@ -34,7 +35,7 @@ void ThreadProvider::init()
 void ThreadProvider::destroy()
 {
     if (!_destroy) {
-        stopAll();
+        //stopAll();
     }
     _destroy = true;
 }
@@ -49,7 +50,7 @@ void ThreadProvider::create(const std::list<std::string>& threadNames)
     }
 
     for (const auto& name : threadNames) {
-        _threadsMap[name] = rtc::Thread::Create();
+        _threadsMap[name] = rtc::Thread::Create().release();
         _threadsMap[name]->SetName(name, nullptr);
         _threadsMap[name]->Start();
     }
@@ -75,7 +76,8 @@ rtc::Thread* ThreadProvider::thread(const std::string& name)
         return _mainThread;
     }
     else if (_threadsMap.find(name) != _threadsMap.end()) {
-        return _threadsMap[name].get();
+        //return _threadsMap[name].get();
+        return _threadsMap[name];
     }
 
     return nullptr;

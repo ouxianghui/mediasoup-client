@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <memory>
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 
 // Vertex shader doesn't do anything except pass coordinates through.
 const char kRTCVertexShaderSource[] =

@@ -1,10 +1,11 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include "i_mediasoup_api.h"
 #include "component_factory.h"
 #include "signaling_client.h"
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 
 namespace vi {
 

@@ -2,7 +2,7 @@
 #include <QMetaType>
 #include <QApplication>
 #include "mediasoupclient.hpp"
-#include "logger/u_logger.h"
+#include "logger/spd_logger.h"
 #include "service/engine.h"
 #include "service/i_room_client_observer.h"
 #include "api/media_stream_interface.h"
@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
     rtc::Win32Thread mainThread(&ss);
     rtc::ThreadManager::Instance()->SetCurrentThread(&mainThread);
 
-    vi::ULogger::init();
-    EngineInstance->init();
+    vi::Logger::init();
+    getEngine()->init();
     mediasoupclient::Initialize();
 
     DLOG("mediasoupclient version: {}", mediasoupclient::Version().c_str());
@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
     int ret =  a.exec();
 
     mediasoupclient::Cleanup();
-    EngineInstance->destroy();
-    vi::ULogger::destroy();
+    getEngine()->destroy();
+    vi::Logger::destroy();
 
     return ret;
 }
