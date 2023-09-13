@@ -41,6 +41,8 @@ namespace vi {
 
 		ThreadProvider& operator=(const ThreadProvider&) = delete;
 
+		ThreadProvider& operator=(ThreadProvider&&) = delete;
+
 	public:
 		void stopAll();
 

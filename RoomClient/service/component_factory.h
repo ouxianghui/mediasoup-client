@@ -27,7 +27,9 @@ private:
 
     ComponentFactory(const ComponentFactory&) = delete;
 
-    const ComponentFactory& operator=(const ComponentFactory&) = delete;
+    ComponentFactory& operator=(const ComponentFactory&) = delete;
+
+    ComponentFactory& operator=(ComponentFactory&&) = delete;
 
 private:
     std::unique_ptr<ThreadProvider> _threadProvider;
