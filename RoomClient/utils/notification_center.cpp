@@ -7,7 +7,7 @@
 #include "rtc_base/thread.h"
 
 namespace {
-    static std::shared_ptr<vi::NotificationCenter> _defaultCenter = std::make_shared<vi::NotificationCenter>();
+    static std::unique_ptr<vi::NotificationCenter> _defaultCenter = std::make_unique<vi::NotificationCenter>();
 }
 
 namespace vi {
@@ -102,7 +102,7 @@ namespace vi {
         }
     }
 
-    const std::shared_ptr<NotificationCenter>& NotificationCenter::defaultCenter()
+    const std::unique_ptr<NotificationCenter>& NotificationCenter::defaultCenter()
     {
         return _defaultCenter;
     }

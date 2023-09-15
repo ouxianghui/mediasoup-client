@@ -40,9 +40,8 @@ std::string getProtooUrl(const std::string& hostname, uint16_t port, const std::
 
 namespace vi {
 
-RoomClient::RoomClient(std::weak_ptr<IComponentFactory> wcf, std::shared_ptr<RTCContext> rtcContext, rtc::Thread* mediasoupThread, rtc::Thread* signalingThread)
-    : _wcf(wcf)
-    , _rtcContext(rtcContext)
+RoomClient::RoomClient(std::shared_ptr<RTCContext> rtcContext, rtc::Thread* mediasoupThread, rtc::Thread* signalingThread)
+    : _rtcContext(rtcContext)
     , _mediasoupThread(mediasoupThread)
     , _signalingThread(signalingThread)
 {
@@ -56,11 +55,7 @@ RoomClient::~RoomClient()
 
 void RoomClient::init()
 {
-    auto cf = _wcf.lock();
-    //const auto& threadProvider = cf->getThreadProvider();
-    //threadProvider->thread("main")->PostTask(RTC_FROM_HERE, [this]() {
-        configure();
-     //});
+    configure();
 
     if (!_signalingClient) {
         _signalingClient = std::make_shared<SignalingClient>(_signalingThread);

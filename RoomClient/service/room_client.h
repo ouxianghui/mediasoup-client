@@ -24,7 +24,6 @@ namespace webrtc {
 
 namespace vi {
 
-class IComponentFactory;
 class ISignalingClient;
 class IMediasoupApi;
 class MacTrackSource;
@@ -42,7 +41,7 @@ class RoomClient :
         public UniversalObservable<IRoomClientObserver>,
         public std::enable_shared_from_this<RoomClient> {
 public:
-    RoomClient(std::weak_ptr<IComponentFactory> wcf, std::shared_ptr<RTCContext> rtcContext, rtc::Thread* mediasoupThread, rtc::Thread* signalingThread);
+    RoomClient(std::shared_ptr<RTCContext> rtcContext, rtc::Thread* mediasoupThread, rtc::Thread* signalingThread);
 
     ~RoomClient();
 
@@ -183,8 +182,6 @@ private:
 
 private:
     std::string _id = std::to_string(rtc::CreateRandomId());
-
-    std::weak_ptr<IComponentFactory> _wcf;
 
     std::shared_ptr<RTCContext> _rtcContext;
 

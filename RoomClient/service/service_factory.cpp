@@ -1,12 +1,10 @@
 
 #include "service_factory.hpp"
 #include "i_service.hpp"
-#include "i_component_factory.h"
 
 namespace vi
 {
-    ServiceFactory::ServiceFactory(std::weak_ptr<IComponentFactory> wcf)
-        : _wcf(wcf)
+    ServiceFactory::ServiceFactory()
     {
 
     }

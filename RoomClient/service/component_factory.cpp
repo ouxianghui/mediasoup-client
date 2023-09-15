@@ -1,53 +1,59 @@
 ﻿#include "component_factory.h"
 #include "service_factory.hpp"
 #include "utils/thread_provider.h"
-
+#include "utils/notification_center.hpp"
+#include "network/network_request_manager.h"
+#include "network/network_http_client.h"
+#include "network/network_request_plugin.h"
+#include "network/network_request_consumer.h"
 namespace vi {
 
-ComponentFactory::ComponentFactory()
-{
+    ComponentFactory::ComponentFactory() 
+    {
 
-}
-
-ComponentFactory::~ComponentFactory() {
-
-}
-
-void ComponentFactory::init()
-{
-    if (!_threadProvider) {
-        _threadProvider = std::make_unique<ThreadProvider>();
-        _threadProvider->init();
-        _threadProvider->create({ "signaling", "mediasoup", "capture" });
     }
 
-    if (!_serviceFactory) {
-        _serviceFactory = std::make_shared<ServiceFactory>(weak_from_this());
-        _serviceFactory->init();
+    void ComponentFactory::init()
+    {
+        if (!_threadProvider) {
+            _threadProvider = std::make_unique<ThreadProvider>();
+            _threadProvider->init();
+            _threadProvider->create({ "signaling", "mediasoup", "capture" });
+        }
+
+        if (!_networkRequestManager) {
+            _networkRequestManager = std::make_unique<NetworkRequestManager>();
+            _networkRequestManager->init();
+        }
+
+        auto plugin = std::make_shared<NetworkRequestPlugin>();
+        auto httpClient = std::make_shared<NetworkHttpClient>();
+        auto consumer = std::make_shared<NetworkRequestConsumer>(plugin, httpClient, 5, RequestRoute::HTTP);
+        plugin->addRequestConsumer(RequestRoute::HTTP, consumer);
+        _networkRequestManager->registerPlugin("universal-http-request", plugin);
     }
-}
 
-void ComponentFactory::destroy()
-{
-    if (_serviceFactory) {
-        _serviceFactory->destroy();
-        _serviceFactory = nullptr;
+    void ComponentFactory::destroy()
+    {
+        if (_threadProvider) {
+            _threadProvider->destroy();
+            _threadProvider = nullptr;
+        }
     }
 
-    if (_threadProvider) {
-        _threadProvider->destroy();
-        _threadProvider = nullptr;
+    const std::unique_ptr<ThreadProvider>& ComponentFactory::getThreadProvider()
+    {
+        return _threadProvider;
     }
-}
 
-const std::unique_ptr<ThreadProvider>& ComponentFactory::getThreadProvider()
-{
-    return _threadProvider;
-}
+    const std::unique_ptr<NotificationCenter>& ComponentFactory::getNotificationCenter()
+    {
+        return NotificationCenter::defaultCenter();
+    }
 
-std::shared_ptr<vi::IServiceFactory> ComponentFactory::getServiceFactory()
-{
-    return _serviceFactory;
-}
+    const std::unique_ptr<INetworkRequestManager>& ComponentFactory::getNetworkRequestManager()
+    {
+        return _networkRequestManager;
+    }
 
 }

@@ -50,6 +50,10 @@ UI/UI.APS
 
 /deps/webrtc
 
-*.vcxproj.*
 .qmake.stash
 /App/x64
+
+*.pro.user
+*.qtvscr
+*.vcxproj.user
+*.vcxproj.filters

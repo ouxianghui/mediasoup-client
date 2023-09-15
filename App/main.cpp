@@ -12,6 +12,8 @@
 #include "rtc_base/win32_socket_server.h"
 #include "rtc_base/physical_socket_server.h"
 #include <QOpenGLFunctions>
+#include "service/component_factory.h"
+#include "service/service_factory.hpp"
 
 static void registerMetaTypes()
 {
@@ -30,8 +32,10 @@ int main(int argc, char *argv[])
     rtc::ThreadManager::Instance()->SetCurrentThread(&mainThread);
 
     vi::Logger::init();
-    getEngine()->init();
     mediasoupclient::Initialize();
+    getComponentFactory()->init();
+    getServiceFactory()->init();
+    getEngine()->init();
 
     DLOG("mediasoupclient version: {}", mediasoupclient::Version().c_str());
 
@@ -51,6 +55,8 @@ int main(int argc, char *argv[])
 
     mediasoupclient::Cleanup();
     getEngine()->destroy();
+    getServiceFactory()->destroy();
+    getComponentFactory()->destroy();
     vi::Logger::destroy();
 
     return ret;

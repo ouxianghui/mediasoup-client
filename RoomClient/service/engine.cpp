@@ -1,9 +1,9 @@
 #include "engine.h"
-#include "component_factory.h"
 #include "logger/spd_logger.h"
 #include "rtc_context.hpp"
 #include "room_client.h"
 #include "broadcaster.hpp"
+#include "component_factory.h"
 
 namespace vi {
     Engine::Engine()
@@ -20,11 +20,6 @@ namespace vi {
     {
         //vi::Logger::init();
 
-        if (!_cf) {
-            _cf = std::make_shared<vi::ComponentFactory>();
-            _cf->init();
-        }
-
         if (!_rtcContext) {
             _rtcContext = std::make_shared<RTCContext>();
             _rtcContext->init();
@@ -35,10 +30,6 @@ namespace vi {
 
     void Engine::destroy()
     {
-        if (_cf) {
-            _cf->destroy();
-        }
-
         for (const auto& b : _broadcasters) {
             b.second->Stop();
         }
@@ -71,17 +62,12 @@ namespace vi {
         return _rtcContext;
     }
 
-    std::shared_ptr<vi::IComponentFactory> Engine::getComponentFactory()
-    {
-        return _cf;
-    }
-
     std::shared_ptr<IRoomClient> Engine::createRoomClient()
     {
         rtc::Thread* mediasoupThread = getThread("mediasoup");
         rtc::Thread* signalingThread = getThread("signaling");
 
-        auto RoomClientImpl = std::make_shared<RoomClient>(_cf, _rtcContext, mediasoupThread, signalingThread);
+        auto RoomClientImpl = std::make_shared<RoomClient>(_rtcContext, mediasoupThread, signalingThread);
         auto roomClient = RoomClientProxy::create(RoomClientImpl, mediasoupThread);
         roomClient->init();
 

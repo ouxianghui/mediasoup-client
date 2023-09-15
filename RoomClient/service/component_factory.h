@@ -2,40 +2,51 @@
 
 #include <memory>
 #include <map>
-#include "i_component_factory.h"
 #include "i_service.hpp"
+#include "utils/singleton.h"
+#include "utils/thread_provider.h"
+#include "network/i_network_request_manager.h"
 
 namespace vi {
 
-class ComponentFactory : public IComponentFactory, public std::enable_shared_from_this<ComponentFactory>
-{
-public:
-    ComponentFactory();
+    class NotificationCenter;
 
-    ~ComponentFactory();
+    class ComponentFactory : public vi::Singleton<ComponentFactory>
+    {
+    public:
+        void init();
 
-    void init() override;
+        void destroy();
 
-    void destroy() override;
+        const std::unique_ptr<ThreadProvider>& getThreadProvider();
 
-    const std::unique_ptr<ThreadProvider>& getThreadProvider() override;
+        const std::unique_ptr<NotificationCenter>& getNotificationCenter();
 
-    std::shared_ptr<IServiceFactory> getServiceFactory() override;
+        const std::unique_ptr<INetworkRequestManager>& getNetworkRequestManager();
 
-private:
-    ComponentFactory(ComponentFactory&&) = delete;
+    private:
+        ComponentFactory();
 
-    ComponentFactory(const ComponentFactory&) = delete;
+        ComponentFactory(ComponentFactory&&) = delete;
 
-    ComponentFactory& operator=(const ComponentFactory&) = delete;
+        ComponentFactory(const ComponentFactory&) = delete;
 
-    ComponentFactory& operator=(ComponentFactory&&) = delete;
+        ComponentFactory& operator=(const ComponentFactory&) = delete;
 
-private:
-    std::unique_ptr<ThreadProvider> _threadProvider;
+        ComponentFactory& operator=(ComponentFactory&&) = delete;
 
-    std::shared_ptr<IServiceFactory> _serviceFactory;
-};
+    private:
+        friend class vi::Singleton<ComponentFactory>;
 
+        std::unique_ptr<ThreadProvider> _threadProvider;
+
+        std::unique_ptr<INetworkRequestManager> _networkRequestManager;
+    };
 }
+
+#define getComponentFactory() vi::ComponentFactory::sharedInstance()
+
+#define getThread(T) getComponentFactory()->getThreadProvider()->thread(T)
+
+
 

@@ -3,13 +3,10 @@
 #include <memory>
 #include <unordered_map>
 #include "utils/singleton.h"
-#include "utils/thread_provider.h"
-#include "i_component_factory.h"
 
 class Broadcaster;
 
 namespace vi {
-    class IComponentFactory;
     class IRoomClient;
     class RTCContext;
 
@@ -34,8 +31,6 @@ namespace vi {
 
         const std::unordered_map<std::string, std::shared_ptr<Broadcaster>>& getBroadcasters();
 
-        std::shared_ptr<vi::IComponentFactory> getComponentFactory();
-
     private:
         Engine();
 
@@ -55,18 +50,10 @@ namespace vi {
         std::unordered_map<std::string, std::shared_ptr<IRoomClient>> _roomClients;
 
         std::unordered_map<std::string, std::shared_ptr<Broadcaster>> _broadcasters;
-
-        std::shared_ptr<vi::IComponentFactory> _cf;
     };
 }
 
 #define getEngine() vi::Engine::sharedInstance()
-
-#define getComponents() getEngine()->getComponentFactory()
-
-#define getThread(T) getComponents()->getThreadProvider()->thread(T)
-
-#define getService(S) getComponents()->getServiceFactory()->getService<S>()
 
 #define getRoomClient(ID) getEngine()->getRoomClients().find(ID) != getEngine()->getRoomClients().end() ? getEngine()->getRoomClients().at(ID) : nullptr
 

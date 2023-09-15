@@ -73,7 +73,7 @@ namespace vi {
     class IObserver;
     class INotification;
 
-    class NotificationCenter : public std::enable_shared_from_this<NotificationCenter> {
+    class NotificationCenter {
         
     public:
         NotificationCenter();
@@ -92,7 +92,7 @@ namespace vi {
             
         void postNotification(const std::shared_ptr<INotification>& notification);
 
-        static const std::shared_ptr<NotificationCenter>& defaultCenter();
+        static const std::unique_ptr<NotificationCenter>& defaultCenter();
                 
     private:
         void notifyObservers(const std::shared_ptr<INotification>& notification);
