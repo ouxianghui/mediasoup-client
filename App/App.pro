@@ -68,7 +68,8 @@ INCLUDEPATH += $$PWD/../RoomClient \
     $$PWD/../deps/websocketpp \
     $$PWD/../deps/libmediasoupclient/include \
     $$PWD/../deps/glew/include \
-    $$PWD/../deps/concurrentqueue
+    $$PWD/../deps/concurrentqueue \
+    $$PWD/../deps/cpr/include
 #/usr/local/Cellar/glew/2.2.0_1/include
 
 LIBS += $$PWD/../deps/glew/lib/Release/x64/glew32.lib
@@ -80,11 +81,17 @@ LIBS += winmm.lib Advapi32.lib comdlg32.lib dbghelp.lib dnsapi.lib gdi32.lib msi
 CONFIG(debug, debug | release) {
     DESTDIR = $$PWD/../Debug
     LIBS += $$PWD/../deps/webrtc/lib/windows_debug_x64/webrtc.lib
+    LIBS += $$PWD/../deps/cpr/debug/lib/cpr.lib
+    LIBS += $$PWD/../deps/cpr/debug/lib/libcurl-d.lib
+    LIBS += $$PWD/../deps/cpr/debug/lib/zlibd.lib
     LIBS += $$PWD/../Debug/RoomClient.lib
     QMAKE_CXXFLAGS_DEBUG = /MTd /Zi
 } else {
     DESTDIR = $$PWD/../Release
     LIBS += $$PWD/../deps/webrtc/lib/windows_release_x64/webrtc.lib
+    LIBS += $$PWD/../deps/cpr/debug/lib/cpr.lib
+    LIBS += $$PWD/../deps/cpr/debug/lib/libcurl.lib
+    LIBS += $$PWD/../deps/cpr/debug/lib/zlib.lib
     LIBS += $$PWD/../Release/RoomClient.lib
     QMAKE_CXXFLAGS_RELEASE = /MT
 }

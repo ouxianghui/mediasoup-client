@@ -66,7 +66,8 @@ INCLUDEPATH += \
     $$PWD/../deps/asio/asio/include \
     $$PWD/../deps/websocketpp \
     $$PWD/../deps/libmediasoupclient/include \
-    $$PWD/../deps/glew/include
+    $$PWD/../deps/glew/include \
+    $$PWD/../deps/cpr/include
 
 #INCLUDEPATH += "$$PWD/../deps/webrtc/Frameworks/WebRTC.xcframework/WebRTC.framework/Headers"
 
@@ -103,17 +104,25 @@ SOURCES += \
     ../deps/libsdptransform/src/parser.cpp \
     ../deps/libsdptransform/src/writer.cpp \
     logger/rtc_log_sink.cpp \
-    logger/u_logger.cpp \
+    logger/spd_logger.cpp \
+    network/network_http_client.cpp \
+    network/network_request_consumer.cpp \
+    network/network_request_executor.cpp \
+    network/network_request_manager.cpp \
+    network/network_request_plugin.cpp \
+    network/network_request_task.cpp \
+    network/network_status_detector.cpp \
     opengl/i420_texture_cache.cpp \
     opengl/video_shader.cpp \
+    service/broadcaster.cpp \
     service/engine.cpp \
-    service/base_video_capturer.cc \
     service/component_factory.cpp \
     service/media_controller.cpp \
     service/mediasoup_api.cpp \
     service/participant.cpp \
     service/participant_controller.cpp \
     service/room_client.cpp \
+    service/rtc_context.cpp \
     service/signaling_client.cpp \
     service/service_factory.cpp \
     service/windows_capture.cpp \
@@ -154,20 +163,29 @@ HEADERS += \
     json/string_algo.hpp \
     json/stringable.hpp \
     logger/rtc_log_sink.h \
-    logger/u_logger.h \
+    logger/spd_logger.h \
+    network/i_network_request_manager.h \
+    network/network.hpp \
+    network/network_http_client.h \
+    network/network_request_builder.h \
+    network/network_request_consumer.h \
+    network/network_request_executor.h \
+    network/network_request_manager.h \
+    network/network_request_plugin.h \
+    network/network_request_task.h \
+    network/network_status_detector.h \
     opengl/gl_defines.h \
     opengl/i420_texture_cache.h \
     opengl/video_shader.h \
+    service/broadcaster.hpp \
     service/engine.h \
-    service/base_video_capturer.h \
     service/component_factory.h \
-    service/i_component_factory.h \
     service/i_media_controller.h \
-    service/i_media_controller_observer.h \
+    service/i_media_event_handlerr.h \
     service/i_mediasoup_api.h \
     service/i_participant.h \
     service/i_participant_controller.h \
-    service/i_participant_controller_observer.h \
+    service/i_participant_event_handler.h \
     service/i_room_client.h \
     service/i_room_client_observer.h \
     service/i_signaling_client.h \
@@ -178,10 +196,10 @@ HEADERS += \
     service/participant.h \
     service/participant_controller.h \
     service/room_client.h \
+    service/rtc_context.hpp \
     service/signaling_client.h \
     service/signaling_models.h \
     service/i_service.hpp \
-    service/i_service_factory.hpp \
     service/service_factory.hpp \
     service/windows_capture.h \
     utils/container.hpp \
