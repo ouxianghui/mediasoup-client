@@ -41,6 +41,6 @@ namespace vi
     };
 }
 
-#define getServiceFactory() ServiceFactory::sharedInstance()
+#define getServiceFactory() vi::ServiceFactory::sharedInstance()
 
 #define getService(S) getServiceFactory()->getService<S>()
