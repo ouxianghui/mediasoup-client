@@ -96,7 +96,7 @@ void VideoRenderer::initializeGL()
 
     // Set up the rendering context, load shaders and other resources, etc.:
     //QOpenGLFunctions *f = QOpenGLContext::currentContext()->functions();
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 void VideoRenderer::resizeGL(int w, int h)
@@ -110,7 +110,7 @@ void VideoRenderer::paintGL()
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     std::shared_ptr<webrtc::VideoFrame> frame;
 

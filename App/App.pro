@@ -89,9 +89,9 @@ CONFIG(debug, debug | release) {
 } else {
     DESTDIR = $$PWD/../Release
     LIBS += $$PWD/../deps/webrtc/lib/windows_release_x64/webrtc.lib
-    LIBS += $$PWD/../deps/cpr/debug/lib/cpr.lib
-    LIBS += $$PWD/../deps/cpr/debug/lib/libcurl.lib
-    LIBS += $$PWD/../deps/cpr/debug/lib/zlib.lib
+    LIBS += $$PWD/../deps/cpr/lib/cpr.lib
+    LIBS += $$PWD/../deps/cpr/lib/libcurl.lib
+    LIBS += $$PWD/../deps/cpr/lib/zlib.lib
     LIBS += $$PWD/../Release/RoomClient.lib
     QMAKE_CXXFLAGS_RELEASE = /MT
 }
