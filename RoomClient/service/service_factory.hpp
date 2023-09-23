@@ -14,7 +14,7 @@ namespace vi
     public:
         void init();
         
-        void destroy(); 
+        void destroy();
 
         void registerService(const std::string& key, const std::shared_ptr<IService>& service);
 
@@ -22,7 +22,7 @@ namespace vi
 
         template<class T>
         std::shared_ptr<T> getService() {
-            return std::dynamic_pointer_cast<T>(getObject(typeid(T).name()));
+            return std::dynamic_pointer_cast<T>(_get(typeid(T).name()));
         }
 
     private:

@@ -20,6 +20,7 @@
 #include "utils/thread_provider.h"
 #include "participant_list_view.h"
 #include "service/participant.h"
+#include "service/component_factory.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

@@ -3,8 +3,7 @@
 
 #include <memory>
 #include <QMainWindow>
-#include "service/mediasoup_api.h"
-#include "service/i_room_client_observer.h"
+#include "service/i_room_client_event_handler.h"
 #include "service/i_media_controller.h"
 #include "service/i_participant_event_handler.h"
 
@@ -22,7 +21,7 @@ class ParticipantListView;
 class QToolButton;
 class QAction;
 
-class MainWindow : public QMainWindow, public vi::IRoomClientObserver, public vi::IParticipantEventHandler, public std::enable_shared_from_this<MainWindow>
+class MainWindow : public QMainWindow, public vi::IRoomClientEventHandler, public vi::IParticipantEventHandler, public std::enable_shared_from_this<MainWindow>
 {
     Q_OBJECT
 
@@ -36,7 +35,7 @@ public:
     void destroy();
 
 protected:
-    // IRoomClientObserver
+    // IRoomClientEventHandler
     void onRoomStateChanged(vi::RoomState state) override;
 
     void onCreateLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) override;

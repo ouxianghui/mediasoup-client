@@ -1,5 +1,4 @@
 ﻿#include "component_factory.h"
-#include "service_factory.hpp"
 #include "utils/thread_provider.h"
 #include "utils/notification_center.hpp"
 #include "network/network_request_manager.h"
@@ -18,7 +17,7 @@ namespace vi {
         if (!_threadProvider) {
             _threadProvider = std::make_unique<ThreadProvider>();
             _threadProvider->init();
-            _threadProvider->create({ "signaling", "mediasoup", "capture" });
+            _threadProvider->create({ "signaling", "mediasoup", "communication" });
         }
 
         if (!_networkRequestManager) {
@@ -30,7 +29,7 @@ namespace vi {
         auto httpClient = std::make_shared<NetworkHttpClient>();
         auto consumer = std::make_shared<NetworkRequestConsumer>(plugin, httpClient, 5, RequestRoute::HTTP);
         plugin->addRequestConsumer(RequestRoute::HTTP, consumer);
-        _networkRequestManager->registerPlugin("universal-http-request", plugin);
+        _networkRequestManager->registerPlugin("universal", plugin);
     }
 
     void ComponentFactory::destroy()

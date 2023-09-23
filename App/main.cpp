@@ -1,19 +1,12 @@
 #include "mainwindow.h"
 #include <QMetaType>
 #include <QApplication>
-#include "mediasoupclient.hpp"
-#include "logger/spd_logger.h"
-#include "service/engine.h"
-#include "service/i_room_client_observer.h"
-#include "api/media_stream_interface.h"
+#include <QOpenGLFunctions>
 #include "rtc_base/thread.h"
 #include "rtc_base/win32_window.h"
 #include "rtc_base/win32_socket_init.h"
 #include "rtc_base/win32_socket_server.h"
-#include "rtc_base/physical_socket_server.h"
-#include <QOpenGLFunctions>
-#include "service/component_factory.h"
-#include "service/service_factory.hpp"
+#include "service/core.h"
 
 static void registerMetaTypes()
 {
@@ -31,13 +24,7 @@ int main(int argc, char *argv[])
     rtc::Win32Thread mainThread(&ss);
     rtc::ThreadManager::Instance()->SetCurrentThread(&mainThread);
 
-    vi::Logger::init();
-    mediasoupclient::Initialize();
-    getComponentFactory()->init();
-    getServiceFactory()->init();
-    getEngine()->init();
-
-    DLOG("mediasoupclient version: {}", mediasoupclient::Version().c_str());
+    vi::Core::init();
 
     QApplication a(argc, argv);
 
@@ -51,13 +38,10 @@ int main(int argc, char *argv[])
     auto w = std::make_shared<MainWindow>();
     w->init();
     w->show();
-    int ret =  a.exec();
 
-    mediasoupclient::Cleanup();
-    getEngine()->destroy();
-    getServiceFactory()->destroy();
-    getComponentFactory()->destroy();
-    vi::Logger::destroy();
+    int ret = a.exec();
+
+    vi::Core::destroy();
 
     return ret;
 }

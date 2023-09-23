@@ -6,7 +6,7 @@
 #include "i_signaling_client.h"
 #include "websocket/i_transport_observer.h"
 #include "utils/universal_observable.hpp"
-#include "i_signaling_observer.h"
+#include "i_signaling_event_handler.h"
 
 namespace rtc {
     class Thread;
@@ -17,7 +17,7 @@ namespace vi {
 class WebsocketRequest;
 class ITransport;
 
-class SignalingClient : public ISignalingClient, public ITransportObserver, public UniversalObservable<ISignalingObserver>, public std::enable_shared_from_this<SignalingClient>
+class SignalingClient : public ISignalingClient, public ITransportObserver, public UniversalObservable<ISignalingEventHandler>, public std::enable_shared_from_this<SignalingClient>
 {
 public:
     SignalingClient(rtc::Thread* thread);
@@ -28,9 +28,9 @@ public:
 
     void destroy() override;
 
-    void addObserver(std::shared_ptr<ISignalingObserver> observer) override;
+    void addObserver(std::shared_ptr<ISignalingEventHandler> observer) override;
 
-    void removeObserver(std::shared_ptr<ISignalingObserver> observer) override;
+    void removeObserver(std::shared_ptr<ISignalingEventHandler> observer) override;
 
     void connect(const std::string& url, const std::string& subprotocol) override;
 

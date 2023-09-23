@@ -5,9 +5,9 @@
 
 namespace vi {
 
-class ISignalingObserver {
+class ISignalingEventHandler {
 public:
-    virtual ~ISignalingObserver() = default;
+    virtual ~ISignalingEventHandler() = default;
 
     virtual void onOpened() = 0;
 

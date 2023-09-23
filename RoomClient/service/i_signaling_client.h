@@ -2,7 +2,7 @@
 
 #include <string>
 #include <vector>
-#include "i_signaling_observer.h"
+#include "i_signaling_event_handler.h"
 
 namespace vi {
 
@@ -17,9 +17,9 @@ public:
 
     virtual void destroy() = 0;
 
-    virtual void addObserver(std::shared_ptr<ISignalingObserver> observer) = 0;
+    virtual void addObserver(std::shared_ptr<ISignalingEventHandler> observer) = 0;
 
-    virtual void removeObserver(std::shared_ptr<ISignalingObserver> observer) = 0;
+    virtual void removeObserver(std::shared_ptr<ISignalingEventHandler> observer) = 0;
 
     virtual void connect(const std::string& url, const std::string& subprotocol) = 0;
 

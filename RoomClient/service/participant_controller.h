@@ -4,7 +4,7 @@
 #include "i_participant_controller.h"
 #include "i_media_event_handler.h"
 #include "utils/universal_observable.hpp"
-#include "i_signaling_observer.h"
+#include "i_signaling_event_handler.h"
 #include "i_media_event_handler.h"
 
 namespace rtc {
@@ -22,7 +22,7 @@ namespace vi {
 
     class ParticipantController :
             public IParticipantController,
-            public ISignalingObserver,
+            public ISignalingEventHandler,
             public IMediaEventHandler,
             public UniversalObservable<IParticipantEventHandler>,
             public std::enable_shared_from_this<ParticipantController>
@@ -55,7 +55,7 @@ namespace vi {
         void createParticipant(const std::string& pid, const std::string& displayName);
 
     protected:
-        // ISignalingObserver
+        // ISignalingEventHandler
         void onOpened() override {}
 
         void onClosed() override {}

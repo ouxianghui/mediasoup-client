@@ -557,7 +557,8 @@ void Broadcaster::OnClose(mediasoupclient::DataProducer* /*dataProducer*/)
     std::cout << "[INFO] Broadcaster::OnClose()" << std::endl;
 }
 
-void Broadcaster::OnBufferedAmountChange(mediasoupclient::DataProducer* /*dataProducer*/, uint64_t /*size*/)
+void Broadcaster::
+    OnBufferedAmountChange(mediasoupclient::DataProducer* /*dataProducer*/, uint64_t /*size*/)
 {
     std::cout << "[INFO] Broadcaster::OnBufferedAmountChange()" << std::endl;
 }

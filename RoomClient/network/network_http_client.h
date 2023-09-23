@@ -26,8 +26,6 @@ public:
 
 private:
     void handleResults(int64_t requestID, std::shared_ptr<NetworkResponse> response, std::shared_ptr<INetworkCallback> callback);
-
-private:
 };
 
 }

@@ -85,14 +85,14 @@ void RoomClient::destroy()
     destroyComponents();
 }
 
-void RoomClient::addObserver(std::shared_ptr<IRoomClientObserver> observer, rtc::Thread* callbackThread)
+void RoomClient::addObserver(std::shared_ptr<IRoomClientEventHandler> observer, rtc::Thread* callbackThread)
 {
-    UniversalObservable<IRoomClientObserver>::addWeakObserver(observer, callbackThread);
+    UniversalObservable<IRoomClientEventHandler>::addWeakObserver(observer, callbackThread);
 }
 
-void RoomClient::removeObserver(std::shared_ptr<IRoomClientObserver> observer)
+void RoomClient::removeObserver(std::shared_ptr<IRoomClientEventHandler> observer)
 {
-    UniversalObservable<IRoomClientObserver>::removeObserver(observer);
+    UniversalObservable<IRoomClientEventHandler>::removeObserver(observer);
 }
 
 void RoomClient::configure()
@@ -160,6 +160,8 @@ void RoomClient::join(const std::string& hostname, uint16_t port, const std::str
 
 void RoomClient::leave()
 {
+    _roomId.clear();
+
     if (_state == RoomState::CLOSED) {
         DLOG("already closed");
         return;
@@ -490,7 +492,7 @@ void RoomClient::onRoomStateChanged(vi::RoomState state)
     else if (state == RoomState::CLOSED) {
         destroyComponents();
     }
-    UniversalObservable<IRoomClientObserver>::notifyObservers([state](const auto& observer) {
+    UniversalObservable<IRoomClientEventHandler>::notifyObservers([state](const auto& observer) {
         observer->onRoomStateChanged(state);
     });
 }
@@ -805,7 +807,7 @@ void RoomClient::onActiveSpeaker(std::shared_ptr<signaling::ActiveSpeakerNotific
     }
     _volume = notification->data->volume.value_or(0);
 
-    UniversalObservable<IRoomClientObserver>::notifyObservers([wself = weak_from_this(), volume = _volume](const auto& observer) {
+    UniversalObservable<IRoomClientEventHandler>::notifyObservers([wself = weak_from_this(), volume = _volume](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -816,7 +818,7 @@ void RoomClient::onActiveSpeaker(std::shared_ptr<signaling::ActiveSpeakerNotific
 
 void RoomClient::onLocalAudioStateChanged(bool enabled, bool muted)
 {
-    UniversalObservable<IRoomClientObserver>::notifyObservers([wself = weak_from_this(), enabled, muted](const auto& observer) {
+    UniversalObservable<IRoomClientEventHandler>::notifyObservers([wself = weak_from_this(), enabled, muted](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -827,7 +829,7 @@ void RoomClient::onLocalAudioStateChanged(bool enabled, bool muted)
 
 void RoomClient::onLocalVideoStateChanged(bool enabled)
 {
-    UniversalObservable<IRoomClientObserver>::notifyObservers([wself = weak_from_this(), enabled](const auto& observer) {
+    UniversalObservable<IRoomClientEventHandler>::notifyObservers([wself = weak_from_this(), enabled](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -838,7 +840,7 @@ void RoomClient::onLocalVideoStateChanged(bool enabled)
 
 void RoomClient::onCreateLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
 {
-    UniversalObservable<IRoomClientObserver>::notifyObservers([wself = weak_from_this(), tid, track](const auto& observer) {
+    UniversalObservable<IRoomClientEventHandler>::notifyObservers([wself = weak_from_this(), tid, track](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;
@@ -849,7 +851,7 @@ void RoomClient::onCreateLocalVideoTrack(const std::string& tid, rtc::scoped_ref
 
 void RoomClient::onRemoveLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
 {
-    UniversalObservable<IRoomClientObserver>::notifyObservers([wself = weak_from_this(), tid, track](const auto& observer) {
+    UniversalObservable<IRoomClientEventHandler>::notifyObservers([wself = weak_from_this(), tid, track](const auto& observer) {
         auto self = wself.lock();
         if (!self) {
             return;

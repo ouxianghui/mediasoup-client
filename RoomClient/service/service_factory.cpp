@@ -11,23 +11,21 @@ namespace vi
 
     void ServiceFactory::init()
     {
-        destroyObjects();
-        
-        initObjects();
+        _init();
     }
 
     void ServiceFactory::destroy()
     {
-        destroyObjects();
+        _destroy();
     }
 
 	void ServiceFactory::registerService(const std::string& key, const std::shared_ptr<IService>& service) 
     {
-		ObjectFactory<IService>::registerObject(key, service);
+        ObjectFactory<IService>::_register(key, service);
 	}
 
 	void ServiceFactory::unregisterService(const std::string& key) 
     {
-		ObjectFactory<IService>::unregisterObject(key);
+        ObjectFactory<IService>::_unregister(key);
 	}
 }

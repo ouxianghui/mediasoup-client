@@ -7,7 +7,7 @@
 #pragma once
 
 #include "connection_metadata.h"
-#include <websocketpp/config/asio_no_tls_client.hpp>
+#include <websocketpp/config/asio_client.hpp>
 #include <websocketpp/client.hpp>
 #include <websocketpp/common/thread.hpp>
 #include <websocketpp/common/memory.hpp>
@@ -15,14 +15,14 @@
 #include <vector>
 
 namespace vi {
+	
+	using TLSClient = websocketpp::client<websocketpp::config::asio_tls_client>;
 
-	using Client = websocketpp::client<websocketpp::config::asio_client>;
-
-	class WebsocketEndpoint {
+	class TLSWebsocketEndpoint {
 	public:
-		WebsocketEndpoint();
+		TLSWebsocketEndpoint();
 
-		~WebsocketEndpoint();
+		~TLSWebsocketEndpoint();
 
         int connect(std::string const& uri, std::shared_ptr<IConnectionObserver> observer, const std::string& subprotocol = "");
 
@@ -36,12 +36,12 @@ namespace vi {
 
 		void sendPong(int id, const std::string& data);
 
-		ConnectionMetadata<Client>::ptr getMetadata(int id) const;
+		ConnectionMetadata<TLSClient>::ptr getMetadata(int id) const;
 
 	private:
-		typedef std::map<int, ConnectionMetadata<Client>::ptr> ConnectionList;
+		typedef std::map<int, ConnectionMetadata<TLSClient>::ptr> ConnectionList;
 
-        Client _endpoint;
+        TLSClient _endpoint;
 		websocketpp::lib::shared_ptr<websocketpp::lib::thread> _thread;
 
 		ConnectionList _connectionList;

@@ -67,7 +67,8 @@ INCLUDEPATH += \
     $$PWD/../deps/websocketpp \
     $$PWD/../deps/libmediasoupclient/include \
     $$PWD/../deps/glew/include \
-    $$PWD/../deps/cpr/include
+    $$PWD/../deps/cpr/include \
+    $$PWD/../deps
 
 #INCLUDEPATH += "$$PWD/../deps/webrtc/Frameworks/WebRTC.xcframework/WebRTC.framework/Headers"
 
@@ -115,6 +116,7 @@ SOURCES += \
     opengl/i420_texture_cache.cpp \
     opengl/video_shader.cpp \
     service/broadcaster.cpp \
+    service/core.cpp \
     service/engine.cpp \
     service/component_factory.cpp \
     service/media_controller.cpp \
@@ -133,9 +135,8 @@ SOURCES += \
     utils/string_utils.cpp \
     utils/task_scheduler.cpp \
     utils/thread_provider.cpp \
-    websocket/connection_metadata.cpp \
-    websocket/websocket_endpoint.cpp \
-    websocket/websocket_transport.cpp
+    websocket/tls_websocket_endpoint.cpp \
+    websocket/websocket_endpoint.cpp
 
 HEADERS += \
     ../deps/libmediasoupclient/include/Consumer.hpp \
@@ -178,18 +179,19 @@ HEADERS += \
     opengl/i420_texture_cache.h \
     opengl/video_shader.h \
     service/broadcaster.hpp \
+    service/core.h \
     service/engine.h \
     service/component_factory.h \
     service/i_media_controller.h \
-    service/i_media_event_handlerr.h \
+    service/i_media_event_handler.h \
     service/i_mediasoup_api.h \
     service/i_participant.h \
     service/i_participant_controller.h \
     service/i_participant_event_handler.h \
     service/i_room_client.h \
-    service/i_room_client_observer.h \
+    service/i_room_client_event_handler.h \
     service/i_signaling_client.h \
-    service/i_signaling_observer.h \
+    service/i_signaling_event_handler.h \
     service/media_controller.h \
     service/mediasoup_api.h \
     service/options.h \
@@ -222,6 +224,7 @@ HEADERS += \
     websocket/i_connection_observer.h \
     websocket/i_transport.h \
     websocket/i_transport_observer.h \
+    websocket/tls_websocket_endpoint.h \
     websocket/websocket_endpoint.h \
     websocket/websocket_request.h \
     websocket/websocket_transport.h

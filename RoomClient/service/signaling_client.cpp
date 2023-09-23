@@ -5,6 +5,7 @@
 #include "websocket/i_transport_observer.h"
 #include "websocket/websocket_request.h"
 #include "websocket/websocket_transport.h"
+#include "websocket/tls_websocket_endpoint.h"
 #include "rtc_base/thread.h"
 
 namespace vi {
@@ -12,7 +13,7 @@ namespace vi {
 SignalingClient::SignalingClient(rtc::Thread* thread)
     : _thread(thread)
 {
-    _transport = std::make_shared<WebsocketTransport>(_thread);
+    _transport = std::make_shared<WebsocketTransport<TLSWebsocketEndpoint>>(_thread);
 }
 
 SignalingClient::~SignalingClient()
@@ -30,19 +31,19 @@ void SignalingClient::init()
 
 void SignalingClient::destroy()
 {
-    UniversalObservable<ISignalingObserver>::clearObserver();
+    UniversalObservable<ISignalingEventHandler>::clearObserver();
     clearRequests();
     _transport->removeObserver(shared_from_this());
 }
 
-void SignalingClient::addObserver(std::shared_ptr<ISignalingObserver> observer)
+void SignalingClient::addObserver(std::shared_ptr<ISignalingEventHandler> observer)
 {
-    UniversalObservable<ISignalingObserver>::addWeakObserver(observer, _thread);
+    UniversalObservable<ISignalingEventHandler>::addWeakObserver(observer, _thread);
 }
 
-void SignalingClient::removeObserver(std::shared_ptr<ISignalingObserver> observer)
+void SignalingClient::removeObserver(std::shared_ptr<ISignalingEventHandler> observer)
 {
-    UniversalObservable<ISignalingObserver>::removeObserver(observer);
+    UniversalObservable<ISignalingEventHandler>::removeObserver(observer);
 }
 
 void SignalingClient::connect(const std::string& url, const std::string& subprotocol)
@@ -97,7 +98,7 @@ void SignalingClient::clearRequests()
 
 void SignalingClient::onOpened()
 {
-    UniversalObservable<ISignalingObserver>::notifyObservers([](const auto& observer){
+    UniversalObservable<ISignalingEventHandler>::notifyObservers([](const auto& observer){
         observer->onOpened();
     });
 }
@@ -111,14 +112,14 @@ void SignalingClient::onClosed()
 
     _requestMap.clear();
 
-    UniversalObservable<ISignalingObserver>::notifyObservers([](const auto& observer){
+    UniversalObservable<ISignalingEventHandler>::notifyObservers([](const auto& observer){
         observer->onClosed();
     });
 }
 
 void SignalingClient::onFailed(int /*errorCode*/, const std::string& /*reason*/)
 {
-    UniversalObservable<ISignalingObserver>::notifyObservers([](const auto& observer){
+    UniversalObservable<ISignalingEventHandler>::notifyObservers([](const auto& observer){
         observer->onClosed();
     });
 }
@@ -159,7 +160,7 @@ void SignalingClient::handleRequest(const std::string& json)
     auto method = header->method.value_or("");
 
     if (method == "newConsumer") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer){
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer){
             std::string err;
             auto request = fromJsonString<signaling::NewConsumerRequest>(json, err);
             if (!err.empty()) {
@@ -170,7 +171,7 @@ void SignalingClient::handleRequest(const std::string& json)
         });
     }
     else if (method == "newDataConsumer") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer){
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer){
             std::string err;
             auto request = fromJsonString<signaling::NewDataConsumerRequest>(json, err);
             if (!err.empty()) {
@@ -228,7 +229,7 @@ void SignalingClient::handleNotification(const std::string& json)
     auto method = header->method.value_or("");
 
     if (method == "producerScore") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::ProducerScoreNotification>(json, err);
             if (!err.empty()) {
@@ -239,7 +240,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "newPeer") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::NewPeerNotification>(json, err);
             if (!err.empty()) {
@@ -250,7 +251,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "peerClosed") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::PeerClosedNotification>(json, err);
             if (!err.empty()) {
@@ -261,7 +262,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "peerDisplayNameChanged") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::PeerDisplayNameChangedNotification>(json, err);
             if (!err.empty()) {
@@ -272,7 +273,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "downlinkBwe") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::DownlinkBweNotification>(json, err);
             if (!err.empty()) {
@@ -283,7 +284,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "consumerClosed") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::ConsumerClosedNotification>(json, err);
             if (!err.empty()) {
@@ -294,7 +295,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "consumerPaused") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::ConsumerPausedNotification>(json, err);
             if (!err.empty()) {
@@ -305,7 +306,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "consumerResumed") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::ConsumerResumedNotification>(json, err);
             if (!err.empty()) {
@@ -316,7 +317,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "consumerLayersChanged") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::ConsumerLayersChangedNotification>(json, err);
             if (!err.empty()) {
@@ -327,7 +328,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "consumerScore") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::ConsumerScoreNotification>(json, err);
             if (!err.empty()) {
@@ -338,7 +339,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "dataConsumerClosed") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::DataConsumerClosedNotification>(json, err);
             if (!err.empty()) {
@@ -349,7 +350,7 @@ void SignalingClient::handleNotification(const std::string& json)
         });
     }
     else if (method == "activeSpeaker") {
-        UniversalObservable<ISignalingObserver>::notifyObservers([json](const auto& observer) {
+        UniversalObservable<ISignalingEventHandler>::notifyObservers([json](const auto& observer) {
             std::string err;
             auto notification = fromJsonString<signaling::ActiveSpeakerNotification>(json, err);
             if (!err.empty()) {

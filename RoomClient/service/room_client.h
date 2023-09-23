@@ -3,7 +3,7 @@
 #include <memory>
 #include <unordered_map>
 #include "i_room_client.h"
-#include "i_signaling_observer.h"
+#include "i_signaling_event_handler.h"
 #include "utils/universal_observable.hpp"
 #include "Transport.hpp"
 #include "Device.hpp"
@@ -34,11 +34,11 @@ class RTCContext;
 
 class RoomClient :
         public IRoomClient,
-        public ISignalingObserver,
+        public ISignalingEventHandler,
         public mediasoupclient::SendTransport::Listener,
         public mediasoupclient::RecvTransport::Listener,
         public IMediaEventHandler,
-        public UniversalObservable<IRoomClientObserver>,
+        public UniversalObservable<IRoomClientEventHandler>,
         public std::enable_shared_from_this<RoomClient> {
 public:
     RoomClient(std::shared_ptr<RTCContext> rtcContext, rtc::Thread* mediasoupThread, rtc::Thread* signalingThread);
@@ -51,9 +51,11 @@ public:
 
     std::string getId() override { return _id; }
 
-    void addObserver(std::shared_ptr<IRoomClientObserver> observer, rtc::Thread* callbackThread) override;
+    std::string getRoomId() override { return _roomId; }
 
-    void removeObserver(std::shared_ptr<IRoomClientObserver> observer) override;
+    void addObserver(std::shared_ptr<IRoomClientEventHandler> observer, rtc::Thread* callbackThread) override;
+
+    void removeObserver(std::shared_ptr<IRoomClientEventHandler> observer) override;
 
     void join(const std::string& host, uint16_t port, const std::string& roomId, const std::string& displayName, std::shared_ptr<Options> options) override;
 
@@ -80,7 +82,7 @@ public:
     std::shared_ptr<IParticipantController> getParticipantController() override;
 
 protected:
-    // ISignalingObserver
+    // ISignalingEventHandler
     void onOpened() override;
 
     void onClosed() override;

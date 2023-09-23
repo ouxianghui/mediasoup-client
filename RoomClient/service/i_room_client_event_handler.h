@@ -16,9 +16,9 @@ enum class RoomState {
     CLOSED
 };
 
-class IRoomClientObserver {
+class IRoomClientEventHandler {
 public:
-    virtual ~IRoomClientObserver() = default;
+    virtual ~IRoomClientEventHandler() = default;
 
     virtual void onRoomStateChanged(RoomState state) = 0;
 

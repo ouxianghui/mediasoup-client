@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <string>
-#include "i_room_client_observer.h"
+#include "i_room_client_event_handler.h"
 #include "utils/interface_proxy.hpp"
 #include "options.h"
 
@@ -28,9 +28,11 @@ public:
 
     virtual std::string getId() = 0;
 
-    virtual void addObserver(std::shared_ptr<IRoomClientObserver> observer, rtc::Thread* callbackThread) = 0;
+    virtual std::string getRoomId() = 0;
 
-    virtual void removeObserver(std::shared_ptr<IRoomClientObserver> observer) = 0;
+    virtual void addObserver(std::shared_ptr<IRoomClientEventHandler> observer, rtc::Thread* callbackThread) = 0;
+
+    virtual void removeObserver(std::shared_ptr<IRoomClientEventHandler> observer) = 0;
 
     virtual void join(const std::string& host, uint16_t port, const std::string& roomId, const std::string& displayName, std::shared_ptr<Options> opts) = 0;
 
@@ -63,8 +65,9 @@ BEGIN_PROXY_MAP(RoomClient)
     PROXY_METHOD0(void, init)
     PROXY_METHOD0(void, destroy)
     PROXY_METHOD0(std::string, getId)
-    PROXY_METHOD2(void, addObserver, std::shared_ptr<IRoomClientObserver>, rtc::Thread*)
-    PROXY_METHOD1(void, removeObserver, std::shared_ptr<IRoomClientObserver>)
+    PROXY_METHOD0(std::string, getRoomId)
+    PROXY_METHOD2(void, addObserver, std::shared_ptr<IRoomClientEventHandler>, rtc::Thread*)
+    PROXY_METHOD1(void, removeObserver, std::shared_ptr<IRoomClientEventHandler>)
     PROXY_METHOD5(void, join, const std::string&, uint16_t, const std::string&, const std::string&, std::shared_ptr<Options>)
     PROXY_METHOD0(void, leave)
     PROXY_METHOD0(RoomState, getRoomState)

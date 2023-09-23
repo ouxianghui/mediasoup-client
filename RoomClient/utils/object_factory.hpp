@@ -14,7 +14,7 @@ namespace vi
     class ObjectFactory
     {
     public:
-        void initObjects() {
+        void _init() {
             rtc::CritScope scope(&_criticalSection);
             for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
                 auto object = iter->second;
@@ -24,7 +24,7 @@ namespace vi
             }
         }
         
-        void destroyObjects() {
+        void _destroy() {
             rtc::CritScope scope(&_criticalSection);
             for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
                 auto object = iter->second;
@@ -35,12 +35,12 @@ namespace vi
             _objects.clear();
         }
         
-        void registerObject(const std::string& key, const std::shared_ptr<T>& object) {
+        void _register(const std::string& key, const std::shared_ptr<T>& object) {
             rtc::CritScope scope(&_criticalSection);
             _objects[key] = object;
         }
         
-        void unregisterObject(const std::string& key) {
+        void _unregister(const std::string& key) {
             rtc::CritScope scope(&_criticalSection);
             auto it = _objects.find(key);
             if (it != _objects.end()) {
@@ -48,7 +48,7 @@ namespace vi
             }
         }
         
-        std::shared_ptr<T> getObject(const std::string& key) {
+        std::shared_ptr<T> _get(const std::string& key) {
             decltype(_objects) objects;
             {
                 rtc::CritScope scope(&_criticalSection);
@@ -63,7 +63,7 @@ namespace vi
             return nullptr;
         }
         
-    private:
+    protected:
         rtc::RecursiveCriticalSection _criticalSection;
         
         std::unordered_map<std::string, std::shared_ptr<T>> _objects;

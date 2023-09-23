@@ -3,7 +3,7 @@
 #include <memory>
 #include "i_media_controller.h"
 #include "i_media_event_handler.h"
-#include "i_signaling_observer.h"
+#include "i_signaling_event_handler.h"
 #include "utils/universal_observable.hpp"
 #include "Producer.hpp"
 #include "DataProducer.hpp"
@@ -33,7 +33,7 @@ class WindowsCapturerTrackSource;
 
 class MediaController :
         public IMediaController,
-        public ISignalingObserver,
+        public ISignalingEventHandler,
         public mediasoupclient::Producer::Listener,
         public mediasoupclient::Consumer::Listener,
         public mediasoupclient::DataProducer::Listener,
@@ -118,7 +118,7 @@ protected:
     void OnTransportClose(mediasoupclient::DataConsumer* dataConsumer) override;
 
 protected:
-    // ISignalingObserver
+    // ISignalingEventHandler
     void onOpened() override {}
 
     void onClosed() override {}
