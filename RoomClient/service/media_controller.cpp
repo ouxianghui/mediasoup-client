@@ -94,7 +94,7 @@ void MediaController::configVideoEncodings()
     webrtc::RtpEncodingParameters ph;
     ph.rid = "h";
     ph.active = true;
-    ph.max_bitrate_bps = 500000;
+    ph.max_bitrate_bps = 5000000;
     ph.scale_resolution_down_by = 1;
 
     webrtc::RtpEncodingParameters pm;
@@ -104,7 +104,7 @@ void MediaController::configVideoEncodings()
     pm.scale_resolution_down_by = 2;
 
     webrtc::RtpEncodingParameters pl;
-    pl.rid = "m";
+    pl.rid = "l";
     pl.active = true;
     pl.max_bitrate_bps = 500000;
     pl.scale_resolution_down_by = 4;
