@@ -664,7 +664,7 @@ struct SetConsumerPreferredLayersRequest {
     absl::optional<bool> request = true;
     absl::optional<int64_t> id = generateID();
 
-    absl::optional<std::string> method = "setConsumerPriority";
+    absl::optional<std::string> method = "setConsumerPreferredLayers";
     absl::optional<Data> data;
     FIELDS_MAP("request", request, "id", id, "method", method, "data", data);
 };
