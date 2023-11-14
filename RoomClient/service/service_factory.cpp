@@ -6,7 +6,7 @@
 namespace vi
 {
     ServiceFactory::ServiceFactory(std::weak_ptr<IComponentFactory> wcf)
-        : _wcf(wcf)
+    : _wcf(wcf)
     {
 
     }
@@ -23,13 +23,13 @@ namespace vi
         destroyObjects();
     }
 
-	void ServiceFactory::registerService(const std::string& key, const std::shared_ptr<IService>& service) 
+    void ServiceFactory::registerService(const std::string& key, const std::shared_ptr<IService>& service)
     {
-		ObjectFactory<IService>::registerObject(key, service);
-	}
+        ObjectFactory<IService>::registerObject(key, service);
+    }
 
-	void ServiceFactory::unregisterService(const std::string& key) 
+    void ServiceFactory::unregisterService(const std::string& key)
     {
-		ObjectFactory<IService>::unregisterObject(key);
-	}
+        ObjectFactory<IService>::unregisterObject(key);
+    }
 }

@@ -83,7 +83,7 @@ void VideoRenderer::initializeGL()
 
     initializeOpenGLFunctions();
 
-    glewInit();
+    //glewInit();
 
     glEnable(GL_DEPTH_TEST);
 

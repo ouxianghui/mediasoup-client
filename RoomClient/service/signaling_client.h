@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 #include "i_signaling_client.h"
 #include "websocket/i_transport_observer.h"
 #include "utils/universal_observable.hpp"

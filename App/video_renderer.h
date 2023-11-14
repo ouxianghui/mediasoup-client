@@ -6,7 +6,7 @@
 #include "api/video/video_frame.h"
 #include <QTimer>
 #include <mutex>
-#include <QOpenGLWidget>
+#include <QtOpenGLWidgets/QOpenGLWidget>
 #include <QOpenGLFunctions>
 #include "blockingconcurrentqueue.h"
 

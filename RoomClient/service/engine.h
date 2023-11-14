@@ -34,8 +34,12 @@ namespace vi {
     };
 }
 
-#define EngineInstance vi::Engine::sharedInstance()
-#define CFactory EngineInstance->getComponentFactory()
-#define FetchThread(T) CFactory->getThreadProvider()->thread(T)
-#define FetchService(S) CFactory->getServiceFactory()->getService<S>()
-#define RClient CFactory->getRoomClient()
+#define getEngine() vi::Engine::sharedInstance()
+
+#define getComponents() getEngine()->getComponentFactory()
+
+#define getThread(T) getComponents()->getThreadProvider()->thread(T)
+
+#define getService(S) getComponents()->getServiceFactory()->getService<S>()
+
+#define getRoomClient() getComponents()->getRoomClient()

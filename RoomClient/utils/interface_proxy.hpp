@@ -115,7 +115,7 @@ public:
             task();
 		}
 		else {
-			thread->PostTask(RTC_FROM_HERE, task);
+            thread->PostTask(task);
 			std::future<void> future = _promises.get_future();
             future.get();
 		}

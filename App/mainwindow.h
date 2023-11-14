@@ -3,10 +3,13 @@
 
 #include <memory>
 #include <QMainWindow>
+#include <QAction>
 #include "service/mediasoup_api.h"
 #include "service/i_room_client_observer.h"
 #include "service/i_media_controller.h"
 #include "service/i_participant_controller_observer.h"
+#include "participant_controller_observer_wrapper.h"
+#include "room_client_observer_wrapper.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -34,7 +37,7 @@ public:
 
     void destroy();
 
-protected:
+private slots:
     // IRoomClientObserver
     void onRoomStateChanged(vi::RoomState state) override;
 
@@ -113,5 +116,9 @@ private:
     QToolButton* _videoButton;
     QAction* _enableVideoAction;
     QAction* _disableVideoAction;
+
+    std::shared_ptr<RoomClientObserverWrapper> _roomClientObserverWrapper;
+
+    std::shared_ptr<ParticipantControllerObserverWrapper> _participantControllerObserverWrapper;
 };
 #endif // MAINWINDOW_H

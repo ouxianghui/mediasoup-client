@@ -12,6 +12,12 @@ namespace webrtc {
     class MediaStreamTrackInterface;
 }
 
+namespace mediasoupclient {
+    class Device;
+    class SendTransport;
+    class RecvTransport;
+}
+
 namespace vi {
 
 class IMediaControllerObserver;
@@ -23,6 +29,12 @@ public:
     virtual void init() = 0;
 
     virtual void destroy() = 0;
+
+    virtual void setMediasoupDevice(const std::shared_ptr<mediasoupclient::Device>& device) = 0;
+
+    virtual void setSendTransport(const std::shared_ptr<mediasoupclient::SendTransport>& sendTransport) = 0;
+
+    virtual void setRecvTransport(const std::shared_ptr<mediasoupclient::RecvTransport>& recvTransport) = 0;
 
     virtual void addObserver(std::shared_ptr<IMediaControllerObserver> observer, rtc::Thread* callbackThread) = 0;
 

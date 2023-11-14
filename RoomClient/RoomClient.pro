@@ -3,54 +3,13 @@ QT -= gui
 TEMPLATE = lib
 CONFIG += staticlib
 
-CONFIG += c++17
+CONFIG += c++14
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-DEFINES += GL_SILENCE_DEPRECATION
-DEFINES += UNICODE
-DEFINES += _UNICODE
-DEFINES += WIN32
-DEFINES += _ENABLE_EXTENDED_ALIGNED_STORAGE
-DEFINES += WIN64
-DEFINES += BUILD_STATIC
-DEFINES += USE_AURA=1
-DEFINES += NO_TCMALLOC
-DEFINES += FULL_SAFE_BROWSING
-DEFINES += SAFE_BROWSING_CSD
-DEFINES += SAFE_BROWSING_DB_LOCAL
-DEFINES += CHROMIUM_BUILD
-DEFINES += _HAS_EXCEPTIONS=0
-DEFINES += __STD_C
-DEFINES += _CRT_RAND_S
-DEFINES += _CRT_SECURE_NO_DEPRECATE
-DEFINES += _SCL_SECURE_NO_DEPRECATE
-DEFINES += _ATL_NO_OPENGL
-DEFINES += CERT_CHAIN_PARA_HAS_EXTRA_FIELDS
-DEFINES += PSAPI_VERSION=2
-DEFINES += _SECURE_ATL
-DEFINES += _USING_V110_SDK71_
-DEFINES += WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP
-DEFINES += WIN32_LEAN_AND_MEAN
-DEFINES += NOMINMAX
-DEFINES += NTDDI_VERSION=NTDDI_WIN10_RS2
-DEFINES += _WIN32_WINNT=0x0A00
-DEFINES += WINVER=0x0A00
-DEFINES += DYNAMIC_ANNOTATIONS_ENABLED=1
-DEFINES += WTF_USE_DYNAMIC_ANNOTATIONS=1
-DEFINES += WEBRTC_ENABLE_PROTOBUF=1
-DEFINES += WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE
-DEFINES += RTC_ENABLE_VP9
-DEFINES += HAVE_SCTP
-DEFINES += WEBRTC_USE_H264
-DEFINES += WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0
-DEFINES += WEBRTC_WIN
-DEFINES += ABSL_ALLOCATOR_NOTHROW=1
-DEFINES += HAVE_WEBRTC_VIDEO
-DEFINES += HAVE_WEBRTC_VOICE
-DEFINES += ASIO_STANDALONE
+
 #DEFINES += _WEBSOCKETPP_CPP11_INTERNAL_
 
 INCLUDEPATH += \
@@ -66,7 +25,8 @@ INCLUDEPATH += \
     $$PWD/../deps/asio/asio/include \
     $$PWD/../deps/websocketpp \
     $$PWD/../deps/libmediasoupclient/include \
-    $$PWD/../deps/glew/include
+    /usr/local/Cellar/glew/2.2.0_1/include
+#    $$PWD/../deps/glew/include
 
 #INCLUDEPATH += "$$PWD/../deps/webrtc/Frameworks/WebRTC.xcframework/WebRTC.framework/Headers"
 
@@ -77,10 +37,8 @@ INCLUDEPATH += \
 
 CONFIG(debug, debug | release) {
     DESTDIR = $$PWD/../Debug
-    QMAKE_CXXFLAGS_DEBUG = /MTd /Zi
 } else {
     DESTDIR = $$PWD/../Release
-    QMAKE_CXXFLAGS_RELEASE = /MT
 }
 
 SOURCES += \
@@ -116,7 +74,8 @@ SOURCES += \
     service/room_client.cpp \
     service/signaling_client.cpp \
     service/service_factory.cpp \
-    service/windows_capture.cpp \
+#    service/windows_capture.cpp \
+    service/mac_capturer.mm \
     utils/bad_any_cast.cc \
     utils/notification_center.cpp \
     utils/notification_keys.cpp \
@@ -183,7 +142,8 @@ HEADERS += \
     service/i_service.hpp \
     service/i_service_factory.hpp \
     service/service_factory.hpp \
-    service/windows_capture.h \
+#    service/windows_capture.h \
+    service/mac_capturer.h \
     utils/container.hpp \
     utils/i_notification.h \
     utils/i_observer.hpp \
@@ -214,6 +174,71 @@ unix {
 }
 !isEmpty(target.path): INSTALLS += target
 
-DISTFILES += \
-    opengl/RTCNV12TextureCache.m
+mac {
+    DEFINES += WEBRTC_MAC
+    DEFINES += WEBRTC_POSIX
+    DEFINES += ABSL_ALLOCATOR_NOTHROW=1
+    DEFINES += ASIO_STANDALONE
+
+    LIBS += -L/usr/local/Cellar/glew/2.2.0_1/lib/ -lGLEW
+    LIBS += -framework AudioToolbox -framework CoreAudio -framework AVFoundation -framework CoreMedia -framework CoreVideo
+
+    DISTFILES += \
+        opengl/RTCNV12TextureCache.m
+}
+
+win32 {
+    DEFINES += GL_SILENCE_DEPRECATION
+    DEFINES += UNICODE
+    DEFINES += _UNICODE
+    DEFINES += WIN32
+    DEFINES += _ENABLE_EXTENDED_ALIGNED_STORAGE
+    DEFINES += WIN64
+    DEFINES += BUILD_STATIC
+    DEFINES += USE_AURA=1
+    DEFINES += NO_TCMALLOC
+    DEFINES += FULL_SAFE_BROWSING
+    DEFINES += SAFE_BROWSING_CSD
+    DEFINES += SAFE_BROWSING_DB_LOCAL
+    DEFINES += CHROMIUM_BUILD
+    DEFINES += _HAS_EXCEPTIONS=0
+    DEFINES += __STD_C
+    DEFINES += _CRT_RAND_S
+    DEFINES += _CRT_SECURE_NO_DEPRECATE
+    DEFINES += _SCL_SECURE_NO_DEPRECATE
+    DEFINES += _ATL_NO_OPENGL
+    DEFINES += CERT_CHAIN_PARA_HAS_EXTRA_FIELDS
+    DEFINES += PSAPI_VERSION=2
+    DEFINES += _SECURE_ATL
+    DEFINES += _USING_V110_SDK71_
+    DEFINES += WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP
+    DEFINES += WIN32_LEAN_AND_MEAN
+    DEFINES += NOMINMAX
+    DEFINES += NTDDI_VERSION=NTDDI_WIN10_RS2
+    DEFINES += _WIN32_WINNT=0x0A00
+    DEFINES += WINVER=0x0A00
+    DEFINES += DYNAMIC_ANNOTATIONS_ENABLED=1
+    DEFINES += WTF_USE_DYNAMIC_ANNOTATIONS=1
+    DEFINES += WEBRTC_ENABLE_PROTOBUF=1
+    DEFINES += WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE
+    DEFINES += RTC_ENABLE_VP9
+    DEFINES += HAVE_SCTP
+    DEFINES += WEBRTC_USE_H264
+    DEFINES += WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0
+    DEFINES += WEBRTC_WIN
+    DEFINES += ABSL_ALLOCATOR_NOTHROW=1
+    DEFINES += HAVE_WEBRTC_VIDEO
+    DEFINES += HAVE_WEBRTC_VOICE
+    DEFINES += ASIO_STANDALONE
+
+    CONFIG(debug, debug | release) {
+#        QMAKE_CXXFLAGS_DEBUG = /MTd /Zi
+    } else {
+#        QMAKE_CXXFLAGS_RELEASE = /MT
+    }
+}
+
+linux {
+
+}
 

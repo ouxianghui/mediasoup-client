@@ -7,7 +7,7 @@
 #elif WIN32
 #include <GL/glew.h>
 #endif
-
+#include <OpenGL/gl3.h>
 #if TARGET_OS_IPHONE
 #define RTC_PIXEL_FORMAT GL_LUMINANCE
 #define SHADER_VERSION

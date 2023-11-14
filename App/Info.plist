@@ -22,5 +22,7 @@
 	<true/>
         <key>NSCameraUsageDescription</key>
         <string>Needs camera for display of mirror option</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Needs microphone for display of mirror option</string>
 </dict>
 </plist>

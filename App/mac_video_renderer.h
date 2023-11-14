@@ -10,7 +10,7 @@
 #include "api/video/video_sink_interface.h"
 #include "api/video/video_frame.h"
 #include <mutex>
-#include <QOpenGLWidget>
+#include <QtOpenGLWidgets/QOpenGLWidget>
 #include <QOpenGLFunctions>
 
 class MacVideoRenderer

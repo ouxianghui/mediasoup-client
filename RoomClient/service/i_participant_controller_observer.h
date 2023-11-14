@@ -22,9 +22,9 @@ public:
 
     virtual void onDisplayNameChanged(std::shared_ptr<IParticipant> participant) = 0;
 
-    virtual void onCreateRemoteVideoTrack(std::shared_ptr<IParticipant> participant, const std::string& tid,rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) = 0;
+    virtual void onCreateRemoteVideoTrack(std::shared_ptr<IParticipant> participant, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) = 0;
 
-    virtual void onRemoveRemoteVideoTrack(std::shared_ptr<IParticipant> participant, const std::string& tid,rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) = 0;
+    virtual void onRemoveRemoteVideoTrack(std::shared_ptr<IParticipant> participant, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) = 0;
 
     virtual void onRemoteAudioStateChanged(std::shared_ptr<IParticipant> participant, bool muted) = 0;
 
