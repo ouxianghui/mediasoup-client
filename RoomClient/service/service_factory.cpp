@@ -19,12 +19,12 @@ namespace vi
         _destroy();
     }
 
-	void ServiceFactory::registerService(const std::string& key, const std::shared_ptr<IService>& service) 
+    void ServiceFactory::registerService(const std::string& key, const std::shared_ptr<IService>& service)
     {
         ObjectFactory<IService>::_register(key, service);
 	}
 
-	void ServiceFactory::unregisterService(const std::string& key) 
+    void ServiceFactory::unregisterService(const std::string& key)
     {
         ObjectFactory<IService>::_unregister(key);
 	}

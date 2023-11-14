@@ -186,7 +186,7 @@ void SignalingClient::handleRequest(const std::string& json)
 void SignalingClient::handleResponse(const std::string& json)
 {
     if (_thread) {
-        _thread->PostTask(RTC_FROM_HERE, [wself = weak_from_this(), json]() {
+        _thread->PostTask([wself = weak_from_this(), json]() {
             if (auto self = wself.lock()) {
                 std::string err;
                 auto header = fromJsonString<signaling::ResponseHeader>(json, err);

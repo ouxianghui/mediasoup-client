@@ -92,7 +92,7 @@ namespace vi {
 				    observer->notify(notification);
                 }
                 else {
-                    thread->PostTask(RTC_FROM_HERE, [obs = std::weak_ptr<IObserver>(observer), notification]() {
+                    thread->PostTask([obs = std::weak_ptr<IObserver>(observer), notification]() {
 						if (auto observer = obs.lock()) {
 							observer->notify(notification);
 						}

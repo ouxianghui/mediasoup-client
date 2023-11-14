@@ -30,6 +30,7 @@ namespace vi {
 
 class IMediasoupApi;
 class WindowsCapturerTrackSource;
+class MacTrackSource;
 
 class MediaController :
         public IMediaController,
@@ -42,21 +43,23 @@ class MediaController :
         public std::enable_shared_from_this<MediaController>
 {
 public:
-    MediaController(std::shared_ptr<mediasoupclient::Device>& mediasoupDevice,
-                    std::shared_ptr<IMediasoupApi>& mediasoupApi,
-                    std::shared_ptr<mediasoupclient::SendTransport>& sendTransport,
-                    std::shared_ptr<mediasoupclient::RecvTransport>& recvTransport,
-                    rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface>& pcf,
-                    std::shared_ptr<Options>& options,
+    MediaController(std::shared_ptr<Options> options,
+                    rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> pcf,
+                    std::shared_ptr<IMediasoupApi> mediasoupApi,
                     rtc::Thread* mediasoupThread,
-                    rtc::Thread* signalingThread,
-                    rtc::scoped_refptr<webrtc::AudioDeviceModule>& adm);
+                    rtc::Thread* signalingThread);
 
     ~MediaController();
 
     void init() override;
 
     void destroy() override;
+
+    void setMediasoupDevice(const std::shared_ptr<mediasoupclient::Device>& device) override;
+
+    void setSendTransport(const std::shared_ptr<mediasoupclient::SendTransport>& sendTransport) override;
+
+    void setRecvTransport(const std::shared_ptr<mediasoupclient::RecvTransport>& recvTransport) override;
 
     void addObserver(std::shared_ptr<IMediaEventHandler> observer, rtc::Thread* callbackThread) override;
 
@@ -163,24 +166,25 @@ private:
      void updateConsumer(const std::string& tid, bool paused);
 
 private:
+     std::shared_ptr<Options> _options;
+     rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
+     std::shared_ptr<IMediasoupApi> _mediasoupApi;
      rtc::Thread* _mediasoupThread;
-
+     rtc::Thread* _signalingThread;
      std::shared_ptr<mediasoupclient::Device> _mediasoupDevice;
-
-     std::shared_ptr<IMediasoupApi>& _mediasoupApi;
-
      std::shared_ptr<mediasoupclient::SendTransport> _sendTransport;
      std::shared_ptr<mediasoupclient::RecvTransport> _recvTransport;
-
-     rtc::scoped_refptr<webrtc::PeerConnectionFactoryInterface> _peerConnectionFactory;
-
-     std::shared_ptr<Options>& _options;
 
      std::vector<webrtc::RtpEncodingParameters> _encodings;
 
      std::shared_ptr<mediasoupclient::Producer> _micProducer;
      std::shared_ptr<mediasoupclient::Producer> _camProducer;
+
+#ifdef WIN32
      rtc::scoped_refptr<WindowsCapturerTrackSource> _capturerSource;
+#else
+          rtc::scoped_refptr<MacTrackSource> _capturerSource;
+#endif
 
      // key: consumerId
      std::unordered_map<std::string, std::shared_ptr<mediasoupclient::Consumer>> _consumerMap;
@@ -190,10 +194,6 @@ private:
 
      // key: consumerId, value: peerId
      std::unordered_map<std::string, std::string> _consumerIdToPeerId;
-
-     rtc::Thread* _signalingThread;
-
-     rtc::scoped_refptr<webrtc::AudioDeviceModule> _adm;
 };
 
 }

@@ -44,8 +44,34 @@ MainWindow::~MainWindow()
 void MainWindow::init()
 {
     _roomClient = getEngine()->createRoomClient();
+    //rtc::Thread* callbackThread = getThread("main");
+    //_roomClient->addObserver(shared_from_this(), callbackThread);
+
+    _RoomClientEventHandlerWrapper = std::make_shared<RoomClientEventHandlerWrapper>(this);
+
+    connect(_RoomClientEventHandlerWrapper.get(), &RoomClientEventHandlerWrapper::roomStateChanged, this, &MainWindow::onRoomStateChanged, Qt::QueuedConnection);
+    connect(_RoomClientEventHandlerWrapper.get(), &RoomClientEventHandlerWrapper::createLocalVideoTrack, this, &MainWindow::onCreateLocalVideoTrack, Qt::QueuedConnection);
+    connect(_RoomClientEventHandlerWrapper.get(), &RoomClientEventHandlerWrapper::removeLocalVideoTrack, this, &MainWindow::onRemoveLocalVideoTrack, Qt::QueuedConnection);
+    connect(_RoomClientEventHandlerWrapper.get(), &RoomClientEventHandlerWrapper::localAudioStateChanged, this, &MainWindow::onLocalAudioStateChanged, Qt::QueuedConnection);
+    connect(_RoomClientEventHandlerWrapper.get(), &RoomClientEventHandlerWrapper::localVideoStateChanged, this, &MainWindow::onLocalVideoStateChanged, Qt::QueuedConnection);
+    connect(_RoomClientEventHandlerWrapper.get(), &RoomClientEventHandlerWrapper::localActiveSpeaker, this, &MainWindow::onLocalActiveSpeaker, Qt::QueuedConnection);
+
+    _ParticipantEventHandlerWrapper = std::make_shared<ParticipantEventHandlerWrapper>(this);
+
+    connect(_ParticipantEventHandlerWrapper.get(), &ParticipantEventHandlerWrapper::participantJoin, this, &MainWindow::onParticipantJoin, Qt::QueuedConnection);
+    connect(_ParticipantEventHandlerWrapper.get(), &ParticipantEventHandlerWrapper::participantLeave, this, &MainWindow::onParticipantLeave, Qt::QueuedConnection);
+    connect(_ParticipantEventHandlerWrapper.get(), &ParticipantEventHandlerWrapper::remoteActiveSpeaker, this, &MainWindow::onRemoteActiveSpeaker, Qt::QueuedConnection);
+    connect(_ParticipantEventHandlerWrapper.get(), &ParticipantEventHandlerWrapper::displayNameChanged, this, &MainWindow::onDisplayNameChanged, Qt::QueuedConnection);
+    connect(_ParticipantEventHandlerWrapper.get(), &ParticipantEventHandlerWrapper::createRemoteVideoTrack, this, &MainWindow::onCreateRemoteVideoTrack, Qt::QueuedConnection);
+    connect(_ParticipantEventHandlerWrapper.get(), &ParticipantEventHandlerWrapper::removeRemoteVideoTrack, this, &MainWindow::onRemoveRemoteVideoTrack, Qt::QueuedConnection);
+    connect(_ParticipantEventHandlerWrapper.get(), &ParticipantEventHandlerWrapper::remoteAudioStateChanged, this, &MainWindow::onRemoteAudioStateChanged, Qt::QueuedConnection);
+    connect(_ParticipantEventHandlerWrapper.get(), &ParticipantEventHandlerWrapper::remoteVideoStateChanged, this, &MainWindow::onRemoteVideoStateChanged, Qt::QueuedConnection);
+
     rtc::Thread* callbackThread = getThread("main");
-    _roomClient->addObserver(shared_from_this(), callbackThread);
+    //_roomClient->addObserver(shared_from_this(), callbackThread);
+
+    _roomClient->addObserver(_RoomClientEventHandlerWrapper, callbackThread);
+    _roomClient->getParticipantController()->addObserver(_ParticipantEventHandlerWrapper, callbackThread);
 
     if (!_galleryView) {
         _galleryView = new GalleryView(this);
@@ -123,6 +149,8 @@ void MainWindow::init()
     _videoButton->setDefaultAction(_enableVideoAction);
 
     updateToolBar();
+
+//    getRoomClient()->join("47.97.188.24", 4443, "test", "jackie", nullptr);
 }
 
 void MainWindow::updateToolBar()
@@ -209,7 +237,8 @@ void MainWindow::loadParticipants()
 
 void MainWindow::destroy()
 {
-    _roomClient->removeObserver(shared_from_this());
+    //_roomClient->removeObserver(shared_from_this());
+    _roomClient->removeObserver(_RoomClientEventHandlerWrapper);
 
     if (_galleryView) {
         _galleryView->destroy();
@@ -218,7 +247,10 @@ void MainWindow::destroy()
 
 void MainWindow::onJoinRoom()
 {
-    _roomClient->join("wevisit.cn", 4443, "test", "jackie", nullptr);
+    //_roomClient->join("124.221.73.157", 4443, "test2", "jackie1", nullptr);
+    _roomClient->join("192.168.0.104", 4443, "123123123", "jackie", nullptr);
+    //_roomClient->join("localhost", 8443, "test2", "jackie1", nullptr);
+
 }
 
 void MainWindow::onLeaveRoom()
@@ -266,13 +298,10 @@ void MainWindow::onRoomStateChanged(vi::RoomState state)
 
         _galleryView->setLayout(2, 2);
 
-        rtc::Thread* callbackThread = getThread("main");
-        _roomClient->getParticipantController()->addObserver(shared_from_this(), callbackThread);
-
         loadParticipants();
 
-        _roomClient->enableAudio(true);
-        _roomClient->enableVideo(true);
+        //getRoomClient()->enableAudio(true);
+        //getRoomClient()->enableVideo(true);
     }
     else if (state == vi::RoomState::CLOSED) {
         _galleryView->reset();

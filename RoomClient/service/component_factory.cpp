@@ -7,7 +7,7 @@
 #include "network/network_request_consumer.h"
 namespace vi {
 
-    ComponentFactory::ComponentFactory() 
+    ComponentFactory::ComponentFactory()
     {
 
     }
@@ -17,7 +17,7 @@ namespace vi {
         if (!_threadProvider) {
             _threadProvider = std::make_unique<ThreadProvider>();
             _threadProvider->init();
-            _threadProvider->create({ "signaling", "mediasoup", "communication" });
+            _threadProvider->create({ "signaling", "mediasoup", "communication", "main" });
         }
 
         if (!_networkRequestManager) {

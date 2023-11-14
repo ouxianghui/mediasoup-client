@@ -3,9 +3,16 @@
 
 #include <memory>
 #include <QMainWindow>
+
 #include "service/i_room_client_event_handler.h"
 #include "service/i_media_controller.h"
 #include "service/i_participant_event_handler.h"
+
+#include <QAction>
+#include "service/mediasoup_api.h"
+#include "service/i_media_controller.h"
+#include "participant_event_handler_wrapper.h"
+#include "room_client_event_handler_wrapper.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -34,8 +41,8 @@ public:
 
     void destroy();
 
-protected:
-    // IRoomClientEventHandler
+private slots:
+    // IRoomClientObserver
     void onRoomStateChanged(vi::RoomState state) override;
 
     void onCreateLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track) override;
@@ -115,5 +122,9 @@ private:
     QAction* _disableVideoAction;
 
     std::shared_ptr<vi::IRoomClient> _roomClient;
+
+    std::shared_ptr<RoomClientEventHandlerWrapper> _RoomClientEventHandlerWrapper;
+
+    std::shared_ptr<ParticipantEventHandlerWrapper> _ParticipantEventHandlerWrapper;
 };
 #endif // MAINWINDOW_H

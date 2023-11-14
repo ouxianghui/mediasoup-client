@@ -9,7 +9,8 @@
 #include <QMouseEvent>
 #include <QMessageBox>
 #include <QLabel>
-#include <WinSock2.h>
+//#include <WinSock2.h>
+#include <sys/time.h>
 
 #define DRAG_WIDTH      160
 #define DRAG_HEIGHT     120

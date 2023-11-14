@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include "i_room_client_event_handler.h"
 #include "utils/interface_proxy.hpp"
 #include "options.h"

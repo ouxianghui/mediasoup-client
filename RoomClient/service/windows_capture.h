@@ -80,9 +80,9 @@ namespace vi {
 
 		rtc::scoped_refptr<webrtc::VideoCaptureModule> _createDevice(const char* uniqueID);
 
-		int32_t _startCapture();
+        int32_t _start();
 
-		int32_t _stopCapture();
+        int32_t _stop();
 
 		void _release();
 
@@ -116,14 +116,14 @@ namespace vi {
 			return nullptr;
 		}
 
-		int32_t startCapture() {
+        int32_t start() {
 			if (!capturer_) {
 				return -1;
 			}
 			return capturer_->start();
 		}
 
-		int32_t stopCapture() {
+        int32_t stop() {
 			if (!capturer_) {
 				return -1;
 			}

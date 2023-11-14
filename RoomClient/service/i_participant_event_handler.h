@@ -1,5 +1,6 @@
 #pragma once
 
+#include "api/scoped_refptr.h"
 #include <memory>
 #include <string>
 

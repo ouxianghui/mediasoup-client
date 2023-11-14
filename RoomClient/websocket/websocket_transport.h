@@ -137,7 +137,7 @@ namespace vi {
         _websocket = std::make_shared<T>();
 
         if (_websocket) {
-            _connectionId = _websocket->connect(_url, shared_from_this(), subprotocol);
+            _connectionId = _websocket->connect(_url, WebsocketTransport<T>::shared_from_this(), subprotocol);
         }
     }
 
@@ -174,7 +174,7 @@ namespace vi {
     {
         DLOG("opened");
 
-        UniversalObservable<ITransportObserver>::notifyObservers([wself = weak_from_this()](const auto& observer) {
+        UniversalObservable<ITransportObserver>::notifyObservers([wself = WebsocketTransport<T>::weak_from_this()](const auto& observer) {
             if (auto self = wself.lock()) {
                 observer->onOpened();
             }
@@ -186,7 +186,7 @@ namespace vi {
     {
         DLOG("errorCode = {}, reason = {}", errorCode, reason.c_str());
 
-        UniversalObservable<ITransportObserver>::notifyObservers([wself = weak_from_this(), errorCode, reason](const auto& observer) {
+        UniversalObservable<ITransportObserver>::notifyObservers([wself = WebsocketTransport<T>::weak_from_this(), errorCode, reason](const auto& observer) {
             if (auto self = wself.lock()) {
                 observer->onFailed(errorCode, reason);
             }
@@ -198,7 +198,7 @@ namespace vi {
     {
         DLOG("errorCode = {}, reaseon = {}", closeCode, reason.c_str());
 
-        UniversalObservable<ITransportObserver>::notifyObservers([wself = weak_from_this()](const auto& observer) {
+        UniversalObservable<ITransportObserver>::notifyObservers([wself = WebsocketTransport<T>::weak_from_this()](const auto& observer) {
             if (auto self = wself.lock()) {
                 observer->onClosed();
             }

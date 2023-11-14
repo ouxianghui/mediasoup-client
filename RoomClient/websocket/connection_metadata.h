@@ -16,7 +16,7 @@
 
 namespace vi {
 
-	template<typename T, typename MsgPtr = T::message_ptr>
+    template<typename T, typename MsgPtr = typename T::message_ptr>
 	class ConnectionMetadata {
 	public:
 		typedef websocketpp::lib::shared_ptr<ConnectionMetadata> ptr;
@@ -70,7 +70,7 @@ namespace vi {
 	void ConnectionMetadata<T, MsgPtr>::onOpen(T* c, websocketpp::connection_hdl hdl) {
 		_status = "Open";
 
-		T::connection_ptr con = c->get_con_from_hdl(hdl);
+        typename T::connection_ptr con = c->get_con_from_hdl(hdl);
 		_server = con->get_response_header("Server");
 		if (auto observer = _observer.lock()) {
 			observer->onOpen();
@@ -81,7 +81,7 @@ namespace vi {
 	void ConnectionMetadata<T, MsgPtr>::onFail(T* c, websocketpp::connection_hdl hdl) {
 		_status = "Failed";
 
-		T::connection_ptr con = c->get_con_from_hdl(hdl);
+        typename T::connection_ptr con = c->get_con_from_hdl(hdl);
 		_server = con->get_response_header("Server");
 		_errorReason = con->get_ec().message();
 		int errorCode = con->get_ec().value();
@@ -92,8 +92,8 @@ namespace vi {
 
 	template<typename T, typename MsgPtr>
 	void ConnectionMetadata<T, MsgPtr>::onClose(T* c, websocketpp::connection_hdl hdl) {
-		_status = "Closed";
-		T::connection_ptr con = c->get_con_from_hdl(hdl);
+        _status = "Closed";
+        typename T::connection_ptr con = c->get_con_from_hdl(hdl);
 		std::stringstream s;
 		s << "close code: " << con->get_remote_close_code() << " (" << websocketpp::close::status::get_string(con->get_remote_close_code()) << "), close reason: " << con->get_remote_close_reason();
 		_errorReason = s.str();

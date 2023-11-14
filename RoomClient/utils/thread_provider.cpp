@@ -27,7 +27,9 @@ void ThreadProvider::init()
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
+#ifdef WIN32
     _mainThread = rtc::ThreadManager::Instance()->CurrentThread();
+#endif
 
     _inited = true;
 }
@@ -72,11 +74,19 @@ rtc::Thread* ThreadProvider::thread(const std::string& name)
 {
     std::lock_guard<std::mutex> lock(_mutex);
 
+    //if (name == "main") {
+    //    return _mainThread;
+    //}
+    //else if (_threadsMap.find(name) != _threadsMap.end()) {
+    //    return _threadsMap[name];
+    //}
+
+#ifdef WIN32
     if (name == "main") {
         return _mainThread;
     }
-    else if (_threadsMap.find(name) != _threadsMap.end()) {
-        //return _threadsMap[name].get();
+#endif
+    if (_threadsMap.find(name) != _threadsMap.end()) {
         return _threadsMap[name];
     }
 

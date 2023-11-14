@@ -158,10 +158,10 @@ namespace vi {
 			return;
 
 		if (thread_->IsCurrent()) {
-			_stopCapture();
+            _stop();
 		}
 		else {
-			thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_stopCapture, this));
+            thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_stop, this));
 		}
 
 		vcm_->DeRegisterCaptureDataCallback(); 
@@ -185,22 +185,22 @@ namespace vi {
 	}
 
 	int32_t VcmCapturer::start() {
-		return thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_startCapture, this));
+        return thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_start, this));
 	}
 
 	int32_t VcmCapturer::stop() {
-		return thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_stopCapture, this));
+        return thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_stop, this));
 	}
 
 	rtc::scoped_refptr<webrtc::VideoCaptureModule> VcmCapturer::_createDevice(const char* uniqueID) {
 		return webrtc::VideoCaptureFactory::Create(uniqueID);
 	}
 
-	int32_t VcmCapturer::_startCapture() {
+    int32_t VcmCapturer::_start() {
 		return vcm_->StartCapture(capability_);
 	}
 
-	int32_t VcmCapturer::_stopCapture() {
+    int32_t VcmCapturer::_stop() {
 		return vcm_->StopCapture();
 	}
 

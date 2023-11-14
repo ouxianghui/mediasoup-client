@@ -192,7 +192,7 @@ private:
 
             auto item = trackMap.begin();
 
-            rtc::scoped_refptr<webrtc::VideoTrackInterface> track = static_cast<webrtc::VideoTrackInterface*>(item->second.get());
+            rtc::scoped_refptr<webrtc::VideoTrackInterface> track((webrtc::VideoTrackInterface*)item->second.get());
 
             if (!_track) {
                 _track = track;

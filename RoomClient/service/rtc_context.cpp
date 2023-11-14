@@ -193,7 +193,7 @@ rtc::scoped_refptr<webrtc::AudioTrackInterface> createAudioTrack(const std::stri
 
     rtc::scoped_refptr<webrtc::AudioSourceInterface> source = factory->CreateAudioSource(options);
 
-    return factory->CreateAudioTrack(label, source);
+    return factory->CreateAudioTrack(label, source.release());
 }
 
 // Video track creation.
