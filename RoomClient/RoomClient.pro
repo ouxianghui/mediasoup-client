@@ -3,7 +3,7 @@ QT -= gui
 TEMPLATE = lib
 CONFIG += staticlib
 
-CONFIG += c++14
+CONFIG += c++17
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -30,12 +30,13 @@ INCLUDEPATH += \
     $$PWD/../deps
 
 win: {
-    INCLUDEPATH += $$PWD/../deps/glew/include \
-    INCLUDEPATH += $$PWD/../deps/cpr/include \
+    INCLUDEPATH += $$PWD/../deps/glew/include
+    INCLUDEPATH += $$PWD/../deps/cpr/include
 }
 
 unix: {
     INCLUDEPATH += /usr/local/Cellar/glew/2.2.0_1/include
+    INCLUDEPATH += /usr/local/Cellar/cpr/1.10.5/include
 }
 
 #INCLUDEPATH += "$$PWD/../deps/webrtc/Frameworks/WebRTC.xcframework/WebRTC.framework/Headers"

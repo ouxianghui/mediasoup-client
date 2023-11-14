@@ -9,7 +9,7 @@
 	url = https://github.com/gabime/spdlog.git
 [submodule "deps/libmediasoupclient"]
 	path = deps/libmediasoupclient
-	url = https://github.com/versatica/libmediasoupclient.git
+	url = git@github.com:ouxianghui/libmediasoupclient.git
 [submodule "deps/libsdptransform"]
 	path = deps/libsdptransform
 url=https://github.com/ouxianghui/libsdptransform.git

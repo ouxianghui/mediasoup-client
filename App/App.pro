@@ -2,7 +2,7 @@ QT += core opengl openglwidgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++14
+CONFIG += c++17
 
 win: {
     DEFINES += GL_SILENCE_DEPRECATION
@@ -80,12 +80,14 @@ INCLUDEPATH += $$PWD/../RoomClient \
     $$PWD/../deps/concurrentqueue
 
 win: {
-    INCLUDEPATH += $$PWD/../deps/glew/include \
+    INCLUDEPATH += $$PWD/../deps/glew/include
+    INCLUDEPATH += $$PWD/../deps/cpr/include
 }
 
 unix: {
     QMAKE_INFO_PLIST +=  $${PWD}/Info.plist
     INCLUDEPATH += /usr/local/Cellar/glew/2.2.0_1/include
+    INCLUDEPATH += /usr/local/Cellar/cpr/1.10.5/include
 }
 #    $$PWD/../deps/cpr/include
 
