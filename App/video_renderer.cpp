@@ -9,9 +9,9 @@
 #include "video_renderer.h"
 #include <thread>
 #include <array>
-#include <QTimer>
 #include <QLabel>
 #include <QFont>
+#include <QDebug>
 #include "logger/spd_logger.h"
 #include "absl/types/optional.h"
 #include "api/video/video_rotation.h"
@@ -36,15 +36,13 @@ namespace {
 VideoRenderer::VideoRenderer(QWidget *parent)
     : QOpenGLWidget(parent)
 {
-    _renderingTimer = new QTimer(this);
-    connect(_renderingTimer, SIGNAL(timeout()), this, SLOT(onRendering()));
-    _renderingTimer->start(30);
-
     //static int32_t cnt = 0;
     //++cnt;
     //std::stringstream sstr;
     //sstr << "C:\\Users\\admin\\Documents\\GitHub\\mediasoup-client\\Debug\\test" << cnt << ".yuv";
     //_fp = fopen(sstr.str().c_str(), "wb+");
+
+    connect(this, &VideoRenderer::draw, this, &VideoRenderer::onDraw, Qt::QueuedConnection);
 
 }
 
@@ -112,12 +110,6 @@ void VideoRenderer::paintGL()
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    std::shared_ptr<webrtc::VideoFrame> frame;
-
-    if (_frameQ.try_dequeue(frame)) {
-        _cacheFrame = frame;
-    }
-
     if (!_locked && _cacheFrame) {
 
         //saveFrameToFile(*_cacheFrame.get(), _fp);
@@ -183,22 +175,12 @@ void VideoRenderer::paintGL()
 void VideoRenderer::OnFrame(const webrtc::VideoFrame& frame)
 {
     auto videeoFrame = std::make_shared<webrtc::VideoFrame>(frame);
-   
-    if (_frameQ.size_approx() >= 300) {
-        for (int i = 0; i < 100; ++i) {
-            std::shared_ptr<webrtc::VideoFrame> dropFrame;
-            if (_frameQ.try_dequeue(dropFrame)) {
-                DLOG("drop frame .");
-            }
-        }
-    }
-    _frameQ.enqueue(videeoFrame);
-    //static int counter = 0;
-    //DLOG("--> frame: {}", ++counter);
+    emit draw(videeoFrame);
 }
 
-void VideoRenderer::onRendering()
+void VideoRenderer::onDraw(std::shared_ptr<webrtc::VideoFrame> frame)
 {
+    _cacheFrame = frame;
     QWidget::update();
 }
 

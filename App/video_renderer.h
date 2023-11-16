@@ -8,11 +8,9 @@
 #include <mutex>
 #include <QtOpenGLWidgets/QOpenGLWidget>
 #include <QOpenGLFunctions>
-#include "blockingconcurrentqueue.h"
 
 class VideoShader;
 class I420TextureCache;
-class QTimer;
 
 class VideoRenderer
     : public QOpenGLWidget
@@ -46,10 +44,13 @@ protected:
 
     void resizeEvent(QResizeEvent *e) override;
 
+signals:
+    void draw(std::shared_ptr<webrtc::VideoFrame> frame);
+
 private slots:
     void cleanup();
 
-    void onRendering();
+    void onDraw(std::shared_ptr<webrtc::VideoFrame> frame);
 
 private:
     std::shared_ptr<VideoShader> _videoShader;
@@ -57,10 +58,6 @@ private:
     std::shared_ptr<I420TextureCache> _i420TextureCache;
 
     std::shared_ptr<webrtc::VideoFrame> _cacheFrame;
-
-    QTimer* _renderingTimer;
-
-    moodycamel::BlockingConcurrentQueue<std::shared_ptr<webrtc::VideoFrame>> _frameQ;
 
     bool _locked = false;
 
