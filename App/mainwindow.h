@@ -123,8 +123,8 @@ private:
 
     std::shared_ptr<vi::IRoomClient> _roomClient;
 
-    std::shared_ptr<RoomClientEventHandlerWrapper> _RoomClientEventHandlerWrapper;
+    std::shared_ptr<RoomClientEventHandlerWrapper> _roomClientEventHandlerWrapper;
 
-    std::shared_ptr<ParticipantEventHandlerWrapper> _ParticipantEventHandlerWrapper;
+    std::shared_ptr<ParticipantEventHandlerWrapper> _participantEventHandlerWrapper;
 };
 #endif // MAINWINDOW_H

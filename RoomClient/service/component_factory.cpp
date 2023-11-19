@@ -27,7 +27,11 @@ namespace vi {
         if (!_threadProvider) {
             _threadProvider = std::make_unique<ThreadProvider>();
             _threadProvider->init();
+#ifdef WIN32
+            _threadProvider->create({ "transport", "mediasoup", "communication"});
+#else
             _threadProvider->create({ "transport", "mediasoup", "communication", "main" });
+#endif
         }
 
         if (!_networkRequestManager) {
