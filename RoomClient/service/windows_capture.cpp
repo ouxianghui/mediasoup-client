@@ -12,8 +12,7 @@
 #include "api/video/i420_buffer.h"
 #include "api/video/video_frame_buffer.h"
 #include "api/video/video_rotation.h"
-#include "rtc_base/async_invoker.h"
-#include "logger/spd_logger.h"
+#include "logger/u_logger.h"
 
 namespace vi {
 
@@ -104,7 +103,8 @@ namespace vi {
 	bool VcmCapturer::Init(size_t width,
 		size_t height,
 		size_t target_fps,
-		size_t capture_device_index) {
+		size_t capture_device_index,
+		rtc::VideoSinkInterface<VideoFrame>* sink) {
 		std::unique_ptr<VideoCaptureModule::DeviceInfo> device_info(
 			VideoCaptureFactory::CreateDeviceInfo());
 
@@ -117,11 +117,11 @@ namespace vi {
 			return false;
 		}
 
-		vcm_ = thread_->Invoke<rtc::scoped_refptr<webrtc::VideoCaptureModule>>(RTC_FROM_HERE, std::bind(&VcmCapturer::_createDevice, this, unique_name));
+		vcm_ = thread_->BlockingCall(std::bind(&VcmCapturer::_createDevice, this, unique_name));
 		if (!vcm_) {
 			return false;
 		}
-		vcm_->RegisterCaptureDataCallback(this);
+		vcm_->RegisterCaptureDataCallback(sink);
 
 		device_info->GetCapability(vcm_->CurrentDeviceName(), 0, capability_);
 
@@ -130,7 +130,7 @@ namespace vi {
 		capability_.maxFPS = static_cast<int32_t>(target_fps);
 		capability_.videoType = VideoType::kI420;
 
-		if (thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_startCapture, this)) != 0) {
+		if (thread_->BlockingCall(std::bind(&VcmCapturer::_startCapture, this)) != 0) {
 			Destroy();
 			return false;
 		}
@@ -142,9 +142,10 @@ namespace vi {
 		size_t height,
 		size_t target_fps,
 		size_t capture_device_index,
+		rtc::VideoSinkInterface<VideoFrame>* sink,
 		rtc::Thread* thread) {
 		std::unique_ptr<VcmCapturer> vcm_capturer(new VcmCapturer(thread));
-		if (!vcm_capturer->Init(width, height, target_fps, capture_device_index)) {
+		if (!vcm_capturer->Init(width, height, target_fps, capture_device_index, sink)) {
 			RTC_LOG(LS_WARNING) << "Failed to create VcmCapturer(w = " << width
 				<< ", h = " << height << ", fps = " << target_fps
 				<< ")";
@@ -158,10 +159,10 @@ namespace vi {
 			return;
 
 		if (thread_->IsCurrent()) {
-            _stop();
+			_stopCapture();
 		}
 		else {
-            thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_stop, this));
+			thread_->BlockingCall(std::bind(&VcmCapturer::_stopCapture, this));
 		}
 
 		vcm_->DeRegisterCaptureDataCallback(); 
@@ -171,36 +172,31 @@ namespace vi {
 			_release();
 		}
 		else {
-			thread_->Invoke<void>(RTC_FROM_HERE, std::bind(&VcmCapturer::_release, this));
+			thread_->BlockingCall(std::bind(&VcmCapturer::_release, this));
 		}
 	}
 
 	VcmCapturer::~VcmCapturer() {
 		Destroy();
 	}
-
-	void VcmCapturer::OnFrame(const VideoFrame& frame) {
-		SimpleVideoCapturer::OnFrame(frame);
-
-	}
-
+	
 	int32_t VcmCapturer::start() {
-        return thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_start, this));
+		return thread_->BlockingCall(std::bind(&VcmCapturer::_startCapture, this));
 	}
 
 	int32_t VcmCapturer::stop() {
-        return thread_->Invoke<int32_t>(RTC_FROM_HERE, std::bind(&VcmCapturer::_stop, this));
+		return thread_->BlockingCall(std::bind(&VcmCapturer::_stopCapture, this));
 	}
 
 	rtc::scoped_refptr<webrtc::VideoCaptureModule> VcmCapturer::_createDevice(const char* uniqueID) {
 		return webrtc::VideoCaptureFactory::Create(uniqueID);
 	}
 
-    int32_t VcmCapturer::_start() {
+	int32_t VcmCapturer::_startCapture() {
 		return vcm_->StartCapture(capability_);
 	}
 
-    int32_t VcmCapturer::_stop() {
+	int32_t VcmCapturer::_stopCapture() {
 		return vcm_->StopCapture();
 	}
 

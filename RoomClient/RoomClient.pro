@@ -95,6 +95,7 @@ SOURCES += \
     service/rtc_context.cpp \
     service/signaling_client.cpp \
     service/service_factory.cpp \
+    service/signaling_models.cpp \
     utils/bad_any_cast.cc \
     utils/notification_center.cpp \
     utils/notification_keys.cpp \

@@ -1,3 +1,12 @@
+/************************************************************************
+* @Copyright: 2021-2024
+* @FileName:
+* @Description: Open source mediasoup room client library
+* @Version: 1.0.0
+* @Author: Jackie Ou
+* @CreateTime: 2021-10-1
+*************************************************************************/
+
 #include "room_client.h"
 #include "component_factory.h"
 #include "signaling_client.h"
@@ -40,10 +49,10 @@ std::string getProtooUrl(const std::string& hostname, uint16_t port, const std::
 
 namespace vi {
 
-RoomClient::RoomClient(std::shared_ptr<RTCContext> rtcContext, rtc::Thread* mediasoupThread, rtc::Thread* signalingThread)
+RoomClient::RoomClient(std::shared_ptr<RTCContext> rtcContext, rtc::Thread* mediasoupThread, rtc::Thread* transportThread)
     : _rtcContext(rtcContext)
     , _mediasoupThread(mediasoupThread)
-    , _signalingThread(signalingThread)
+    , _transportThread(transportThread)
 {
     _options.reset(new Options());
 }
@@ -58,7 +67,7 @@ void RoomClient::init()
     configure();
 
     if (!_signalingClient) {
-        _signalingClient = std::make_shared<SignalingClient>(_signalingThread);
+        _signalingClient = std::make_shared<SignalingClient>(_transportThread);
         _signalingClient->init();
         _signalingClient->addObserver(shared_from_this());
     }
@@ -69,7 +78,7 @@ void RoomClient::init()
     }
 
     if (!_mediaController) {
-        auto mediaController = std::make_shared<MediaController>(_options,  _rtcContext->factory(), _mediasoupApi, _mediasoupThread, _signalingThread);
+        auto mediaController = std::make_shared<MediaController>(_options,  _rtcContext->factory(), _mediasoupApi, _mediasoupThread, _rtcContext->signalingThread());
         mediaController->init();
         _signalingClient->addObserver(mediaController);
         _mediaController = mediaController;
@@ -703,6 +712,13 @@ std::string RoomClient::_onProduce(mediasoupclient::SendTransport* transport,
     request->data = signaling::ProduceRequest::Data();
     request->data->transportId = transport->GetId();
     request->data->kind = kind;
+    DLOG("appData: {}", appData.dump());
+    if (appData.contains("sharing")) {
+        request->data->appData = signaling::ProduceRequest::AppData();
+        signaling::SharingAppData sharingAppData = appData;
+        request->data->appData->sharing = signaling::ProduceRequest::SharingData();
+        request->data->appData->sharing->type = sharingAppData.sharing.type;
+    }
     std::string json(rtpParameters.dump().c_str());
     DLOG("rtpCapabilities: {}", json);
     if (json.empty()) {

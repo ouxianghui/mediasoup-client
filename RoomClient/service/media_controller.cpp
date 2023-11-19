@@ -1,3 +1,12 @@
+/************************************************************************
+* @Copyright: 2021-2024
+* @FileName:
+* @Description: Open source mediasoup room client library
+* @Version: 1.0.0
+* @Author: Jackie Ou
+* @CreateTime: 2021-10-1
+*************************************************************************/
+
 #include <future>
 #include "media_controller.h"
 #include "Transport.hpp"
@@ -335,11 +344,22 @@ namespace vi {
                 nlohmann::json codecOptions = nlohmann::json::object();
                 codecOptions["videoGoogleStartBitrate"] = 1000;
 
+                // TODO: remove
+                nlohmann::json appData;
+                static int32_t flag = 1;
+                if (flag == 1) {
+                    signaling::SharingAppData sharingAppData;
+                    sharingAppData.sharing.type = "screen";
+                    appData = sharingAppData;
+                }
+                //++flag;
+
                 mediasoupclient::Producer* producer = _sendTransport->Produce(this,
                                                                               track,
                                                                               _options->useSimulcast.value_or(false) ? &_encodings : nullptr,
                                                                               &codecOptions,
-                                                                              nullptr);
+                                                                              nullptr,
+                                                                              appData);
                 _camProducer.reset(producer);
 
                 UniversalObservable<IMediaEventHandler>::notifyObservers([wself = weak_from_this()](const auto& observer){

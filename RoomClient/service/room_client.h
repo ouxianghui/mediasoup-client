@@ -1,3 +1,12 @@
+/************************************************************************
+* @Copyright: 2021-2024
+* @FileName:
+* @Description: Open source mediasoup room client library
+* @Version: 1.0.0
+* @Author: Jackie Ou
+* @CreateTime: 2021-10-1
+*************************************************************************/
+
 #pragma once
 
 #include <memory>
@@ -41,7 +50,7 @@ class RoomClient :
         public UniversalObservable<IRoomClientEventHandler>,
         public std::enable_shared_from_this<RoomClient> {
 public:
-    RoomClient(std::shared_ptr<RTCContext> rtcContext, rtc::Thread* mediasoupThread, rtc::Thread* signalingThread);
+    RoomClient(std::shared_ptr<RTCContext> rtcContext, rtc::Thread* mediasoupThread, rtc::Thread* transportThread);
 
     ~RoomClient();
 
@@ -188,7 +197,7 @@ private:
     std::shared_ptr<RTCContext> _rtcContext;
 
     rtc::Thread* _mediasoupThread;
-    rtc::Thread* _signalingThread;
+    rtc::Thread* _transportThread;
 
     std::string _hostname;
     uint16_t _port;

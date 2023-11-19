@@ -1,3 +1,12 @@
+/************************************************************************
+* @Copyright: 2021-2024
+* @FileName:
+* @Description: Open source mediasoup room client library
+* @Version: 1.0.0
+* @Author: Jackie Ou
+* @CreateTime: 2021-10-1
+*************************************************************************/
+
 #include "engine.h"
 #include "logger/spd_logger.h"
 #include "rtc_context.hpp"
@@ -65,9 +74,9 @@ namespace vi {
     std::shared_ptr<IRoomClient> Engine::createRoomClient()
     {
         rtc::Thread* mediasoupThread = getThread("mediasoup");
-        rtc::Thread* signalingThread = getThread("signaling");
+        rtc::Thread* transportThread = getThread("transport");
 
-        auto RoomClientImpl = std::make_shared<RoomClient>(_rtcContext, mediasoupThread, signalingThread);
+        auto RoomClientImpl = std::make_shared<RoomClient>(_rtcContext, mediasoupThread, transportThread);
         auto roomClient = RoomClientProxy::create(RoomClientImpl, mediasoupThread);
         roomClient->init();
 

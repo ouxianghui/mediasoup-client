@@ -1,10 +1,20 @@
-﻿#include "component_factory.h"
+/************************************************************************
+* @Copyright: 2021-2024
+* @FileName:
+* @Description: Open source mediasoup room client library
+* @Version: 1.0.0
+* @Author: Jackie Ou
+* @CreateTime: 2021-10-1
+*************************************************************************/
+
+#include "component_factory.h"
 #include "utils/thread_provider.h"
 #include "utils/notification_center.hpp"
 #include "network/network_request_manager.h"
 #include "network/network_http_client.h"
 #include "network/network_request_plugin.h"
 #include "network/network_request_consumer.h"
+
 namespace vi {
 
     ComponentFactory::ComponentFactory()
@@ -17,7 +27,7 @@ namespace vi {
         if (!_threadProvider) {
             _threadProvider = std::make_unique<ThreadProvider>();
             _threadProvider->init();
-            _threadProvider->create({ "signaling", "mediasoup", "communication", "main" });
+            _threadProvider->create({ "transport", "mediasoup", "communication", "main" });
         }
 
         if (!_networkRequestManager) {

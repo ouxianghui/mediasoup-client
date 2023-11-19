@@ -1,9 +1,19 @@
+/************************************************************************
+* @Copyright: 2021-2024
+* @FileName:
+* @Description: Open source mediasoup room client library
+* @Version: 1.0.0
+* @Author: Jackie Ou
+* @CreateTime: 2021-10-1
+*************************************************************************/
+
 #pragma once
 
 #include <random>
 #include <limits>
 #include "json/jsonable.hpp"
 #include "absl/types/optional.h"
+#include "json.hpp"
 
 namespace {
 
@@ -439,9 +449,16 @@ struct ConnectWebRtcTransportRequest {
 };
 
 struct ProduceRequest {
+    struct SharingData {
+        // type: screen, windows, camera
+        absl::optional<std::string> type;
+        FIELDS_MAP("type", type);
+    };
+
     struct AppData {
         absl::optional<std::string> peerId;
-        FIELDS_MAP("peerId", peerId);
+        absl::optional<SharingData> sharing;
+        FIELDS_MAP("peerId", peerId, "sharing", sharing);
     };
 
     struct RTCPFeedback {
@@ -1189,5 +1206,22 @@ struct PeerClosedNotification {
     absl::optional<Data> data;
     FIELDS_MAP("notification", notification, "method", method, "data", data);
 };
+
+struct Sharing {
+    // type: screen, windows, camera
+    std::string type;
+};
+
+void to_json(nlohmann::json& j, const Sharing& st);
+
+void from_json(const nlohmann::json& j, Sharing& st);
+
+struct SharingAppData {
+    Sharing sharing;
+};
+
+void to_json(nlohmann::json& j, const SharingAppData& st);
+
+void from_json(const nlohmann::json& j, SharingAppData& st);
 
 }
