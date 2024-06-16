@@ -169,6 +169,7 @@ HEADERS += \
     service/i_room_client_event_handler.h \
     service/i_signaling_client.h \
     service/i_signaling_event_handler.h \
+    service/i_video_capturer.h \
     service/media_controller.h \
     service/mediasoup_api.h \
     service/options.h \

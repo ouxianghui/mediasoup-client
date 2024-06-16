@@ -225,6 +225,10 @@ private:
     RoomState _state = RoomState::CLOSED;
 
     int32_t _volume = 0;
+
+    nlohmann::json _sendTransportIceParameters;
+
+    nlohmann::json _recvTransportIceParameters;
 };
 
 

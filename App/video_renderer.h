@@ -47,6 +47,9 @@ protected:
 signals:
     void draw(std::shared_ptr<webrtc::VideoFrame> frame);
 
+public slots:
+    void onRotateFrame(uint8_t rotation);
+
 private slots:
     void cleanup();
 
@@ -60,6 +63,8 @@ private:
     std::shared_ptr<webrtc::VideoFrame> _cacheFrame;
 
     bool _locked = false;
+
+    std::atomic<webrtc::VideoRotation> _rotation { webrtc::VideoRotation::kVideoRotation_0 };
 
     //FILE* _fp = nullptr;
 };

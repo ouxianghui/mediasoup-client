@@ -403,7 +403,13 @@ void RoomClient::createTransportImpl(bool producing, bool consuming, std::shared
     }
     DLOG("createTransportImpl, producing: {}, consuming: {}", producing, consuming);
     nlohmann::json iceParameters = nlohmann::json::parse(transportInfo->data->iceParameters->toJsonStr());
-
+    DLOG("ice parameters: {}", iceParameters.dump());
+    if (producing) {
+        _sendTransportIceParameters = iceParameters;
+    }
+    if (consuming) {
+        _recvTransportIceParameters = iceParameters;
+    }
     nlohmann::json iceCandidates = nlohmann::json::array();
     for (auto& candidate : transportInfo->data->iceCandidates.value()) {
         DLOG("candidate: {}", candidate.toJsonStr());
@@ -438,7 +444,7 @@ void RoomClient::joinImpl()
     signaling::JoinRequest::Device device;
     device.flag = "macOS";
     device.name = "macOS";
-    device.version = "1.0.0";
+    device.version = "3.4.2";
     request->data->device = device;
     if (_options->consume.value_or(false)) {
         auto caps = _mediasoupDevice->GetRtpCapabilities();
@@ -658,12 +664,34 @@ void RoomClient::_onConnect(mediasoupclient::Transport* transport, const nlohman
     auto request = std::make_shared<signaling::ConnectWebRtcTransportRequest>();
     request->data = signaling::ConnectWebRtcTransportRequest::Data();
     request->data->transportId = transport->GetId();
-    std::string json(dtlsParameters.dump().c_str());
-    DLOG("rtpCapabilities: {}", json);
+
+    nlohmann::json iceJson;
+    if (_sendTransport && _sendTransport->GetId() == transport->GetId()) {
+        iceJson = _sendTransportIceParameters;
+    }
+    else if (_recvTransport && _recvTransport->GetId() == transport->GetId()) {
+        iceJson = _recvTransportIceParameters;
+    }
+    std::string json(iceJson.dump().c_str());
+    DLOG("transport iceParameters: {}", json);
     if (json.empty()) {
         return;
     }
     std::string err;
+    auto ice = fromJsonString<signaling::ConnectWebRtcTransportRequest::ICEParameters>(json, err);
+    if (!err.empty()) {
+        DLOG("parse response failed: {}", err);
+        return;
+    }
+
+    request->data->iceParameters = *ice;
+
+    json = dtlsParameters.dump().c_str();
+    DLOG("rtpCapabilities: {}", json);
+    if (json.empty()) {
+        return;
+    }
+    err.clear();
     auto dtlsp = fromJsonString<signaling::ConnectWebRtcTransportRequest::DTLSParameters>(json, err);
     if (!err.empty()) {
         DLOG("parse response failed: {}", err);

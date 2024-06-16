@@ -111,20 +111,23 @@ namespace vi {
         webrtc::RtpEncodingParameters ph;
         ph.rid = "h";
         ph.active = true;
-        ph.max_bitrate_bps = 5000000;
+        ph.max_bitrate_bps = 1300 * 1000;
         ph.scale_resolution_down_by = 1;
+        ph.scalability_mode = "L1T3";
 
         webrtc::RtpEncodingParameters pm;
         pm.rid = "m";
         pm.active = true;
-        pm.max_bitrate_bps = 1000000;
+        pm.max_bitrate_bps = 500 * 1000;
         pm.scale_resolution_down_by = 2;
+        pm.scalability_mode = "L1T3";
 
         webrtc::RtpEncodingParameters pl;
-        pl.rid = "m";
+        pl.rid = "l";
         pl.active = true;
-        pl.max_bitrate_bps = 500000;
+        pl.max_bitrate_bps = 150 * 1000;
         pl.scale_resolution_down_by = 4;
+        pl.scalability_mode = "L1T3";
 
         _encodings.emplace_back(ph);
         _encodings.emplace_back(pm);
@@ -153,7 +156,7 @@ namespace vi {
                 DLOG("already has a mic producer");
                 return;
             }
-
+            // _peerConnectionFactory->SetOptions();
             cricket::AudioOptions options;
             options.echo_cancellation = false;
             DLOG("audio options: {}", options.ToString());
@@ -162,6 +165,7 @@ namespace vi {
             nlohmann::json codecOptions = nlohmann::json::object();
             codecOptions["opusStereo"] = true;
             codecOptions["opusDtx"] = true;
+            // codecOptions["googEchoCancellation"] = true;
 
             mediasoupclient::Producer* producer = _sendTransport->Produce(this, track, nullptr, &codecOptions, nullptr);
             _micProducer.reset(producer);
@@ -346,13 +350,12 @@ namespace vi {
 
                 // TODO: remove
                 nlohmann::json appData;
-                static int32_t flag = 1;
+                static int32_t flag = 0;
                 if (flag == 1) {
                     signaling::SharingAppData sharingAppData;
                     sharingAppData.sharing.type = "screen";
                     appData = sharingAppData;
                 }
-                //++flag;
 
                 mediasoupclient::Producer* producer = _sendTransport->Produce(this,
                                                                               track,
@@ -690,6 +693,8 @@ namespace vi {
             else if (ptr->GetKind() == "video") {
                 observer->onCreateRemoteVideoTrack(request->data->peerId.value(), ptr->GetId(), ptr->GetTrack());
                 observer->onRemoteVideoStateChanged(request->data->peerId.value(), producerPaused);
+
+                //self->_mediasoupApi->setConsumerPreferredLayers(ptr->GetId(), 2, 0, nullptr);
             }
         });
 
@@ -703,8 +708,6 @@ namespace vi {
         response->id = request->id;
         response->ok = true;
         _mediasoupApi->response(response);
-
-        _mediasoupApi->setConsumerPreferredLayers(request->data->id.value(), 1, 1, nullptr);
     }
 
     void MediaController::createNewDataConsumer(std::shared_ptr<signaling::NewDataConsumerRequest> request)

@@ -107,7 +107,7 @@ void GalleryView::initUI() {
         canvas->show();
     }
 
-    setLayout(2, 2);
+    setLayout(3, 3);
 
     _labelDrag = new QLabel(this);
     _labelDrag->setFixedSize(DRAG_WIDTH, DRAG_HEIGHT);

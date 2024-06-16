@@ -9,5 +9,6 @@
         <file>resource/icons8-voice-100.png</file>
         <file>resource/icons8-connected-100.png</file>
         <file>resource/icons8-disconnected-100.png</file>
+        <file>resource/rotate.png</file>
     </qresource>
 </RCC>

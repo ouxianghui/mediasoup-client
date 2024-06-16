@@ -57,3 +57,4 @@ UI/UI.APS
 *.qtvscr
 *.vcxproj.user
 *.vcxproj.filters
+/build

@@ -514,7 +514,7 @@ struct stringable<rapidjson::Value>
 	std::string operator()(const rapidjson::Value& json) {
 		using namespace rapidjson;
 		StringBuffer sb;
-		PrettyWriter<StringBuffer> writer(sb);
+        PrettyWriter<StringBuffer> writer(sb);
 		json.Accept(writer);
 		return sb.GetString();
 	}

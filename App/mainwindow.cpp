@@ -28,8 +28,8 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    this->setMinimumWidth(1920);
-    this->setMinimumHeight(1080);
+    this->setMinimumWidth(1280);
+    this->setMinimumHeight(720);
     //QPalette palette;
     //palette.setColor(QPalette::Background, QColor("red"));
     //this->setPalette(palette);
@@ -252,7 +252,10 @@ void MainWindow::destroy()
 
 void MainWindow::onJoinRoom()
 {
-    _roomClient->join("192.168.0.106", 4443, "test2", "jackie", nullptr);
+    // _roomClient->join("124.221.73.157", 4443, "test2", "jackie", nullptr);
+   _roomClient->join("127.0.0.1", 4443, "test3", "jackie", nullptr);
+   //_roomClient->join("47.97.188.24", 4443, "123", "jackie", nullptr);
+
 }
 
 void MainWindow::onLeaveRoom()
@@ -298,7 +301,7 @@ void MainWindow::onRoomStateChanged(vi::RoomState state)
     if (state == vi::RoomState::CONNECTED) {
         DLOG("MainWindow, RoomState::CONNECTED");
 
-        _galleryView->setLayout(2, 2);
+        _galleryView->setLayout(3, 3);
 
         loadParticipants();
 
