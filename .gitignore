@@ -31,7 +31,7 @@
 *.out
 *.app
 
-/x64
+**/x64
 /.vs
 /UI/logs
 UI/UI.APS
