@@ -20,7 +20,8 @@
 #include <random>
 #include "logger/spd_logger.h"
 #include "rtc_base/thread.h"
-
+#include <api/task_queue/task_queue_factory.h>
+#include <api/task_queue/task_queue_base.h>
 namespace {
 
 	int64_t createRandomId64()
@@ -175,12 +176,12 @@ namespace vi {
 		}
 
 		template <typename Closure>
-		std::unique_ptr<webrtc::QueuedTask> createOneShotTask(Closure&& closure, uint64_t id) {
+		std::unique_ptr<webrtc::TaskQueueBase> createOneShotTask(Closure&& closure, uint64_t id) {
 			return std::make_unique<OneShotTask<Closure>>(std::forward<Closure>(closure), id, weak_from_this());
 		}
 
 		template <typename Closure>
-		std::unique_ptr<webrtc::QueuedTask> createRepetitiveTask(Closure&& closure, uint32_t milliseconds, uint64_t id) {
+		std::unique_ptr<webrtc::TaskQueueBase> createRepetitiveTask(Closure&& closure, uint32_t milliseconds, uint64_t id) {
 			return std::make_unique<RepetitiveTask<Closure>>(std::forward<Closure>(closure), milliseconds, id, weak_from_this(), _thread.get());
 		}
 

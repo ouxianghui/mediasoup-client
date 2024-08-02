@@ -162,10 +162,10 @@ struct CreateWebRtcTransportResponse {
         absl::optional<std::string> type;
         absl::optional<std::string> protocol;
         absl::optional<std::string> foundation;
-        absl::optional<std::string> address;
+        absl::optional<std::string> ip;
         absl::optional<int32_t> port;
         absl::optional<int32_t> priority;
-        FIELDS_MAP("type", type, "protocol", protocol, "foundation", foundation, "address", address, "port", port, "priority", priority);
+        FIELDS_MAP("type", type, "protocol", protocol, "foundation", foundation, "ip", ip, "port", port, "priority", priority);
     };
 
     struct ICEParameters {
@@ -429,13 +429,6 @@ struct ConnectWebRtcTransportRequest {
         FIELDS_MAP("algorithm", algorithm, "value", value);
     };
 
-    struct ICEParameters {
-        absl::optional<bool> iceLite;
-        absl::optional<std::string> password;
-        absl::optional<std::string> usernameFragment;
-        FIELDS_MAP("iceLite", iceLite, "password", password, "usernameFragment", usernameFragment);
-    };
-
     struct DTLSParameters {
         absl::optional<std::vector<Fingerprint>> fingerprints;
         absl::optional<std::string> role;
@@ -444,9 +437,8 @@ struct ConnectWebRtcTransportRequest {
 
     struct Data {
         absl::optional<std::string> transportId;
-        absl::optional<ICEParameters> iceParameters;
         absl::optional<DTLSParameters> dtlsParameters;
-        FIELDS_MAP("transportId", transportId, "iceParameters", iceParameters, "dtlsParameters", dtlsParameters);
+        FIELDS_MAP("transportId", transportId, "dtlsParameters", dtlsParameters);
     };
 
     absl::optional<bool> request = true;

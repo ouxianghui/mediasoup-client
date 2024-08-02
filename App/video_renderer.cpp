@@ -119,7 +119,7 @@ void VideoRenderer::paintGL()
             return;
         }
 
-        if (_cacheFrame->rotation() != _rotation) {
+        if (_cacheFrame->rotation() != webrtc::kVideoRotation_0) {
             rtc::scoped_refptr<webrtc::VideoFrameBuffer> buffer;
             if (vfb->type() != webrtc::VideoFrameBuffer::Type::kI420) {
                 buffer = vfb->ToI420();
@@ -129,7 +129,7 @@ void VideoRenderer::paintGL()
             }
             webrtc::VideoFrame rotated_frame(*_cacheFrame.get());
             rotated_frame.set_video_frame_buffer(webrtc::I420Buffer::Rotate(*buffer->GetI420(), _cacheFrame->rotation()));
-            rotated_frame.set_rotation(_rotation);
+            rotated_frame.set_rotation(webrtc::kVideoRotation_0);
             rotated_frame.set_timestamp_us(_cacheFrame->timestamp_us());
 
             _cacheFrame = std::make_shared<webrtc::VideoFrame>(rotated_frame);
@@ -197,26 +197,4 @@ void VideoRenderer::cleanup()
 void VideoRenderer::resizeEvent(QResizeEvent *e)
 {
     QOpenGLWidget::resizeEvent(e);
-}
-
-void VideoRenderer::onRotateFrame(uint8_t rotation)
-{
-    _rotation = static_cast<webrtc::VideoRotation>(rotation);
-
-    switch (rotation) {
-    case 0:
-        _rotation = webrtc::VideoRotation::kVideoRotation_0;
-        break;
-    case 1:
-        _rotation = webrtc::VideoRotation::kVideoRotation_90;
-        break;
-    case 2:
-        _rotation = webrtc::VideoRotation::kVideoRotation_180;
-        break;
-    case 3:
-        _rotation = webrtc::VideoRotation::kVideoRotation_270;
-        break;
-    default:
-        _rotation = webrtc::VideoRotation::kVideoRotation_0;
-    }
 }

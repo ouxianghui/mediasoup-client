@@ -14,7 +14,7 @@
 #include "api/rtp_parameters.h"
 #include "logger/spd_logger.h"
 #include "mediasoup_api.h"
-//#include "windows_capture.h"
+#include "windows_capture.h"
 #include "mac_capturer.h"
 #include "service/engine.h"
 #include "modules/audio_device/include/audio_device.h"
@@ -74,7 +74,7 @@ namespace vi {
         }
 
         if (_capturerSource) {
-            _capturerSource->stop();
+            _capturerSource->stopCapture();
             _capturerSource = nullptr;
         }
     }
@@ -111,23 +111,20 @@ namespace vi {
         webrtc::RtpEncodingParameters ph;
         ph.rid = "h";
         ph.active = true;
-        ph.max_bitrate_bps = 1300 * 1000;
+        ph.max_bitrate_bps = 5000000;
         ph.scale_resolution_down_by = 1;
-        ph.scalability_mode = "L1T3";
 
         webrtc::RtpEncodingParameters pm;
         pm.rid = "m";
         pm.active = true;
-        pm.max_bitrate_bps = 500 * 1000;
+        pm.max_bitrate_bps = 1000000;
         pm.scale_resolution_down_by = 2;
-        pm.scalability_mode = "L1T3";
 
         webrtc::RtpEncodingParameters pl;
-        pl.rid = "l";
+        pl.rid = "m";
         pl.active = true;
-        pl.max_bitrate_bps = 150 * 1000;
+        pl.max_bitrate_bps = 500000;
         pl.scale_resolution_down_by = 4;
-        pl.scalability_mode = "L1T3";
 
         _encodings.emplace_back(ph);
         _encodings.emplace_back(pm);
@@ -156,7 +153,7 @@ namespace vi {
                 DLOG("already has a mic producer");
                 return;
             }
-            // _peerConnectionFactory->SetOptions();
+
             cricket::AudioOptions options;
             options.echo_cancellation = false;
             DLOG("audio options: {}", options.ToString());
@@ -165,7 +162,6 @@ namespace vi {
             nlohmann::json codecOptions = nlohmann::json::object();
             codecOptions["opusStereo"] = true;
             codecOptions["opusDtx"] = true;
-            // codecOptions["googEchoCancellation"] = true;
 
             mediasoupclient::Producer* producer = _sendTransport->Produce(this, track, nullptr, &codecOptions, nullptr);
             _micProducer.reset(producer);
@@ -333,7 +329,7 @@ namespace vi {
 
             if (!_capturerSource) {
 #ifdef WIN32
-                _capturerSource = WindowsCapturerTrackSource::Create(_signalingThread);
+                _capturerSource = WindowsCapturerTrackSource::Create(_signalingThread,"");
 #else
                 std::unique_ptr<MacCapturer> capturer = absl::WrapUnique(MacCapturer::Create(1280, 720, 30, 0));
                 _capturerSource = rtc::make_ref_counted<MacTrackSource>(std::move(capturer), false);
@@ -342,7 +338,7 @@ namespace vi {
 
             DLOG("create capture source");
             if (_capturerSource) {
-                _capturerSource->start();
+                _capturerSource->startCapture("");
                 rtc::scoped_refptr<webrtc::VideoTrackInterface> track = _peerConnectionFactory->CreateVideoTrack("camera-track", _capturerSource.get());
                 track->set_enabled(true);
                 nlohmann::json codecOptions = nlohmann::json::object();
@@ -350,12 +346,13 @@ namespace vi {
 
                 // TODO: remove
                 nlohmann::json appData;
-                static int32_t flag = 0;
+                static int32_t flag = 1;
                 if (flag == 1) {
                     signaling::SharingAppData sharingAppData;
                     sharingAppData.sharing.type = "screen";
                     appData = sharingAppData;
                 }
+                //++flag;
 
                 mediasoupclient::Producer* producer = _sendTransport->Produce(this,
                                                                               track,
@@ -377,7 +374,7 @@ namespace vi {
             }
         }
         else {
-            _capturerSource->stop();
+            _capturerSource->stopCapture();
             _capturerSource = nullptr;
 
             if (!_mediasoupApi) {
@@ -693,8 +690,6 @@ namespace vi {
             else if (ptr->GetKind() == "video") {
                 observer->onCreateRemoteVideoTrack(request->data->peerId.value(), ptr->GetId(), ptr->GetTrack());
                 observer->onRemoteVideoStateChanged(request->data->peerId.value(), producerPaused);
-
-                //self->_mediasoupApi->setConsumerPreferredLayers(ptr->GetId(), 2, 0, nullptr);
             }
         });
 
@@ -708,6 +703,8 @@ namespace vi {
         response->id = request->id;
         response->ok = true;
         _mediasoupApi->response(response);
+
+        _mediasoupApi->setConsumerPreferredLayers(request->data->id.value(), 1, 1, nullptr);
     }
 
     void MediaController::createNewDataConsumer(std::shared_ptr<signaling::NewDataConsumerRequest> request)

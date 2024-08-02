@@ -12,7 +12,7 @@
 #include "api/video/i420_buffer.h"
 #include "api/video/video_frame_buffer.h"
 #include "api/video/video_rotation.h"
-#include "logger/u_logger.h"
+//#include "logger/u_logger.h"
 
 namespace vi {
 

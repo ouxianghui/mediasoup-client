@@ -69,9 +69,6 @@ public:
         _buttonAudio = new QToolButton(this);
         _buttonVideo = new QToolButton(this);
         _progressBarVolume = new QProgressBar(this);
-        _buttonRotate = new QToolButton(this);
-        connect(_buttonRotate, &QToolButton::clicked, this, &VideoCanvas::onRotateButtonClikced);
-        connect(this, &VideoCanvas::rotationChanged, _renderer, &VideoRenderer::onRotateFrame);
 	}
 
     void init()  {
@@ -87,8 +84,6 @@ public:
         _buttonVideo->setIcon(QIcon(":/app/resource/icons8-no-video-100.png"));
 
         _progressBarVolume->setRange(0, 99);
-
-        _buttonRotate->setIcon(QIcon(":/app/resource/rotate.png"));
 	}
 
 	void destroy() {
@@ -169,16 +164,6 @@ public:
         return _participant ? _participant->id() : "";
     }
 
-signals:
-    void rotationChanged(uint8_t rotation);
-
-private slots:
-    void onRotateButtonClikced() {
-        ++_rotation;
-        _rotation = _rotation % 4;
-        emit rotationChanged(_rotation);
-    }
-
 private:
     void updateUI(std::shared_ptr<vi::IParticipant> participant) {
         if (!participant) {
@@ -255,8 +240,6 @@ protected:
 
         _progressBarVolume->setGeometry(QRect(this->rect().left() + 10 + 190, this->rect().bottom() - 30, 100, 20));
 
-        _buttonRotate->setGeometry(QRect(this->rect().left() + 10 + 300, this->rect().bottom() - 35, 30, 30));
-
         QWidget::resizeEvent(event);
     }
 
@@ -275,10 +258,8 @@ private:
     QLabel* _labelName;
     QToolButton* _buttonAudio;
     QToolButton* _buttonVideo;
-    QToolButton* _buttonRotate;
     QProgressBar* _progressBarVolume;
 
-    uint8_t _rotation {0};
 };
 
 class GalleryView : public QFrame

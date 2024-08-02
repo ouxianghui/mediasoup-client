@@ -1,224 +1,183 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{BFEECD89-FB06-34B2-A840-2BE136F8A600}</ProjectGuid>
-    <RootNamespace>RoomClient</RootNamespace>
-    <Keyword>Qt4VSv1.0</Keyword>
-    <WindowsTargetPlatformVersion>10.0.22000.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformMinVersion>10.0.22000.0</WindowsTargetPlatformMinVersion>
+    <ProjectGuid>{35DE6B71-D519-4F27-B9FE-24B25FBC189F}</ProjectGuid>
+    <Keyword>QtVS_v304</Keyword>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0.22000.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0</WindowsTargetPlatformVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;" Label="Configuration">
-    <PlatformToolset>v142</PlatformToolset>
-    <OutputDirectory>..\Release\</OutputDirectory>
-    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
-    <CharacterSet>NotSet</CharacterSet>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <IntermediateDirectory>release\</IntermediateDirectory>
-    <PrimaryOutput>RoomClient</PrimaryOutput>
+    <PlatformToolset>v142</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;" Label="Configuration">
-    <PlatformToolset>v142</PlatformToolset>
-    <OutputDirectory>..\Debug\</OutputDirectory>
-    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
-    <CharacterSet>NotSet</CharacterSet>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <IntermediateDirectory>debug\</IntermediateDirectory>
-    <PrimaryOutput>RoomClient</PrimaryOutput>
+    <PlatformToolset>v142</PlatformToolset>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings" />
-  <ImportGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists(&apos;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&apos;)" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
-  <ImportGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists(&apos;$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props&apos;)" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
+    <QtInstall>5.12.12_msvc2017_64</QtInstall>
+    <QtModules>core</QtModules>
+    <QtBuildConfig>debug</QtBuildConfig>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
+    <QtInstall>5.12.12_msvc2017_64</QtInstall>
+    <QtModules>core</QtModules>
+    <QtBuildConfig>release</QtBuildConfig>
+  </PropertyGroup>
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(QtMsBuild)\Qt.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(QtMsBuild)\Qt.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup>
-    <OutDir Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">..\Release\</OutDir>
-    <IntDir Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">release\</IntDir>
-    <TargetName Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">RoomClient</TargetName>
-    <IgnoreImportLibrary Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">true</IgnoreImportLibrary>
-    <OutDir Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">..\Debug\</OutDir>
-    <IntDir Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">debug\</IntDir>
-    <TargetName Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">RoomClient</TargetName>
-    <IgnoreImportLibrary Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">true</IgnoreImportLibrary>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.;..\deps\webrtc\include;..\deps\webrtc\include\third_party;..\deps\webrtc\include\third_party\abseil-cpp;..\deps\webrtc\include\third_party\boringssl\src\include;..\deps\webrtc\include\sdk\objc;..\deps\webrtc\include\sdk\objc\base;..\deps\libsdptransform\include;..\deps\rapidjson\include;..\deps\spdlog\include;..\deps\asio\asio\include;..\deps\websocketpp;..\deps\libmediasoupclient\include;..\deps\glew\include;..\deps\cpr\include;..\deps;C:\Qt\5.15.2\msvc2019_64\include;C:\Qt\5.15.2\msvc2019_64\include\QtCore;release;C:\Qt\5.15.2\msvc2019_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
-      <AssemblerListingLocation>release\</AssemblerListingLocation>
-      <BrowseInformation>false</BrowseInformation>
-      <DebugInformationFormat>None</DebugInformationFormat>
-      <DisableSpecificWarnings>4577;4467;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <ExceptionHandling>Sync</ExceptionHandling>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <ObjectFileName>release\</ObjectFileName>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;NDEBUG;QT_NO_DEBUG;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessToFile>false</PreprocessToFile>
-      <ProgramDataBaseFileName></ProgramDataBaseFileName>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <WarningLevel>Level3</WarningLevel>
-    </ClCompile>
-    <Lib>
-      <OutputFile>$(OutDir)\RoomClient.lib</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-    </Lib>
-    <Midl>
-      <DefaultCharType>Unsigned</DefaultCharType>
-      <EnableErrorChecks>None</EnableErrorChecks>
-      <WarningLevel>0</WarningLevel>
-    </Midl>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;NDEBUG;QT_NO_DEBUG;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">
-    <ClCompile>
-      <AdditionalIncludeDirectories>.;..\deps\webrtc\include;..\deps\webrtc\include\third_party;..\deps\webrtc\include\third_party\abseil-cpp;..\deps\webrtc\include\third_party\boringssl\src\include;..\deps\webrtc\include\sdk\objc;..\deps\webrtc\include\sdk\objc\base;..\deps\libsdptransform\include;..\deps\rapidjson\include;..\deps\spdlog\include;..\deps\asio\asio\include;..\deps\websocketpp;..\deps\libmediasoupclient\include;..\deps\glew\include;..\deps\cpr\include;..\deps;C:\Qt\5.15.2\msvc2019_64\include;C:\Qt\5.15.2\msvc2019_64\include\QtCore;debug;C:\Qt\5.15.2\msvc2019_64\mkspecs\win32-msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
-      <AssemblerListingLocation>debug\</AssemblerListingLocation>
-      <BrowseInformation>false</BrowseInformation>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>4577;4467;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <ExceptionHandling>Sync</ExceptionHandling>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <ObjectFileName>debug\</ObjectFileName>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessToFile>false</PreprocessToFile>
+      <AdditionalIncludeDirectories>.;..\deps\webrtc\m112\include;..\deps\webrtc\m112\include\third_party;..\deps\webrtc\m112\include\third_party\abseil-cpp;..\deps\webrtc\m112\include\third_party\boringssl\src\include;..\deps\webrtc\m112\include\sdk\objc;..\deps\webrtc\m112\include\sdk\objc\base;..\deps\libsdptransform\include;..\deps\rapidjson\include;..\deps\spdlog\include;..\deps\asio\asio\include;..\deps\websocketpp;..\deps\libmediasoupclient\include;..\deps\glew\include;..\deps\cpr\include;..\deps;.\json;.\logger;.\network;.\opengl;.\service;.\utils;.\websocket;..\deps\libmediasoupclient\deps\libsdptransform\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <WarningLevel>Level3</WarningLevel>
+      <DisableSpecificWarnings>4577;4467;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
-    <Lib>
-      <OutputFile>$(OutDir)\RoomClient.lib</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-    </Lib>
-    <Midl>
-      <DefaultCharType>Unsigned</DefaultCharType>
-      <EnableErrorChecks>None</EnableErrorChecks>
-      <WarningLevel>0</WarningLevel>
-    </Midl>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
+    <ClCompile>
+      <MultiProcessorCompilation>
+      </MultiProcessorCompilation>
+      <PreprocessorDefinitions>ROOMCLIENT_LIB;BUILD_STATIC;_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>
+      </SDLCheck>
+      <ConformanceMode>Default</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
+    <ClCompile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>ROOMCLIENT_LIB;BUILD_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\deps\libmediasoupclient\deps\libsdptransform\src\grammar.cpp" />
+    <ClCompile Include="..\deps\libmediasoupclient\deps\libsdptransform\src\parser.cpp" />
+    <ClCompile Include="..\deps\libmediasoupclient\deps\libsdptransform\src\writer.cpp" />
     <ClCompile Include="..\deps\libmediasoupclient\src\Consumer.cpp" />
     <ClCompile Include="..\deps\libmediasoupclient\src\DataConsumer.cpp" />
     <ClCompile Include="..\deps\libmediasoupclient\src\DataProducer.cpp" />
     <ClCompile Include="..\deps\libmediasoupclient\src\Device.cpp" />
     <ClCompile Include="..\deps\libmediasoupclient\src\Handler.cpp" />
     <ClCompile Include="..\deps\libmediasoupclient\src\Logger.cpp" />
-    <ClCompile Include="..\deps\libmediasoupclient\src\sdp\MediaSection.cpp" />
+    <ClCompile Include="..\deps\libmediasoupclient\src\mediasoupclient.cpp" />
+    <ClCompile Include="..\deps\libmediasoupclient\src\ortc.cpp" />
     <ClCompile Include="..\deps\libmediasoupclient\src\PeerConnection.cpp" />
     <ClCompile Include="..\deps\libmediasoupclient\src\Producer.cpp" />
+    <ClCompile Include="..\deps\libmediasoupclient\src\scalabilityMode.cpp" />
+    <ClCompile Include="..\deps\libmediasoupclient\src\sdp\MediaSection.cpp" />
     <ClCompile Include="..\deps\libmediasoupclient\src\sdp\RemoteSdp.cpp" />
-    <ClCompile Include="..\deps\libmediasoupclient\src\Transport.cpp" />
     <ClCompile Include="..\deps\libmediasoupclient\src\sdp\Utils.cpp" />
-    <ClCompile Include="utils\bad_any_cast.cc" />
+    <ClCompile Include="..\deps\libmediasoupclient\src\Transport.cpp" />
+    <ClCompile Include="opengl\i420_texture_cache.cpp" />
+    <ClCompile Include="opengl\video_shader.cpp" />
+    <ClCompile Include="service\base_video_capturer.cc" />
     <ClCompile Include="service\broadcaster.cpp" />
     <ClCompile Include="service\component_factory.cpp" />
     <ClCompile Include="service\core.cpp" />
     <ClCompile Include="service\engine.cpp" />
-    <ClCompile Include="..\deps\libsdptransform\src\grammar.cpp" />
-    <ClCompile Include="opengl\i420_texture_cache.cpp" />
-    <ClCompile Include="service\media_controller.cpp" />
     <ClCompile Include="service\mediasoup_api.cpp" />
-    <ClCompile Include="..\deps\libmediasoupclient\src\mediasoupclient.cpp" />
-    <ClCompile Include="network\network_http_client.cpp" />
-    <ClCompile Include="network\network_request_consumer.cpp" />
-    <ClCompile Include="network\network_request_executor.cpp" />
-    <ClCompile Include="network\network_request_manager.cpp" />
-    <ClCompile Include="network\network_request_plugin.cpp" />
-    <ClCompile Include="network\network_request_task.cpp" />
-    <ClCompile Include="network\network_status_detector.cpp" />
-    <ClCompile Include="utils\notification_center.cpp" />
-    <ClCompile Include="utils\notification_keys.cpp" />
-    <ClCompile Include="..\deps\libmediasoupclient\src\ortc.cpp" />
-    <ClCompile Include="..\deps\libsdptransform\src\parser.cpp" />
+    <ClCompile Include="service\media_controller.cpp" />
     <ClCompile Include="service\participant.cpp" />
     <ClCompile Include="service\participant_controller.cpp" />
     <ClCompile Include="service\room_client.cpp" />
     <ClCompile Include="service\rtc_context.cpp" />
-    <ClCompile Include="logger\rtc_log_sink.cpp" />
-    <ClCompile Include="..\deps\libmediasoupclient\src\scalabilityMode.cpp" />
-    <ClCompile Include="utils\sdp_utils.cpp" />
     <ClCompile Include="service\service_factory.cpp" />
     <ClCompile Include="service\signaling_client.cpp" />
-    <ClCompile Include="logger\spd_logger.cpp" />
+    <ClCompile Include="service\signaling_models.cpp" />
+    <ClCompile Include="service\windows_capture.cpp" />
+    <ClCompile Include="utils\bad_any_cast.cc" />
+    <ClCompile Include="utils\notification_center.cpp" />
+    <ClCompile Include="utils\notification_keys.cpp" />
+    <ClCompile Include="utils\sdp_utils.cpp" />
     <ClCompile Include="utils\string_utils.cpp" />
     <ClCompile Include="utils\task_scheduler.cpp" />
     <ClCompile Include="utils\thread_provider.cpp" />
     <ClCompile Include="websocket\tls_websocket_endpoint.cpp" />
-    <ClCompile Include="opengl\video_shader.cpp" />
     <ClCompile Include="websocket\websocket_endpoint.cpp" />
-    <ClCompile Include="service\windows_capture.cpp" />
-    <ClCompile Include="..\deps\libsdptransform\src\writer.cpp" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="..\deps\libmediasoupclient\deps\libsdptransform\include\json.hpp" />
+    <ClInclude Include="..\deps\libmediasoupclient\deps\libsdptransform\include\sdptransform.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\Consumer.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\DataConsumer.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\DataProducer.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\Device.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\Handler.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\Logger.hpp" />
-    <ClInclude Include="..\deps\libmediasoupclient\include\sdp\MediaSection.hpp" />
+    <ClInclude Include="..\deps\libmediasoupclient\include\mediasoupclient.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\MediaSoupClientErrors.hpp" />
+    <ClInclude Include="..\deps\libmediasoupclient\include\ortc.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\PeerConnection.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\Producer.hpp" />
+    <ClInclude Include="..\deps\libmediasoupclient\include\scalabilityMode.hpp" />
+    <ClInclude Include="..\deps\libmediasoupclient\include\sdp\MediaSection.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\sdp\RemoteSdp.hpp" />
+    <ClInclude Include="..\deps\libmediasoupclient\include\sdp\Utils.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\Transport.hpp" />
     <ClInclude Include="..\deps\libmediasoupclient\include\Utils.hpp" />
-    <ClInclude Include="..\deps\libmediasoupclient\include\sdp\Utils.hpp" />
-    <ClInclude Include="service\broadcaster.hpp" />
-    <ClInclude Include="service\component_factory.h" />
-    <ClInclude Include="websocket\connection_metadata.h" />
-    <ClInclude Include="utils\container.hpp" />
-    <ClInclude Include="service\core.h" />
-    <ClInclude Include="service\engine.h" />
-    <ClInclude Include="opengl\gl_defines.h" />
-    <ClInclude Include="opengl\i420_texture_cache.h" />
-    <ClInclude Include="websocket\i_connection_observer.h" />
-    <ClInclude Include="service\i_media_controller.h" />
-    <ClInclude Include="service\i_media_event_handler.h" />
-    <ClInclude Include="service\i_mediasoup_api.h" />
-    <ClInclude Include="network\i_network_request_manager.h" />
-    <ClInclude Include="utils\i_notification.h" />
-    <ClInclude Include="utils\i_observer.hpp" />
-    <ClInclude Include="service\i_participant.h" />
-    <ClInclude Include="service\i_participant_controller.h" />
-    <ClInclude Include="service\i_participant_event_handler.h" />
-    <ClInclude Include="service\i_room_client.h" />
-    <ClInclude Include="service\i_room_client_event_handler.h" />
-    <ClInclude Include="service\i_service.hpp" />
-    <ClInclude Include="service\i_signaling_client.h" />
-    <ClInclude Include="service\i_signaling_event_handler.h" />
-    <ClInclude Include="websocket\i_transport.h" />
-    <ClInclude Include="websocket\i_transport_observer.h" />
-    <ClInclude Include="utils\interface_proxy.hpp" />
-    <ClInclude Include="..\deps\libsdptransform\include\json.hpp" />
+    <ClInclude Include="..\deps\libmediasoupclient\include\version.hpp" />
     <ClInclude Include="json\jsonable.hpp" />
-    <ClInclude Include="service\media_controller.h" />
-    <ClInclude Include="service\mediasoup_api.h" />
-    <ClInclude Include="..\deps\libmediasoupclient\include\mediasoupclient.hpp" />
+    <ClInclude Include="json\serialization.hpp" />
+    <ClInclude Include="json\stringable.hpp" />
+    <ClInclude Include="json\StringBuffer.h" />
+    <ClInclude Include="json\string_algo.hpp" />
+    <ClInclude Include="logger\rtc_log_sink.h" />
+    <ClInclude Include="logger\spd_logger.h" />
+    <ClInclude Include="network\i_network_request_manager.h" />
     <ClInclude Include="network\network.hpp" />
     <ClInclude Include="network\network_http_client.h" />
     <ClInclude Include="network\network_request_builder.h" />
@@ -228,63 +187,92 @@
     <ClInclude Include="network\network_request_plugin.h" />
     <ClInclude Include="network\network_request_task.h" />
     <ClInclude Include="network\network_status_detector.h" />
-    <ClInclude Include="utils\notification_center.hpp" />
-    <ClInclude Include="utils\notification_keys.hpp" />
-    <ClInclude Include="utils\notifications.hpp" />
-    <ClInclude Include="utils\object_factory.hpp" />
-    <ClInclude Include="utils\observable.h" />
-    <ClInclude Include="utils\observer.hpp" />
+    <ClInclude Include="opengl\gl_defines.h" />
+    <ClInclude Include="opengl\i420_texture_cache.h" />
+    <ClInclude Include="opengl\video_shader.h" />
+    <ClInclude Include="roomclient_global.h" />
+    <ClInclude Include="RoomClient.h" />
+    <ClCompile Include="logger\rtc_log_sink.cpp" />
+    <ClCompile Include="logger\spd_logger.cpp" />
+    <ClCompile Include="network\network_http_client.cpp" />
+    <ClCompile Include="network\network_request_consumer.cpp" />
+    <ClCompile Include="network\network_request_executor.cpp" />
+    <ClCompile Include="network\network_request_manager.cpp" />
+    <ClCompile Include="network\network_request_plugin.cpp" />
+    <ClCompile Include="network\network_request_task.cpp" />
+    <ClCompile Include="network\network_status_detector.cpp" />
+    <ClCompile Include="RoomClient.cpp" />
+    <ClInclude Include="service\base_video_capturer.h" />
+    <ClInclude Include="service\broadcaster.hpp" />
+    <ClInclude Include="service\capturer_track_source.hpp" />
+    <ClInclude Include="service\component_factory.h" />
+    <ClInclude Include="service\core.h" />
+    <ClInclude Include="service\engine.h" />
+    <ClInclude Include="service\i_engine_event_handler.h" />
+    <ClInclude Include="service\i_mediasoup_api.h" />
+    <ClInclude Include="service\i_media_controller.h" />
+    <ClInclude Include="service\i_media_event_handler.h" />
+    <ClInclude Include="service\i_participant.h" />
+    <ClInclude Include="service\i_participant_controller.h" />
+    <ClInclude Include="service\i_participant_event_handler.h" />
+    <ClInclude Include="service\i_room_client.h" />
+    <ClInclude Include="service\i_room_client_event_handler.h" />
+    <ClInclude Include="service\i_service.hpp" />
+    <ClInclude Include="service\i_signaling_client.h" />
+    <ClInclude Include="service\i_signaling_event_handler.h" />
+    <ClInclude Include="service\mac_capturer.h" />
+    <ClInclude Include="service\mediasoup_api.h" />
+    <ClInclude Include="service\media_controller.h" />
     <ClInclude Include="service\options.h" />
-    <ClInclude Include="..\deps\libmediasoupclient\include\ortc.hpp" />
     <ClInclude Include="service\participant.h" />
     <ClInclude Include="service\participant_controller.h" />
     <ClInclude Include="service\room_client.h" />
     <ClInclude Include="service\rtc_context.hpp" />
-    <ClInclude Include="logger\rtc_log_sink.h" />
-    <ClInclude Include="..\deps\libmediasoupclient\include\scalabilityMode.hpp" />
-    <ClInclude Include="utils\sdp_utils.h" />
-    <ClInclude Include="..\deps\libsdptransform\include\sdptransform.hpp" />
-    <ClInclude Include="json\serialization.hpp" />
     <ClInclude Include="service\service_factory.hpp" />
     <ClInclude Include="service\signaling_client.h" />
     <ClInclude Include="service\signaling_models.h" />
+    <ClInclude Include="service\windows_capture.h" />
+    <ClInclude Include="utils\container.hpp" />
+    <ClInclude Include="utils\interface_proxy.hpp" />
+    <ClInclude Include="utils\i_notification.h" />
+    <ClInclude Include="utils\i_observer.hpp" />
+    <ClInclude Include="utils\notifications.hpp" />
+    <ClInclude Include="utils\notification_center.hpp" />
+    <ClInclude Include="utils\notification_keys.hpp" />
+    <ClInclude Include="utils\object_factory.hpp" />
+    <ClInclude Include="utils\observable.h" />
+    <ClInclude Include="utils\observer.hpp" />
+    <ClInclude Include="utils\sdp_utils.h" />
     <ClInclude Include="utils\singleton.h" />
-    <ClInclude Include="logger\spd_logger.h" />
-    <ClInclude Include="json\string_algo.hpp" />
     <ClInclude Include="utils\string_utils.h" />
-    <ClInclude Include="json\stringable.hpp" />
     <ClInclude Include="utils\task_scheduler.h" />
     <ClInclude Include="utils\thread_provider.h" />
-    <ClInclude Include="websocket\tls_websocket_endpoint.h" />
     <ClInclude Include="utils\universal_observable.hpp" />
-    <ClInclude Include="..\deps\libmediasoupclient\include\version.hpp" />
-    <ClInclude Include="opengl\video_shader.h" />
+    <ClInclude Include="websocket\connection_metadata.h" />
+    <ClInclude Include="websocket\i_connection_observer.h" />
+    <ClInclude Include="websocket\i_transport.h" />
+    <ClInclude Include="websocket\i_transport_observer.h" />
+    <ClInclude Include="websocket\tls_websocket_endpoint.h" />
     <ClInclude Include="websocket\websocket_endpoint.h" />
     <ClInclude Include="websocket\websocket_request.h" />
     <ClInclude Include="websocket\websocket_transport.h" />
-    <ClInclude Include="service\windows_capture.h" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="debug\moc_predefs.h.cbt">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">true</ExcludedFromBuild>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">C:\Qt\5.15.2\msvc2019_64\mkspecs\features\data\dummy.cpp;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">cl -BxC:\Qt\5.15.2\msvc2019_64\bin\qmake.exe -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus /MTd /Zi -std:c++17 -W3 -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 -wd4577 -wd4467 -E C:\Qt\5.15.2\msvc2019_64\mkspecs\features\data\dummy.cpp 2&gt;NUL &gt;debug\moc_predefs.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">Generate moc_predefs.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">debug\moc_predefs.h;%(Outputs)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="release\moc_predefs.h.cbt">
-      <FileType>Document</FileType>
-      <AdditionalInputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">C:\Qt\5.15.2\msvc2019_64\mkspecs\features\data\dummy.cpp;%(AdditionalInputs)</AdditionalInputs>
-      <Command Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">cl -BxC:\Qt\5.15.2\msvc2019_64\bin\qmake.exe -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus /MT -std:c++17 -W3 -w34100 -w34189 -w44996 -w44456 -w44457 -w44458 -wd4577 -wd4467 -E C:\Qt\5.15.2\msvc2019_64\mkspecs\features\data\dummy.cpp 2&gt;NUL &gt;release\moc_predefs.h</Command>
-      <Message Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">Generate moc_predefs.h</Message>
-      <Outputs Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Release|x64&apos;">release\moc_predefs.h;%(Outputs)</Outputs>
-      <ExcludedFromBuild Condition="&apos;$(Configuration)|$(Platform)&apos;==&apos;Debug|x64&apos;">true</ExcludedFromBuild>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="opengl\RTCNV12TextureCache.m" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\nupengl.core.redist.0.1.0.1\build\native\nupengl.core.redist.targets" Condition="Exists('..\packages\nupengl.core.redist.0.1.0.1\build\native\nupengl.core.redist.targets')" />
+    <Import Project="..\packages\nupengl.core.0.1.0.1\build\native\nupengl.core.targets" Condition="Exists('..\packages\nupengl.core.0.1.0.1\build\native\nupengl.core.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\nupengl.core.redist.0.1.0.1\build\native\nupengl.core.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\nupengl.core.redist.0.1.0.1\build\native\nupengl.core.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\nupengl.core.0.1.0.1\build\native\nupengl.core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\nupengl.core.0.1.0.1\build\native\nupengl.core.targets'))" />
+  </Target>
 </Project>
