@@ -29,7 +29,7 @@ public:
 
     void update(std::shared_ptr<vi::IParticipant> participant);
 
-private slots:
+private Q_SLOTS:
     void onMuteAudio();
 
     void onUnmuteAudio();

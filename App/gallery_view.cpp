@@ -10,7 +10,13 @@
 #include <QMessageBox>
 #include <QLabel>
 //#include <WinSock2.h>
+#ifdef WIN32
+#include <windows.h>
+#else
 #include <sys/time.h>
+#include <sys/timeb.h>
+#endif
+
 
 #define DRAG_WIDTH      160
 #define DRAG_HEIGHT     120
@@ -33,9 +39,9 @@ namespace {
         int tz_dsttime;     /* type of dst correction to apply */
     };
 
-#include <sys/timeb.h>
     static inline int gettimeofday(struct timeval* tv, struct timezone* tz) {
-        struct _timeb tb;
+        //改成使用chrono
+        /*struct _timeb tb;
         _ftime(&tb);
         if (tv) {
             tv->tv_sec = (long)tb.time;
@@ -44,7 +50,7 @@ namespace {
         if (tz) {
             tz->tz_minuteswest = tb.timezone;
             tz->tz_dsttime = tb.dstflag;
-        }
+        }*/
         return 0;
     }
 #endif
@@ -57,9 +63,11 @@ namespace {
         clock_gettime(CLOCK_MONOTONIC, &ts);
         return ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
 #else
-        struct timeval tv;
+        //改成使用chrono
+        /*struct timeval tv;
         gettimeofday(&tv, NULL);
-        return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+        return tv.tv_sec * 1000 + tv.tv_usec / 1000;*/
+        return 0;
 #endif
     }
 

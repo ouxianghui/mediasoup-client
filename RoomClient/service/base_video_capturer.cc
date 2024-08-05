@@ -6,7 +6,7 @@
 * @Author: Jackie Ou
 * @CreateTime: 2021-10-1
 *************************************************************************/
-
+#pragma warning(disable:4996)
 #include "base_video_capturer.h"
 #include <algorithm>
 #include "api/scoped_refptr.h"

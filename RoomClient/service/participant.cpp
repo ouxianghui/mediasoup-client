@@ -6,7 +6,7 @@
 * @Author: Jackie Ou
 * @CreateTime: 2021-10-1
 *************************************************************************/
-
+#pragma warning(disable:4996)
 #include "participant.h"
 #include "api/media_stream_interface.h"
 

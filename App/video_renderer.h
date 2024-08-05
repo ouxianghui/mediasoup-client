@@ -6,7 +6,7 @@
 #include "api/video/video_frame.h"
 #include <QTimer>
 #include <mutex>
-#include <QtOpenGLWidgets/QOpenGLWidget>
+#include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 
 class VideoShader;
@@ -44,10 +44,10 @@ protected:
 
     void resizeEvent(QResizeEvent *e) override;
 
-signals:
+Q_SIGNALS:
     void draw(std::shared_ptr<webrtc::VideoFrame> frame);
 
-private slots:
+private Q_SLOTS:
     void cleanup();
 
     void onDraw(std::shared_ptr<webrtc::VideoFrame> frame);

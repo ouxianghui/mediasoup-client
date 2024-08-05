@@ -1,3 +1,4 @@
+#pragma warning(disable:4996)
 #include "RoomClient.h"
 #include "component_factory.h"
 #include "signaling_client.h"

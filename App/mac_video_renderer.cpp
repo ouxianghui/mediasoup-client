@@ -8,11 +8,11 @@
 #include <thread>
 #include <array>
 #include <QTimer>
-#include "logger/u_logger.h"
+//#include "logger/u_logger.h"
 #include "absl/types/optional.h"
 #include "api/video/video_rotation.h"
 #include "common_video/libyuv/include/webrtc_libyuv.h"
-#include "logger/u_logger.h"
+//#include "logger/u_logger.h"
 #include "rtc_base/checks.h"
 
 MacVideoRenderer::MacVideoRenderer(QWidget *parent)
@@ -115,7 +115,7 @@ void MacVideoRenderer::paintGL()
 
 void MacVideoRenderer::OnFrame(const webrtc::VideoFrame& frame)
 {
-    emit frameArrived(frame);
+    Q_EMIT frameArrived(frame);
 }
 
 void MacVideoRenderer::onFrameArrived(const webrtc::VideoFrame& frame)

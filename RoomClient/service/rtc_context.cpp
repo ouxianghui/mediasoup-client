@@ -8,7 +8,7 @@
 *************************************************************************/
 
 #define MSC_CLASS "MediaStreamTrackFactory"
-
+#pragma warning(disable:4996)
 #include "rtc_context.hpp"
 #include <iostream>
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
@@ -61,7 +61,7 @@ void RTCContext::init()
         ELOG("thread start errored");
     }
 
-    _adm = _workerThread->Invoke<rtc::scoped_refptr<webrtc::AudioDeviceModule>>(RTC_FROM_HERE, [this]() {
+    _adm = _workerThread->BlockingCall([this]() {
         _taskQueueFactory = webrtc::CreateDefaultTaskQueueFactory();
         return webrtc::AudioDeviceModule::Create(webrtc::AudioDeviceModule::kPlatformDefaultAudio, _taskQueueFactory.get());
     });
@@ -92,7 +92,7 @@ void RTCContext::destroy()
         _factory = nullptr;
     }
 
-    _workerThread->Invoke<void>(RTC_FROM_HERE, [this]() {
+    _workerThread->BlockingCall([this]() {
         _adm = nullptr;
     });
 }

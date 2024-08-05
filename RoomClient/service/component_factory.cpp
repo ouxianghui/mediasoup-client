@@ -6,7 +6,7 @@
 * @Author: Jackie Ou
 * @CreateTime: 2021-10-1
 *************************************************************************/
-
+#pragma warning(disable:4996)
 #include "component_factory.h"
 #include "utils/thread_provider.h"
 #include "utils/notification_center.hpp"

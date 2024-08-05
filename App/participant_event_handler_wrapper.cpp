@@ -18,40 +18,40 @@ void ParticipantEventHandlerWrapper::destroy()
 
 void ParticipantEventHandlerWrapper::onParticipantJoin(std::shared_ptr<vi::IParticipant> participant)
 {
-    emit participantJoin(participant);
+    Q_EMIT participantJoin(participant);
 }
 
 void ParticipantEventHandlerWrapper::onParticipantLeave(std::shared_ptr<vi::IParticipant> participant)
 {
-    emit participantLeave(participant);
+    Q_EMIT participantLeave(participant);
 }
 
 void ParticipantEventHandlerWrapper::onRemoteActiveSpeaker(std::shared_ptr<vi::IParticipant> participant, int32_t volume)
 {
-    emit remoteActiveSpeaker(participant, volume);
+    Q_EMIT remoteActiveSpeaker(participant, volume);
 }
 
 void ParticipantEventHandlerWrapper::onDisplayNameChanged(std::shared_ptr<vi::IParticipant> participant)
 {
-    emit displayNameChanged(participant);
+    Q_EMIT displayNameChanged(participant);
 }
 
 void ParticipantEventHandlerWrapper::onCreateRemoteVideoTrack(std::shared_ptr<vi::IParticipant> participant, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
 {
-    emit createRemoteVideoTrack(participant, tid, track);
+    Q_EMIT createRemoteVideoTrack(participant, tid, track);
 }
 
 void ParticipantEventHandlerWrapper::onRemoveRemoteVideoTrack(std::shared_ptr<vi::IParticipant> participant, const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
 {
-    emit removeRemoteVideoTrack(participant, tid, track);
+    Q_EMIT removeRemoteVideoTrack(participant, tid, track);
 }
 
 void ParticipantEventHandlerWrapper::onRemoteAudioStateChanged(std::shared_ptr<vi::IParticipant> participant, bool muted)
 {
-    emit remoteAudioStateChanged(participant, muted);
+    Q_EMIT remoteAudioStateChanged(participant, muted);
 }
 
 void ParticipantEventHandlerWrapper::onRemoteVideoStateChanged(std::shared_ptr<vi::IParticipant> participant, bool muted)
 {
-    emit remoteVideoStateChanged(participant, muted);
+    Q_EMIT remoteVideoStateChanged(participant, muted);
 }

@@ -19,30 +19,30 @@ void RoomClientEventHandlerWrapper::destroy()
 
 void RoomClientEventHandlerWrapper::onRoomStateChanged(vi::RoomState state)
 {
-    emit roomStateChanged(state);
+    Q_EMIT roomStateChanged(state);
 }
 
 void RoomClientEventHandlerWrapper::onCreateLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
 {
-    emit createLocalVideoTrack(tid, track);
+    Q_EMIT createLocalVideoTrack(tid, track);
 }
 
 void RoomClientEventHandlerWrapper::onRemoveLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
 {
-    emit removeLocalVideoTrack(tid, track);
+    Q_EMIT removeLocalVideoTrack(tid, track);
 }
 
 void RoomClientEventHandlerWrapper::onLocalAudioStateChanged(bool enabled, bool muted)
 {
-    emit localAudioStateChanged(enabled, muted);
+    Q_EMIT localAudioStateChanged(enabled, muted);
 }
 
 void RoomClientEventHandlerWrapper::onLocalVideoStateChanged(bool enabled)
 {
-    emit localVideoStateChanged(enabled);
+    Q_EMIT localVideoStateChanged(enabled);
 }
 
 void RoomClientEventHandlerWrapper::onLocalActiveSpeaker(int32_t volume)
 {
-    emit localActiveSpeaker(volume);
+    Q_EMIT localActiveSpeaker(volume);
 }

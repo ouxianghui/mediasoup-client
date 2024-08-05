@@ -15,7 +15,7 @@ public:
 
     void destroy();
 
-signals:
+Q_SIGNALS:
     void roomStateChanged(vi::RoomState state);
 
     void createLocalVideoTrack(const std::string& tid, rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track);

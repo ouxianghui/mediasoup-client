@@ -16,7 +16,7 @@ public:
 
     void destroy();
 
-signals:
+Q_SIGNALS:
     void participantJoin(std::shared_ptr<vi::IParticipant> participant);
 
     void participantLeave(std::shared_ptr<vi::IParticipant> participant);

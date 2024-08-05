@@ -10,7 +10,7 @@
 #include "api/video/video_sink_interface.h"
 #include "api/video/video_frame.h"
 #include <mutex>
-#include <QtOpenGLWidgets/QOpenGLWidget>
+#include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 
 class MacVideoRenderer
@@ -38,10 +38,10 @@ protected:
 
     void OnFrame(const webrtc::VideoFrame& frame) override;
 
-signals:
+Q_SIGNALS:
     void frameArrived(const webrtc::VideoFrame& frame);
 
-private slots:
+private Q_SLOTS:
     void onFrameArrived(const webrtc::VideoFrame& frame);
 
 private:

@@ -35,7 +35,7 @@ namespace {
 namespace vi {
 	class TaskScheduler;
 	template<class Closure>
-	class OneShotTask: public webrtc::QueuedTask {
+	class OneShotTask: public webrtc::TaskQueueBase {
 	public:
 		explicit OneShotTask(Closure&& closure, uint64_t id, std::weak_ptr<TaskScheduler> scheduler)
 			: _closure(std::forward<Closure>(closure))
@@ -64,7 +64,7 @@ namespace vi {
 	};
 
 	template<class Closure>
-	class RepetitiveTask : public webrtc::QueuedTask {
+	class RepetitiveTask : public webrtc::TaskQueueBase {
 	public:
 		explicit RepetitiveTask(Closure&& closure, uint32_t milliseconds, uint64_t id, std::weak_ptr<TaskScheduler> scheduler, rtc::Thread* thread)
 			: _closure(std::forward<Closure>(closure))

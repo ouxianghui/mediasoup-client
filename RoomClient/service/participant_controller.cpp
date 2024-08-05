@@ -6,7 +6,7 @@
 * @Author: Jackie Ou
 * @CreateTime: 2021-10-1
 *************************************************************************/
-
+#pragma warning(disable:4996)
 #include "participant_controller.h"
 #include "logger/spd_logger.h"
 #include "i_participant_event_handler.h"

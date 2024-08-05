@@ -6,7 +6,7 @@
 * @Author: Jackie Ou
 * @CreateTime: 2021-10-1
 *************************************************************************/
-
+#pragma warning(disable:4996)
 #include "mediasoup_api.h"
 #include <string>
 #include "logger/spd_logger.h"

@@ -13,8 +13,8 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{79F433C6-FA2B-4AE7-B19F-5EFC12F72510}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>
-    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0</WindowsTargetPlatformVersion>
-    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0.22000.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0.22000.0</WindowsTargetPlatformVersion>
     <QtMsBuild Condition="'$(QtMsBuild)'=='' OR !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -22,7 +22,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -63,10 +63,34 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>.;..\RoomClient;..\deps\webrtc\m112\include;..\deps\webrtc\m112\include\third_party;..\deps\webrtc\m112\include\third_party\abseil-cpp;..\deps\webrtc\m112\include\third_party\boringssl\src\include;..\deps\libmediasoupclient\deps\libsdptransform\include;..\deps\glew\include;..\deps\concurrentqueue;..\deps\cpr\include;..\deps\libmediasoupclient\include;..\deps\spdlog\include;..\deps\rapidjson\include;..\deps\asio\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;QT_NO_KEYWORDS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>..\deps\glew\lib\Release\x64;..\deps\webrtc\m112\lib;..\deps\cpr\debug\lib;..\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;opengl32.lib;glu32.lib;webrtc.lib;cpr.lib;libcurl-d.lib;zlibd.lib;RoomClient.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>.;..\RoomClient;..\deps\webrtc\m112\include;..\deps\webrtc\m112\include\third_party;..\deps\webrtc\m112\include\third_party\abseil-cpp;..\deps\webrtc\m112\include\third_party\boringssl\src\include;..\deps\libmediasoupclient\deps\libsdptransform\include;..\deps\glew\include;..\deps\concurrentqueue;..\deps\cpr\include;..\deps\libmediasoupclient\include;..\deps\spdlog\include;..\deps\rapidjson\include;..\deps\asio\asio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;GL_SILENCE_DEPRECATION;BUILD_STATIC;USE_AURA=1;NO_TCMALLOC;FULL_SAFE_BROWSING;SAFE_BROWSING_CSD;SAFE_BROWSING_DB_LOCAL;CHROMIUM_BUILD;_HAS_EXCEPTIONS=0;__STD_C;_CRT_RAND_S;_CRT_SECURE_NO_DEPRECATE;_SCL_SECURE_NO_DEPRECATE;_ATL_NO_OPENGL;CERT_CHAIN_PARA_HAS_EXTRA_FIELDS;PSAPI_VERSION=2;_SECURE_ATL;_USING_V110_SDK71_;WINAPI_FAMILY=WINAPI_FAMILY_DESKTOP_APP;WIN32_LEAN_AND_MEAN;NOMINMAX;NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=0x0A00;WINVER=0x0A00;DYNAMIC_ANNOTATIONS_ENABLED=1;WTF_USE_DYNAMIC_ANNOTATIONS=1;WEBRTC_ENABLE_PROTOBUF=1;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;RTC_ENABLE_VP9;HAVE_SCTP;WEBRTC_USE_H264;WEBRTC_NON_STATIC_TRACE_EVENT_HANDLERS=0;WEBRTC_WIN;ABSL_ALLOCATOR_NOTHROW=1;HAVE_WEBRTC_VIDEO;HAVE_WEBRTC_VOICE;ASIO_STANDALONE;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_CORE_LIB;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;QT_NO_KEYWORDS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>..\deps\glew\lib\Release\x64;..\deps\webrtc\m112\lib;..\deps\cpr\lib;..\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Advapi32.lib;comdlg32.lib;dbghelp.lib;dnsapi.lib;gdi32.lib;msimg32.lib;odbc32.lib;odbccp32.lib;oleaut32.lib;shell32.lib;shlwapi.lib;user32.lib;usp10.lib;uuid.lib;version.lib;wininet.lib;winmm.lib;winspool.lib;ws2_32.lib;delayimp.lib;kernel32.lib;ole32.lib;crypt32.lib;iphlpapi.lib;secur32.lib;dmoguids.lib;wmcodecdspuuid.lib;amstrmid.lib;msdmo.lib;strmiids.lib;opengl32.lib;glu32.lib;webrtc.lib;cpr.lib;libcurl.lib;zlib.lib;RoomClient.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
@@ -92,11 +116,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="mainwindow.cpp" />
+    <ClCompile Include="participant_event_handler_wrapper.cpp" />
+    <ClCompile Include="participant_item_view.cpp" />
+    <ClCompile Include="participant_list_view.cpp" />
+    <ClCompile Include="room_client_event_handler_wrapper.cpp" />
+    <ClCompile Include="table.cpp" />
+    <ClCompile Include="video_renderer.cpp" />
     <None Include="packages.config" />
     <QtRcc Include="App.qrc" />
-    <QtUic Include="App.ui" />
-    <QtMoc Include="App.h" />
-    <ClCompile Include="App.cpp" />
+    <QtUic Include="..\..\..\mediasoup-client-qt-win_bak\App\form.ui" />
+    <QtUic Include="..\..\..\mediasoup-client-qt-win_bak\App\gallery_view.ui" />
+    <QtUic Include="..\..\..\mediasoup-client-qt-win_bak\App\mainwindow.ui" />
+    <QtUic Include="..\..\..\mediasoup-client-qt-win_bak\App\participant_item_view.ui" />
+    <QtUic Include="..\..\..\mediasoup-client-qt-win_bak\App\participant_list_view.ui" />
+    <ClCompile Include="form.cpp" />
+    <ClCompile Include="gallery_view.cpp" />
+    <ClCompile Include="mac_video_renderer.cpp" />
     <ClCompile Include="main.cpp" />
     <None Include="App.ico" />
     <ResourceCompile Include="App.rc" />
@@ -111,6 +147,32 @@
     <Image Include="resource\icons8-no-video-100.png" />
     <Image Include="resource\icons8-video-call-100.png" />
     <Image Include="resource\icons8-voice-100.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="form.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="gallery_view.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="mac_video_renderer.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="participant_event_handler_wrapper.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="participant_item_view.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="participant_list_view.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="room_client_event_handler_wrapper.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="mainwindow.h" />
+    <ClInclude Include="table.h" />
+    <QtMoc Include="video_renderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

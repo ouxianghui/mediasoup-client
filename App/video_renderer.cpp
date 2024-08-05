@@ -175,7 +175,7 @@ void VideoRenderer::paintGL()
 void VideoRenderer::OnFrame(const webrtc::VideoFrame& frame)
 {
     auto videeoFrame = std::make_shared<webrtc::VideoFrame>(frame);
-    emit draw(videeoFrame);
+    Q_EMIT draw(videeoFrame);
 }
 
 void VideoRenderer::onDraw(std::shared_ptr<webrtc::VideoFrame> frame)

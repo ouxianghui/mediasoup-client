@@ -7,7 +7,7 @@
 * @CreateTime: 2021-10-1
 *************************************************************************/
 
-
+#pragma warning(disable:4996)
 #include "service_factory.hpp"
 #include "i_service.hpp"
 

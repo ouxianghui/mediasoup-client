@@ -6,7 +6,7 @@
 * @Author: Jackie Ou
 * @CreateTime: 2021-10-1
 *************************************************************************/
-
+#pragma warning(disable:4996)
 #include "signaling_client.h"
 #include "component_factory.h"
 #include "logger/spd_logger.h"

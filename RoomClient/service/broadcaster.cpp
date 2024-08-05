@@ -6,7 +6,7 @@
 * @Author: Jackie Ou
 * @CreateTime: 2021-10-1
 *************************************************************************/
-
+#pragma warning(disable:4996)
 #include "broadcaster.hpp"
 #include "rtc_context.hpp"
 #include "mediasoupclient.hpp"

@@ -3,7 +3,7 @@
  * Author:    Jackie Ou
  * Created:   2021-11-01
  **/
-
+#pragma warning(disable:4996)
 #include "windows_capture.h"
 #include <stdint.h>
 #include <memory>
