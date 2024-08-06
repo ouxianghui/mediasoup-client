@@ -48,7 +48,7 @@ UI/UI.APS
 /App/debug
 /RoomClient/debug
 
-/deps/webrtc
+# /deps/webrtc
 
 .qmake.stash
 /App/x64
