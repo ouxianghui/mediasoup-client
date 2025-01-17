@@ -73,12 +73,12 @@ void SignalingClient::send(const std::string& text, int64_t transcation, Success
         request->setText(text);
         request->setResolveCallback(scb);
         request->setRejectCallback(fcb);
-        _transport->send(request->text());
-        request->ticktock();
         {
             std::lock_guard<std::mutex> locker(_requestMutex);
             _requestMap[request->id()] = request;
         }
+        _transport->send(request->text());
+        request->ticktock();
     }
 }
 
@@ -90,12 +90,12 @@ void SignalingClient::send(const std::vector<uint8_t>& data, int64_t transcation
         request->setData(data);
         request->setResolveCallback(scb);
         request->setRejectCallback(fcb);
-        _transport->send(request->data());
-        request->ticktock();
         {
             std::lock_guard<std::mutex> locker(_requestMutex);
             _requestMap[request->id()] = request;
         }
+        _transport->send(request->data());
+        request->ticktock();
     }
 }
 
