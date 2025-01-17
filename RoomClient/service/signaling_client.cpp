@@ -68,6 +68,11 @@ void SignalingClient::disconnect()
 void SignalingClient::send(const std::string& text, int64_t transcation, SuccessCallback scb, FailureCallback fcb)
 {
     if (!text.empty()) {
+        // Handle response sned directly
+        if (scb == nullptr && fcb == nullptr) {
+            _transport->send(text);
+            return;
+        }
         uint32_t timeout = 1500 * (15 + (0.1 * _requestMap.size()));
         auto request = std::make_shared<vi::WebsocketRequest>(transcation, timeout);
         request->setText(text);
@@ -85,6 +90,11 @@ void SignalingClient::send(const std::string& text, int64_t transcation, Success
 void SignalingClient::send(const std::vector<uint8_t>& data, int64_t transcation, SuccessCallback scb, FailureCallback fcb)
 {
     if (!data.empty()) {
+        // Handle response sned directly
+        if (scb == nullptr && fcb == nullptr) {
+            _transport->send(data);
+            return;
+        }
         uint32_t timeout = 1500 * (15 + (0.1 * _requestMap.size()));
         auto request = std::make_shared<vi::WebsocketRequest>(transcation, timeout);
         request->setData(data);
